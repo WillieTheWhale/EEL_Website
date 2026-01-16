@@ -16,7 +16,6 @@
             this.checkDeviceAndOrientation();
             this.setupEventListeners();
             
-            console.log('%cÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â± Mobile handler initialized', 'color: #5B8FA8; font-weight: bold;');
         },
         
         checkDeviceAndOrientation: function() {

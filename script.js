@@ -1419,16 +1419,7 @@ function createEngineeringStructures() {
         { x: 76.4, y: 0, z: -65 }, { x: 0, y: -76.4, z: -70 }, { x: 50, y: -50, z: -80 }
     ];
     
-    // 1. Wireframe Gear
-    const gearGroup = createWireframeGear();
-    gearGroup.position.set(positions[0].x, positions[0].y, positions[0].z);
-    gearGroup.userData.originalPosition = gearGroup.position.clone();
-    gearGroup.userData.rotationSpeed = 0.02;
-    scene.add(gearGroup);
-    structures.push(gearGroup);
-    harmonicMotion.registerElement(gearGroup, { amplitude: FIBONACCI[4] * 0.5, frequency: 1 / (FIBONACCI[5] * PHI), axis: 'y', pattern: 'sine' });
-    
-    // 2. Cog Cluster
+    // 1. Cog Cluster
     const cogCluster = createCogCluster();
     cogCluster.position.set(positions[1].x, positions[1].y, positions[1].z);
     cogCluster.userData.originalPosition = cogCluster.position.clone();
@@ -1444,23 +1435,16 @@ function createEngineeringStructures() {
     structures.push(hexLattice);
     harmonicMotion.registerElement(hexLattice, { amplitude: FIBONACCI[4], frequency: 1 / (FIBONACCI[7] * PHI), axis: 'z', pattern: 'perlin' });
     
-    // 4. Swimmer Hand - Realistic scale, closer position
+    // 4. Swimmer Hand - Organic hand with natural relaxed pose, positioned up and left
     const swimmerHand = createSwimmerHand();
-    swimmerHand.position.set(-35, 20, -10);
+    swimmerHand.position.set(-65, 20, -8);
+    swimmerHand.rotation.y = Math.PI;  // Rotate 180° so palm faces user
     swimmerHand.userData.originalPosition = swimmerHand.position.clone();
     scene.add(swimmerHand);
     structures.push(swimmerHand);
     harmonicMotion.registerElement(swimmerHand, { amplitude: FIBONACCI[2], frequency: 1 / (FIBONACCI[6] * PHI), axis: 'y', pattern: 'sine' });
     
-    // 5. Geodesic Sphere
-    const geodesic = createGeodesicSphere();
-    geodesic.position.set(positions[4].x, positions[4].y, positions[4].z);
-    geodesic.userData.originalPosition = geodesic.position.clone();
-    scene.add(geodesic);
-    structures.push(geodesic);
-    harmonicMotion.registerElement(geodesic, { amplitude: FIBONACCI[3], frequency: 1 / (FIBONACCI[5] * PHI), axis: 'y', pattern: 'sine' });
-    
-    // 6. Circuit Trace (NEW)
+    // 5. Circuit Trace
     const circuit = createCircuitTrace();
     circuit.position.set(positions[5].x, positions[5].y, positions[5].z);
     circuit.userData.originalPosition = circuit.position.clone();
@@ -1484,14 +1468,33 @@ function createEngineeringStructures() {
     structures.push(truss);
     harmonicMotion.registerElement(truss, { amplitude: FIBONACCI[3], frequency: 1 / (FIBONACCI[8] * PHI), axis: 'y', pattern: 'sine' });
     
-    // 9. Turbine Blade
-    const turbine = createTurbineBlade();
-    turbine.position.set(positions[8].x, positions[8].y, positions[8].z);
-    turbine.userData.originalPosition = turbine.position.clone();
-    turbine.userData.rotationSpeed = 0.05;
-    scene.add(turbine);
-    structures.push(turbine);
-    harmonicMotion.registerElement(turbine, { amplitude: FIBONACCI[2], frequency: 1 / (FIBONACCI[6] * PHI), axis: 'x', pattern: 'lissajous' });
+    // 9. Quadcopter Drone (replaces Turbine Blade)
+    const quadcopter = createQuadcopter();
+    quadcopter.position.set(positions[8].x, positions[8].y - 20, positions[8].z);
+    quadcopter.userData.originalPosition = quadcopter.position.clone();
+    scene.add(quadcopter);
+    structures.push(quadcopter);
+
+    // Generate random waypoints for drone flight path
+    const droneOrigin = quadcopter.userData.originalPosition.clone();
+    const waypointCount = 5;
+    const waypointRadius = 12;
+
+    // IMPORTANT: First waypoint must be the starting position
+    quadcopter.userData.waypoints.push(droneOrigin.clone());
+
+    for (let i = 0; i < waypointCount; i++) {
+        const theta = (i / waypointCount) * Math.PI * 2 + Math.random() * 0.5; // Spread around with some randomness
+        const r = waypointRadius * (0.6 + Math.random() * 0.4);
+
+        const waypoint = new THREE.Vector3(
+            droneOrigin.x + r * Math.cos(theta),
+            droneOrigin.y + (Math.random() - 0.5) * 6, // Gentle vertical variation
+            droneOrigin.z + r * Math.sin(theta)
+        );
+        quadcopter.userData.waypoints.push(waypoint);
+    }
+    // Loop back to origin (which is waypoints[0])
     
     // 10. Atomic Model
     const atom = createAtomicModel();
@@ -1524,43 +1527,8 @@ function createEngineeringStructures() {
     scene.add(parametric);
     structures.push(parametric);
     harmonicMotion.registerElement(parametric, { amplitude: FIBONACCI[4], frequency: 1 / (FIBONACCI[7] * PHI), axis: 'z', pattern: 'perlin' });
-    
-    log('Created ' + structures.length + ' engineering structures');
-}
 
-function createWireframeGear() {
-    const group = new THREE.Group();
-    const torusGeo = new THREE.TorusGeometry(8, 1.5, 16, 32);
-    const torusMat = createWireframeMaterial(0x7ec8e3);
-    const torus = new THREE.Mesh(torusGeo, torusMat);
-    group.add(torus);
-    
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const toothGeo = new THREE.BoxGeometry(2, 3, 1.5);
-        const tooth = new THREE.Mesh(toothGeo, torusMat);
-        tooth.position.x = Math.cos(angle) * 9.5;
-        tooth.position.y = Math.sin(angle) * 9.5;
-        tooth.rotation.z = angle;
-        group.add(tooth);
-    }
-    
-    const hubGeo = new THREE.CylinderGeometry(3, 3, 2, 6);
-    const hub = new THREE.Mesh(hubGeo, torusMat);
-    hub.rotation.x = Math.PI / 2;
-    group.add(hub);
-    
-    for (let i = 0; i < 6; i++) {
-        const angle = (i / 6) * Math.PI * 2;
-        const spokeGeo = new THREE.CylinderGeometry(0.3, 0.3, 5, 8);
-        const spoke = new THREE.Mesh(spokeGeo, torusMat);
-        spoke.position.x = Math.cos(angle) * 4;
-        spoke.position.y = Math.sin(angle) * 4;
-        spoke.rotation.z = angle + Math.PI / 2;
-        group.add(spoke);
-    }
-    group.userData.type = 'wireframe_gear';
-    return group;
+    log('Created ' + structures.length + ' engineering structures');
 }
 
 function createCogCluster() {
@@ -1614,1172 +1582,1129 @@ function createHexagonalLattice() {
 }
 
 // ============================================
-// SWIMMER HAND - LARGE ORGANIC WIREFRAME MODEL
-// Anatomically accurate with flowing organic geometry
+// TRULY ORGANIC HUMAN HAND - Natural Relaxed Pose
+// ============================================
+// ANATOMICALLY ACCURATE LEFT HAND
+// Wireframe aesthetic with proper joint hierarchy
 // ============================================
 
 function createSwimmerHand() {
     const group = new THREE.Group();
     const isDark = document.body.getAttribute('data-theme') === 'dark';
-    
+
     // ============================================
-    // SCALE - Realistic human hand proportions
+    // CONSTANTS - Hand proportions
     // ============================================
-    
-    const S = 0.72; // Moderate scale - realistic size
-    
-    // Anatomical measurements - true human proportions
-    // Average adult hand: palm ~10cm long, ~8.5cm wide
-    const PALM = {
-        width: 6.5 * S,      // ~4.7 units wide
-        length: 7.5 * S,     // ~5.4 units long
-        thickness: 2.0 * S   // ~1.4 units thick (realistic)
+    const SCALE = 0.5;
+    const PALM_LENGTH = 8.0;
+    const PALM_WIDTH = 7.5;
+    const PALM_THICKNESS = 2.5;
+
+    // Finger lengths
+    const FINGER_LENGTHS = {
+        thumb: 5.5,
+        index: 7.5,
+        middle: 8.5,
+        ring: 7.8,
+        pinky: 6.0
     };
-    
-    const WRIST = {
-        width: 4.5 * S,
-        depth: 2.4 * S,
-        length: 2.2 * S
+
+    // Phalanx ratios (proximal, middle, distal)
+    const PHALANX_RATIOS = {
+        thumb: [0.58, 0, 0.42],
+        finger: [0.50, 0.28, 0.22]
     };
-    
-    // Finger data: realistic human proportions
-    // Proximal:middle:distal ratio roughly 1.0:0.6:0.45
-    const FINGER_DATA = {
-        index:  { len: [2.8, 1.7, 1.3], w: 0.95, ax: -0.30, ay: 0.48, spr: 0.05 },
-        middle: { len: [3.2, 1.9, 1.4], w: 1.0,  ax: -0.04, ay: 0.50, spr: 0.0 },
-        ring:   { len: [3.0, 1.8, 1.35], w: 0.95, ax: 0.20, ay: 0.47, spr: -0.04 },
-        pinky:  { len: [2.2, 1.3, 1.0], w: 0.78, ax: 0.42, ay: 0.38, spr: -0.09 }
+
+    // MCP positions (knuckles) - where fingers attach to palm
+    const MCP_POSITIONS = {
+        index:  { x:  2.2, y: PALM_LENGTH * 0.95, z: 0.2 },
+        middle: { x:  0.7, y: PALM_LENGTH * 1.0,  z: 0.15 },
+        ring:   { x: -0.8, y: PALM_LENGTH * 0.95, z: 0.1 },
+        pinky:  { x: -2.2, y: PALM_LENGTH * 0.88, z: 0.0 }
     };
-    
-    const THUMB_DATA = {
-        metacarpal: 2.0,
-        proximal: 2.2,
-        distal: 1.7,
-        width: 1.15,
-        pos: [-0.48, -0.15],
-        rot: [0.32, -0.48, 0.82]
+
+    // Thumb CMC position
+    const THUMB_CMC = { x: 3.2, y: PALM_LENGTH * 0.32, z: 0.8 };
+
+    // Natural resting angles (degrees) - relaxed, slightly curved
+    const REST_ANGLES = {
+        thumb:  { mcp: 15, pip: 0,  dip: 8 },
+        index:  { mcp: 12, pip: 15, dip: 8 },
+        middle: { mcp: 15, pip: 18, dip: 10 },
+        ring:   { mcp: 18, pip: 22, dip: 12 },
+        pinky:  { mcp: 22, pip: 28, dip: 15 }
     };
-    
+
+    // Finger widths (base width, taper to tip)
+    const FINGER_WIDTHS = {
+        thumb:  { base: 1.6, tip: 1.0 },
+        index:  { base: 1.3, tip: 0.75 },
+        middle: { base: 1.4, tip: 0.8 },
+        ring:   { base: 1.3, tip: 0.72 },
+        pinky:  { base: 1.0, tip: 0.55 }
+    };
+
     // ============================================
-    // MATERIALS - Clean, subtle wireframe aesthetic
+    // MATERIALS - Wireframe aesthetic
     // ============================================
-    
     const COL = {
-        main: isDark ? 0x6AB8D0 : 0x5AA8C0,
-        light: isDark ? 0x8AD0E8 : 0x7AC0D8,
-        dim: isDark ? 0x4A9098 : 0x3A8088,
-        glow: isDark ? 0x5AA8B8 : 0x4A98A8,
-        accent: isDark ? 0x9AE0F0 : 0x8AD0E0
+        main: isDark ? 0x6EC8E0 : 0x58B0C8,
+        light: isDark ? 0x8CE0F8 : 0x7CD0E8,
+        dim: isDark ? 0x489098 : 0x388080,
+        glow: isDark ? 0x5CC0D8 : 0x4CB0C8
     };
-    
-    // Primary wireframe
+
     const matMain = new THREE.MeshBasicMaterial({
         color: COL.main, wireframe: true, transparent: true, opacity: 0.85
     });
-    
-    // Secondary wireframe - accent details
     const matLight = new THREE.MeshBasicMaterial({
-        color: COL.light, wireframe: true, transparent: true, opacity: 0.65
+        color: COL.light, wireframe: true, transparent: true, opacity: 0.5
     });
-    
-    // Dim wireframe for subtle features
     const matDim = new THREE.MeshBasicMaterial({
-        color: COL.dim, wireframe: true, transparent: true, opacity: 0.40
+        color: COL.dim, wireframe: true, transparent: true, opacity: 0.35
     });
-    
-    // Subtle glow material for accents
     const matGlow = new THREE.MeshBasicMaterial({
-        color: COL.glow, transparent: true, opacity: 0.18,
+        color: COL.glow, transparent: true, opacity: 0.12,
         blending: THREE.AdditiveBlending
     });
-    
-    // Semi-solid for organic feel - very subtle
-    const matFlesh = new THREE.MeshPhysicalMaterial({
-        color: COL.main,
-        metalness: 0.1,
-        roughness: 0.7,
-        transparent: true,
-        opacity: 0.22,
-        emissive: new THREE.Color(COL.glow),
-        emissiveIntensity: isDark ? 0.08 : 0.04
+    const matWeb = new THREE.MeshBasicMaterial({
+        color: COL.dim, wireframe: true, transparent: true, opacity: 0.25,
+        side: THREE.DoubleSide
     });
-    
-    const allMaterials = [matMain, matLight, matDim, matGlow, matFlesh];
-    
+
+    const allMaterials = [matMain, matLight, matDim, matGlow, matWeb];
+
     // ============================================
-    // ORGANIC GEOMETRY FUNCTIONS - High polygon count
+    // HELPER: Create realistic finger segment
     // ============================================
-    
-    // Smooth organic cross-section using superellipse
-    function superellipse(angle, rx, rz, n) {
-        n = n || 2.2;
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
-        const sc = Math.sign(c) * Math.pow(Math.abs(c), 2/n);
-        const ss = Math.sign(s) * Math.pow(Math.abs(s), 2/n);
-        return { x: rx * sc, z: rz * ss };
-    }
-    
-    // Smooth interpolation
-    function smoothstep(x) {
-        return x * x * (3 - 2 * x);
-    }
-    
-    // Create organic finger bone with flowing curves - HIGH POLY
-    function createBone(length, wBase, wTip, isDistal) {
-        const radSegs = 16; // More segments for smoother curves
-        const hSegs = 14;   // More height segments
-        const verts = [], inds = [], uvs = [];
-        
-        for (let h = 0; h <= hSegs; h++) {
-            const t = h / hSegs;
-            const y = t * length;
-            
-            // Organic width interpolation with natural curve
-            const tSmooth = smoothstep(t);
-            const w = wBase + (wTip - wBase) * tSmooth;
-            
-            // Natural joint bulges - organic swelling at ends
-            let bulge = 1.0;
-            if (t < 0.18) {
-                const bT = 1 - t / 0.18;
-                bulge = 1.0 + Math.pow(bT, 1.8) * 0.18;
-            } else if (t > 0.82 && !isDistal) {
-                const bT = (t - 0.82) / 0.18;
-                bulge = 1.0 + Math.pow(bT, 1.8) * 0.14;
-            }
-            
-            // Natural tapering curve
-            const taperCurve = 1.0 - Math.pow(t, 2.5) * 0.08;
-            
-            for (let s = 0; s <= radSegs; s++) {
-                const u = s / radSegs;
-                const ang = u * Math.PI * 2;
-                const sin = Math.sin(ang);
-                const cos = Math.cos(ang);
-                
-                // Organic radii - wider than deep
-                let rx = w * 0.52 * bulge * taperCurve;
-                let rz = w * 0.44 * bulge * taperCurve;
-                
-                // Palm-side flattening (organic flesh compression)
-                if (sin > 0.15) {
-                    const flat = Math.pow(sin - 0.15, 1.2) * 0.22;
-                    rz *= 1.0 - flat;
-                }
-                
-                // Dorsal convexity (back of finger rounds out)
-                if (sin < -0.15) {
-                    const curve = Math.pow(-sin - 0.15, 1.5) * 0.18;
-                    rz *= 1.0 + curve;
-                }
-                
-                // Lateral organic compression
-                if (Math.abs(cos) > 0.65) {
-                    const squeeze = (Math.abs(cos) - 0.65) * 0.14;
-                    rx *= 1.0 - squeeze;
-                }
-                
-                // Natural twist along length
-                const twist = t * 0.05 * sin;
-                
-                const pt = superellipse(ang, rx, rz, 2.3);
-                verts.push(pt.x + twist, y, pt.z);
-                uvs.push(u, t);
+    function createPhalanx(length, baseWidth, tipWidth) {
+        const phalanxGroup = new THREE.Group();
+        const len = length * SCALE;
+        const bw = baseWidth * SCALE;
+        const tw = tipWidth * SCALE;
+
+        // Main finger segment - capsule-like shape
+        const segments = 16;
+        const radialSegs = 12;
+        const verts = [];
+        const indices = [];
+
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            const y = t * len;
+
+            // Width tapers from base to tip
+            const width = bw + (tw - bw) * t;
+            // Depth is slightly less than width (fingers are oval, not round)
+            const depth = width * 0.75;
+
+            // Joint bulge at base
+            const baseBulge = i < 3 ? 1 + (3 - i) / 3 * 0.15 : 1;
+            // Slight bulge at knuckle area (around 30% up)
+            const knuckleBulge = Math.abs(t - 0.3) < 0.15 ? 1 + (1 - Math.abs(t - 0.3) / 0.15) * 0.08 : 1;
+
+            const finalWidth = width * baseBulge * knuckleBulge;
+            const finalDepth = depth * baseBulge * knuckleBulge;
+
+            for (let j = 0; j <= radialSegs; j++) {
+                const theta = (j / radialSegs) * Math.PI * 2;
+                // Elliptical cross-section, flattened on palm side
+                let x = Math.cos(theta) * finalWidth * 0.5;
+                let z = Math.sin(theta) * finalDepth * 0.5;
+
+                // Flatten palm side slightly
+                if (z > 0) z *= 0.85;
+
+                verts.push(x, y, z);
             }
         }
-        
-        // Generate smooth triangle indices
-        for (let h = 0; h < hSegs; h++) {
-            for (let s = 0; s < radSegs; s++) {
-                const a = h * (radSegs + 1) + s;
+
+        // Generate indices
+        for (let i = 0; i < segments; i++) {
+            for (let j = 0; j < radialSegs; j++) {
+                const a = i * (radialSegs + 1) + j;
                 const b = a + 1;
-                const c = a + radSegs + 1;
+                const c = a + radialSegs + 1;
                 const d = c + 1;
-                inds.push(a, b, c, b, d, c);
+                indices.push(a, b, c, b, d, c);
             }
         }
-        
+
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setIndex(inds);
+        geo.setIndex(indices);
         geo.computeVertexNormals();
-        return geo;
+
+        const mesh = new THREE.Mesh(geo, matMain);
+        phalanxGroup.add(mesh);
+
+        // Add inner wireframe layer for depth
+        const innerMesh = new THREE.Mesh(geo.clone(), matDim);
+        innerMesh.scale.set(0.7, 0.98, 0.7);
+        phalanxGroup.add(innerMesh);
+
+        return phalanxGroup;
     }
-    
-    // Organic fingertip with natural rounded nail bed - HIGH POLY
-    function createTip(length, width) {
-        const radSegs = 16;
-        const hSegs = 16; // Extra segments for smooth tip
-        const verts = [], inds = [], uvs = [];
-        
-        for (let h = 0; h <= hSegs; h++) {
-            const t = h / hSegs;
-            const y = t * length;
-            
-            // Organic taper with hemispherical end
-            let taper = 1.0 - t * 0.28;
-            if (t > 0.55) {
-                const tipT = (t - 0.55) / 0.45;
-                // Smooth hemisphere transition
-                taper *= Math.sqrt(Math.max(0.01, 1 - tipT * tipT * 0.92));
-            }
-            
-            const w = width * Math.max(0.12, taper);
-            
-            for (let s = 0; s <= radSegs; s++) {
-                const u = s / radSegs;
-                const ang = u * Math.PI * 2;
-                const sin = Math.sin(ang);
-                const cos = Math.cos(ang);
-                
-                let rx = w * 0.50;
-                let rz = w * 0.42;
-                
-                // Palm side compression
-                if (sin > 0.12) {
-                    rz *= 1.0 - (sin - 0.12) * 0.20;
-                }
-                
-                // Nail bed - flatter on dorsal side near tip
-                if (sin < -0.3 && t > 0.15 && t < 0.80) {
-                    rz *= 0.90;
-                    // Slight ridge for nail
-                    if (t > 0.25 && t < 0.70) {
-                        rz *= 0.95;
+
+    // ============================================
+    // HELPER: Create finger with joint hierarchy
+    // ============================================
+    function createFinger(name, config) {
+        const { length, baseWidth, tipWidth, mcpPos, restAngles } = config;
+        const isThumb = name === 'thumb';
+        const ratios = isThumb ? PHALANX_RATIOS.thumb : PHALANX_RATIOS.finger;
+
+        // Calculate phalanx lengths
+        const proximalLen = length * ratios[0];
+        const middleLen = isThumb ? 0 : length * ratios[1];
+        const distalLen = length * (isThumb ? ratios[2] : ratios[2]);
+
+        // Calculate widths at each joint (taper profile)
+        const widthAtPIP = baseWidth * 0.88;
+        const widthAtDIP = baseWidth * 0.75;
+
+        // Root group positioned at MCP (or CMC for thumb)
+        const fingerGroup = new THREE.Group();
+        fingerGroup.position.set(mcpPos.x * SCALE, mcpPos.y * SCALE, mcpPos.z * SCALE);
+
+        // Store rest angles for animation
+        fingerGroup.userData.restAngles = restAngles;
+        fingerGroup.userData.name = name;
+
+        // PROXIMAL PHALANX (rotates at MCP)
+        const proximalGroup = new THREE.Group();
+        const proximal = createPhalanx(proximalLen, baseWidth, widthAtPIP);
+        // Geometry starts at y=0, no centering needed
+        proximalGroup.add(proximal);
+
+        // Apply MCP rest angle (convert degrees to radians)
+        proximalGroup.rotation.x = -restAngles.mcp * Math.PI / 180;
+        fingerGroup.add(proximalGroup);
+
+        if (isThumb) {
+            // THUMB: Only has 2 phalanges (proximal + distal)
+            const distalGroup = new THREE.Group();
+            distalGroup.position.y = proximalLen * SCALE;  // At end of proximal
+
+            const distal = createPhalanx(distalLen, widthAtPIP, tipWidth);
+            distalGroup.add(distal);
+
+            // Fingertip
+            const tipPad = new THREE.Mesh(
+                new THREE.SphereGeometry(tipWidth * SCALE * 0.45, 8, 8),
+                matMain
+            );
+            tipPad.position.y = distalLen * SCALE;
+            tipPad.scale.set(1.1, 0.5, 0.8);
+            distalGroup.add(tipPad);
+
+            distalGroup.rotation.x = -restAngles.dip * Math.PI / 180;
+            proximalGroup.add(distalGroup);
+
+            fingerGroup.userData.proximal = proximalGroup;
+            fingerGroup.userData.distal = distalGroup;
+        } else {
+            // REGULAR FINGER: 3 phalanges
+
+            // MIDDLE PHALANX (rotates at PIP)
+            const middleGroup = new THREE.Group();
+            middleGroup.position.y = proximalLen * SCALE;  // At end of proximal
+
+            const middle = createPhalanx(middleLen, widthAtPIP, widthAtDIP);
+            middleGroup.add(middle);
+
+            middleGroup.rotation.x = -restAngles.pip * Math.PI / 180;
+            proximalGroup.add(middleGroup);
+
+            // DISTAL PHALANX (rotates at DIP)
+            const distalGroup = new THREE.Group();
+            distalGroup.position.y = middleLen * SCALE;  // At end of middle
+
+            const distal = createPhalanx(distalLen, widthAtDIP, tipWidth);
+            distalGroup.add(distal);
+
+            // Fingertip pad
+            const tipPad = new THREE.Mesh(
+                new THREE.SphereGeometry(tipWidth * SCALE * 0.5, 8, 6),
+                matLight
+            );
+            tipPad.position.y = distalLen * SCALE;
+            tipPad.scale.set(1, 0.5, 0.85);
+            distalGroup.add(tipPad);
+
+            distalGroup.rotation.x = -restAngles.dip * Math.PI / 180;
+            middleGroup.add(distalGroup);
+
+            fingerGroup.userData.proximal = proximalGroup;
+            fingerGroup.userData.middle = middleGroup;
+            fingerGroup.userData.distal = distalGroup;
+        }
+
+        return fingerGroup;
+    }
+
+    // ============================================
+    // CREATE THUMB - Fully anatomical human thumb
+    // ============================================
+    function createThumb() {
+        const thumbGroup = new THREE.Group();
+        const S = SCALE;
+
+        // Real thumb proportions (in units, will be scaled)
+        const METACARPAL_LEN = 2.8;
+        const PROXIMAL_LEN = 2.2;
+        const DISTAL_LEN = 1.8;
+
+        // Generate organic cross-section outline at a given height
+        // Returns array of {x, z} points
+        function getThumbCrossSection(segmentType, t, baseW, baseD) {
+            const points = [];
+            const numPts = 32;
+
+            for (let i = 0; i <= numPts; i++) {
+                const angle = (i / numPts) * Math.PI * 2;
+                const cosA = Math.cos(angle);
+                const sinA = Math.sin(angle);
+
+                let x, z;
+
+                if (segmentType === 'metacarpal') {
+                    // Metacarpal: Rounded triangular cross-section
+                    // Wider at back (dorsal), narrower toward palm
+                    const dorsalBulge = sinA < 0 ? 1.15 : 0.9;
+                    const lateralSquash = 1 - Math.abs(cosA) * 0.1;
+
+                    // Base ellipse with modifications
+                    x = cosA * baseW * 0.5 * lateralSquash;
+                    z = sinA * baseD * 0.5 * dorsalBulge;
+
+                    // Thenar muscle attachment bulge on radial side (thumb-side of metacarpal)
+                    if (cosA > 0.3 && sinA > -0.5 && t < 0.6) {
+                        const thenarStrength = (1 - t / 0.6) * Math.pow(Math.max(0, cosA - 0.3) / 0.7, 0.6) * 0.35;
+                        x += thenarStrength * baseW * 0.3;
+                        z += thenarStrength * baseD * 0.15 * Math.max(0, sinA + 0.5);
+                    }
+
+                } else if (segmentType === 'proximal') {
+                    // Proximal phalanx: Barrel-shaped, wider in middle
+                    const barrelBulge = 1 + Math.sin(t * Math.PI) * 0.12;
+
+                    // Flattened on palm side, rounded on back
+                    const palmFlat = sinA > 0.2 ? 0.75 + 0.25 * (1 - sinA) : 1;
+                    const backRound = sinA < -0.3 ? 1.1 : 1;
+
+                    x = cosA * baseW * 0.5 * barrelBulge;
+                    z = sinA * baseD * 0.5 * palmFlat * backRound * barrelBulge;
+
+                    // Lateral ridges where tendons run
+                    if (Math.abs(cosA) > 0.8) {
+                        const ridgeStrength = (Math.abs(cosA) - 0.8) / 0.2 * 0.08;
+                        z -= ridgeStrength * baseD * Math.abs(sinA);
+                    }
+
+                    // Flexor crease hint on palm side
+                    if (sinA > 0.7 && t > 0.1 && t < 0.3) {
+                        const creaseDepth = Math.sin((t - 0.1) / 0.2 * Math.PI) * 0.05;
+                        z -= creaseDepth * baseD;
+                    }
+
+                } else if (segmentType === 'distal') {
+                    // Distal phalanx: Spatula/paddle shape - VERY distinctive
+                    // Wider and flatter toward tip, with prominent pad
+
+                    // Width expands then tapers at very tip
+                    const widthProfile = t < 0.7 ? 1 + t * 0.3 : 1.3 - (t - 0.7) / 0.3 * 0.5;
+
+                    // Thickness: thin at base, bulbous pad in middle, tapers at tip
+                    let thickProfile;
+                    if (t < 0.2) {
+                        thickProfile = 0.9 + t / 0.2 * 0.3;
+                    } else if (t < 0.75) {
+                        thickProfile = 1.2 + Math.sin((t - 0.2) / 0.55 * Math.PI) * 0.25;
+                    } else {
+                        thickProfile = 1.2 - (t - 0.75) / 0.25 * 0.6;
+                    }
+
+                    // Base shape
+                    x = cosA * baseW * 0.5 * widthProfile;
+                    z = sinA * baseD * 0.5 * thickProfile;
+
+                    // THUMB PAD - Very prominent fleshy bulge on palm side
+                    if (sinA > 0 && t > 0.15 && t < 0.9) {
+                        const padT = (t - 0.15) / 0.75;
+                        const padStrength = Math.sin(padT * Math.PI) * Math.pow(sinA, 0.6);
+                        const padBulge = padStrength * 0.5 * baseD;
+                        z += padBulge;
+
+                        // Pad is also wider
+                        if (Math.abs(cosA) < 0.7) {
+                            x *= 1 + padStrength * 0.15;
+                        }
+                    }
+
+                    // NAIL BED - Flattened area on dorsal side
+                    if (sinA < -0.3 && t > 0.25) {
+                        const nailT = (t - 0.25) / 0.75;
+                        // Flatten for nail
+                        const flatStrength = Math.pow(nailT, 0.5) * Math.pow(Math.abs(sinA + 0.3) / 1.3, 0.8);
+                        z = z * (1 - flatStrength * 0.3) - flatStrength * 0.1 * baseD;
+
+                        // Nail edges slightly raised
+                        if (Math.abs(cosA) > 0.5 && Math.abs(cosA) < 0.85) {
+                            z -= 0.03 * baseD * nailT;
+                        }
+                    }
+
+                    // TIP ROUNDING
+                    if (t > 0.85) {
+                        const tipT = (t - 0.85) / 0.15;
+                        const roundFactor = Math.sqrt(1 - tipT * tipT * 0.8);
+                        x *= roundFactor;
+                        z *= roundFactor;
+                    }
+
+                    // Lateral nail folds
+                    if (Math.abs(cosA) > 0.75 && sinA < 0 && t > 0.3) {
+                        const foldStrength = (Math.abs(cosA) - 0.75) / 0.25 * (t - 0.3) / 0.7 * 0.06;
+                        z += foldStrength * baseD;
                     }
                 }
-                
-                // Dorsal convexity
-                if (sin < -0.15) {
-                    rz *= 1.0 + (-sin - 0.15) * 0.14;
+
+                // Add organic micro-variation
+                const noise = Math.sin(angle * 7 + t * 13) * Math.cos(angle * 11 - t * 7) * 0.012;
+                x += noise * baseW;
+                z += noise * baseD * 0.5;
+
+                points.push({ x: x * S, z: z * S });
+            }
+
+            return points;
+        }
+
+        // Build a thumb segment mesh from cross-sections
+        function buildSegmentMesh(segmentType, length, baseWidth, baseDepth, tipWidth, tipDepth) {
+            const len = length * S;
+            const ySegs = 24;
+            const verts = [];
+            const indices = [];
+
+            for (let yi = 0; yi <= ySegs; yi++) {
+                const t = yi / ySegs;
+                const y = t * len;
+
+                // Interpolate width and depth
+                const w = baseWidth + (tipWidth - baseWidth) * t;
+                const d = baseDepth + (tipDepth - baseDepth) * t;
+
+                const outline = getThumbCrossSection(segmentType, t, w, d);
+
+                for (const pt of outline) {
+                    verts.push(pt.x, y, pt.z);
                 }
-                
-                // Tip rounds in all directions
-                if (t > 0.75) {
-                    const roundT = (t - 0.75) / 0.25;
-                    rx *= 1.0 - roundT * 0.3;
-                    rz *= 1.0 - roundT * 0.25;
+            }
+
+            // Generate indices
+            const ptsPerLevel = 33;  // numPts + 1
+            for (let yi = 0; yi < ySegs; yi++) {
+                for (let pi = 0; pi < ptsPerLevel - 1; pi++) {
+                    const a = yi * ptsPerLevel + pi;
+                    const b = a + 1;
+                    const c = a + ptsPerLevel;
+                    const d = c + 1;
+                    indices.push(a, c, b, b, c, d);
                 }
-                
-                const pt = superellipse(ang, rx, rz, 2.2);
-                verts.push(pt.x, y, pt.z);
-                uvs.push(u, t);
             }
-        }
-        
-        for (let h = 0; h < hSegs; h++) {
-            for (let s = 0; s < radSegs; s++) {
-                const a = h * (radSegs + 1) + s;
-                const b = a + 1;
-                const c = a + radSegs + 1;
-                const d = c + 1;
-                inds.push(a, b, c, b, d, c);
+
+            // End caps
+            const baseCenterIdx = verts.length / 3;
+            verts.push(0, 0, 0);
+            for (let pi = 0; pi < ptsPerLevel - 1; pi++) {
+                indices.push(baseCenterIdx, pi + 1, pi);
             }
-        }
-        
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setIndex(inds);
-        geo.computeVertexNormals();
-        return geo;
-    }
-    
-    // Organic ellipsoid joint - more anatomical
-    function createJoint(radius) {
-        const geo = new THREE.SphereGeometry(radius, 14, 12);
-        const pos = geo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            const x = pos.getX(i);
-            const y = pos.getY(i);
-            const z = pos.getZ(i);
-            // Anatomical joint shape - wider, compressed vertically
-            pos.setX(i, x * 1.28);
-            pos.setY(i, y * 0.55);
-            pos.setZ(i, z * 0.92);
-        }
-        geo.computeVertexNormals();
-        return geo;
-    }
-    
-    // Organic fingernail with natural curvature
-    function createNail(width, length) {
-        const wS = 10, lS = 8;
-        const verts = [], inds = [], uvs = [];
-        
-        for (let l = 0; l <= lS; l++) {
-            const v = l / lS;
-            const y = v * length;
-            // Natural nail width taper
-            const wMod = v < 0.3 ? 0.92 + v * 0.27 : 1.0 - (v - 0.3) * 0.22;
-            const w = width * wMod;
-            
-            for (let ws = 0; ws <= wS; ws++) {
-                const u = ws / wS;
-                const x = (u - 0.5) * w;
-                // Natural nail curvature - wraps around finger
-                const curve = Math.cos(u * Math.PI) * 0.14 * width;
-                // Slight lift at edges
-                const lift = Math.pow(Math.abs(u - 0.5) * 2, 2) * 0.03 * width;
-                verts.push(x, y, -curve - lift - 0.02 * width);
-                uvs.push(u, v);
+
+            const topStart = ySegs * ptsPerLevel;
+            const topCenterIdx = verts.length / 3;
+            verts.push(0, len, 0);
+            for (let pi = 0; pi < ptsPerLevel - 1; pi++) {
+                indices.push(topCenterIdx, topStart + pi, topStart + pi + 1);
             }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+            geo.setIndex(indices);
+            geo.computeVertexNormals();
+
+            const group = new THREE.Group();
+            group.add(new THREE.Mesh(geo, matMain));
+
+            // Inner wireframe
+            const inner = new THREE.Mesh(geo.clone(), matDim);
+            inner.scale.set(0.72, 0.97, 0.72);
+            group.add(inner);
+
+            return group;
         }
-        
-        for (let l = 0; l < lS; l++) {
-            for (let ws = 0; ws < wS; ws++) {
-                const a = l * (wS + 1) + ws;
-                const b = a + 1;
-                const c = a + wS + 1;
-                const d = c + 1;
-                inds.push(a, b, c, b, d, c);
-            }
-        }
-        
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setIndex(inds);
-        geo.computeVertexNormals();
-        return geo;
-    }
-    
-    // ============================================
-    // BUILD FINGER - Organic flowing construction
-    // ============================================
-    
-    function buildFinger(data, name) {
-        const fg = new THREE.Group();
-        const lens = data.len.map(l => l * S);
-        const w = data.w * S;
-        
-        let y = 0;
-        
-        // Proximal phalanx - base of finger
-        const proxGeo = createBone(lens[0], w, w * 0.88, false);
-        const proxMain = new THREE.Mesh(proxGeo, matMain.clone());
-        fg.add(proxMain);
-        
-        // Secondary wireframe layer for depth
-        const proxWire = new THREE.Mesh(proxGeo.clone(), matLight.clone());
-        proxWire.scale.set(1.02, 1, 1.02);
-        fg.add(proxWire);
-        
-        // Inner flesh glow
-        const proxFlesh = new THREE.Mesh(proxGeo.clone(), matFlesh.clone());
-        proxFlesh.scale.set(0.92, 0.98, 0.92);
-        fg.add(proxFlesh);
-        
-        y += lens[0];
-        
-        // PIP joint - larger, more organic
-        const pipGeo = createJoint(w * 0.42);
-        const pip = new THREE.Mesh(pipGeo, matLight.clone());
-        pip.position.y = y;
-        fg.add(pip);
-        
-        // Joint glow
-        const pipGlow = new THREE.Mesh(pipGeo.clone(), matGlow.clone());
-        pipGlow.position.y = y;
-        pipGlow.scale.set(1.15, 1.1, 1.15);
-        fg.add(pipGlow);
-        
-        y += w * 0.22;
-        
-        // Middle phalanx
-        const midGeo = createBone(lens[1], w * 0.88, w * 0.80, false);
-        const mid = new THREE.Mesh(midGeo, matMain.clone());
-        mid.position.y = y;
-        fg.add(mid);
-        
-        const midWire = new THREE.Mesh(midGeo.clone(), matLight.clone());
-        midWire.position.y = y;
-        midWire.scale.set(1.02, 1, 1.02);
-        fg.add(midWire);
-        
-        const midFlesh = new THREE.Mesh(midGeo.clone(), matFlesh.clone());
-        midFlesh.position.y = y;
-        midFlesh.scale.set(0.92, 0.98, 0.92);
-        fg.add(midFlesh);
-        
-        y += lens[1];
-        
-        // DIP joint
-        const dipGeo = createJoint(w * 0.36);
-        const dip = new THREE.Mesh(dipGeo, matLight.clone());
-        dip.position.y = y;
-        fg.add(dip);
-        
-        const dipGlow = new THREE.Mesh(dipGeo.clone(), matGlow.clone());
-        dipGlow.position.y = y;
-        dipGlow.scale.set(1.15, 1.1, 1.15);
-        fg.add(dipGlow);
-        
-        y += w * 0.18;
-        
-        // Distal phalanx (fingertip) - uses tip geometry
-        const tipGeo = createTip(lens[2], w * 0.80);
-        const tip = new THREE.Mesh(tipGeo, matMain.clone());
-        tip.position.y = y;
-        fg.add(tip);
-        
-        const tipWire = new THREE.Mesh(tipGeo.clone(), matLight.clone());
-        tipWire.position.y = y;
-        tipWire.scale.set(1.02, 1, 1.02);
-        fg.add(tipWire);
-        
-        const tipFlesh = new THREE.Mesh(tipGeo.clone(), matFlesh.clone());
-        tipFlesh.position.y = y;
-        tipFlesh.scale.set(0.92, 0.98, 0.92);
-        fg.add(tipFlesh);
-        
-        // Fingernail
-        const nailGeo = createNail(w * 0.55, lens[2] * 0.58);
-        const nail = new THREE.Mesh(nailGeo, matLight.clone());
-        nail.position.set(0, y + lens[2] * 0.26, -w * 0.32);
-        fg.add(nail);
-        
-        // Dorsal tendon - visible through skin
-        const tenPts = [];
-        const totalL = lens[0] + lens[1] + lens[2] + w * 0.40;
-        for (let i = 0; i <= 16; i++) {
-            const t = i / 16;
-            const wave = Math.sin(t * Math.PI * 2) * 0.02 * w;
-            tenPts.push(new THREE.Vector3(wave, t * totalL, -w * (0.40 - t * 0.08)));
-        }
-        const tenCurve = new THREE.CatmullRomCurve3(tenPts);
-        const tenGeo = new THREE.TubeGeometry(tenCurve, 20, w * 0.032, 6, false);
-        fg.add(new THREE.Mesh(tenGeo, matDim.clone()));
-        
-        // Skin creases at joints - more natural
-        const creaseY = [lens[0] * 0.94, lens[0] + w * 0.22 + lens[1] * 0.94];
-        creaseY.forEach((cy, idx) => {
-            // Double crease for realism
-            for (let c = 0; c < 2; c++) {
-                const creaseGeo = new THREE.TorusGeometry(w * 0.44, S * 0.022, 5, 20, Math.PI * 0.85);
-                const crease = new THREE.Mesh(creaseGeo, matDim.clone());
-                crease.position.set(0, cy - c * S * 0.08, w * 0.28);
+
+        // Create skin crease rings at joints
+        function createJointCreases(width, depth, numCreases) {
+            const creaseGroup = new THREE.Group();
+            const w = width * S;
+            const d = depth * S;
+
+            for (let i = 0; i < numCreases; i++) {
+                const yOffset = (i - (numCreases - 1) / 2) * 0.06 * S;
+                const creaseRadius = (w + d) * 0.24;
+
+                // Create crease as deformed torus
+                const creaseGeo = new THREE.TorusGeometry(creaseRadius, 0.015 * S, 6, 24);
+                const pos = creaseGeo.attributes.position;
+
+                for (let j = 0; j < pos.count; j++) {
+                    const x = pos.getX(j);
+                    const y = pos.getY(j);
+                    let z = pos.getZ(j);
+
+                    // Flatten to match thumb shape
+                    const angle = Math.atan2(z, x);
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+
+                    // Elliptical deformation
+                    const newX = x * (w / creaseRadius / 2);
+                    const newZ = z * (d / creaseRadius / 2) * 0.85;
+
+                    pos.setXYZ(j, newX, y + yOffset, newZ);
+                }
+                creaseGeo.computeVertexNormals();
+
+                const crease = new THREE.Mesh(creaseGeo, matLight);
                 crease.rotation.x = Math.PI / 2;
-                crease.rotation.z = (c - 0.5) * 0.1;
-                fg.add(crease);
+                creaseGroup.add(crease);
             }
-        });
-        
-        // Side skin folds at joints
-        creaseY.forEach(cy => {
-            [-1, 1].forEach(side => {
-                const foldGeo = new THREE.TorusGeometry(w * 0.25, S * 0.018, 4, 12, Math.PI * 0.6);
-                const fold = new THREE.Mesh(foldGeo, matDim.clone());
-                fold.position.set(side * w * 0.35, cy, w * 0.08);
-                fold.rotation.y = side * Math.PI / 2;
-                fold.rotation.x = Math.PI / 3;
-                fg.add(fold);
-            });
-        });
-        
-        fg.userData = { name: name, totalLength: totalL, baseWidth: w };
-        return fg;
-    }
-    
-    // ============================================
-    // BUILD THUMB - Organic opposing digit
-    // ============================================
-    
-    function buildThumb() {
-        const tg = new THREE.Group();
-        const TD = THUMB_DATA;
-        const meta = TD.metacarpal * S;
-        const prox = TD.proximal * S;
-        const dist = TD.distal * S;
-        const w = TD.width * S;
-        
-        let y = 0;
-        
-        // Metacarpal bone
-        const metaGeo = createBone(meta, w * 1.15, w * 0.95, false);
-        tg.add(new THREE.Mesh(metaGeo, matMain.clone()));
-        
-        const metaWire = new THREE.Mesh(metaGeo.clone(), matLight.clone());
-        metaWire.scale.set(1.02, 1, 1.02);
-        tg.add(metaWire);
-        
-        const metaFlesh = new THREE.Mesh(metaGeo.clone(), matFlesh.clone());
-        metaFlesh.scale.set(0.92, 0.98, 0.92);
-        tg.add(metaFlesh);
-        
-        y += meta;
-        
-        // MCP joint (knuckle)
-        const mcpGeo = createJoint(w * 0.48);
-        const mcp = new THREE.Mesh(mcpGeo, matLight.clone());
-        mcp.position.y = y;
-        tg.add(mcp);
-        
-        const mcpGlow = new THREE.Mesh(mcpGeo.clone(), matGlow.clone());
-        mcpGlow.position.y = y;
-        mcpGlow.scale.set(1.18, 1.1, 1.18);
-        tg.add(mcpGlow);
-        
-        y += w * 0.24;
-        
-        // Proximal phalanx
-        const proxGeo = createBone(prox, w * 0.95, w * 0.85, false);
-        const proxM = new THREE.Mesh(proxGeo, matMain.clone());
-        proxM.position.y = y;
-        tg.add(proxM);
-        
-        const proxWire = new THREE.Mesh(proxGeo.clone(), matLight.clone());
-        proxWire.position.y = y;
-        proxWire.scale.set(1.02, 1, 1.02);
-        tg.add(proxWire);
-        
-        const proxFlesh = new THREE.Mesh(proxGeo.clone(), matFlesh.clone());
-        proxFlesh.position.y = y;
-        proxFlesh.scale.set(0.92, 0.98, 0.92);
-        tg.add(proxFlesh);
-        
-        y += prox;
-        
-        // IP joint
-        const ipGeo = createJoint(w * 0.40);
-        const ip = new THREE.Mesh(ipGeo, matLight.clone());
-        ip.position.y = y;
-        tg.add(ip);
-        
-        const ipGlow = new THREE.Mesh(ipGeo.clone(), matGlow.clone());
-        ipGlow.position.y = y;
-        ipGlow.scale.set(1.15, 1.1, 1.15);
-        tg.add(ipGlow);
-        
-        y += w * 0.20;
-        
-        // Distal phalanx (thumb tip)
-        const tipGeo = createTip(dist, w * 0.85);
-        const tipM = new THREE.Mesh(tipGeo, matMain.clone());
-        tipM.position.y = y;
-        tg.add(tipM);
-        
-        const tipWire = new THREE.Mesh(tipGeo.clone(), matLight.clone());
-        tipWire.position.y = y;
-        tipWire.scale.set(1.02, 1, 1.02);
-        tg.add(tipWire);
-        
-        const tipFlesh = new THREE.Mesh(tipGeo.clone(), matFlesh.clone());
-        tipFlesh.position.y = y;
-        tipFlesh.scale.set(0.92, 0.98, 0.92);
-        tg.add(tipFlesh);
-        
-        // Thumbnail - larger
-        const nailGeo = createNail(w * 0.62, dist * 0.58);
-        const nail = new THREE.Mesh(nailGeo, matLight.clone());
-        nail.position.set(0, y + dist * 0.24, -w * 0.38);
-        tg.add(nail);
-        
-        // Thenar muscle bulge - larger, more organic
-        const thenarGeo = new THREE.SphereGeometry(w * 0.72, 14, 12);
-        const thenarPos = thenarGeo.attributes.position;
-        for (let i = 0; i < thenarPos.count; i++) {
-            const x = thenarPos.getX(i);
-            const y = thenarPos.getY(i);
-            const z = thenarPos.getZ(i);
-            // Organic muscle shape
-            thenarPos.setX(i, x * 1.65);
-            thenarPos.setY(i, y * 0.55);
-            thenarPos.setZ(i, z * 1.35);
+
+            return creaseGroup;
         }
-        thenarGeo.computeVertexNormals();
-        
-        const thenar = new THREE.Mesh(thenarGeo, matDim.clone());
-        thenar.position.set(w * 0.60, w * 0.45, w * 0.38);
-        tg.add(thenar);
-        
-        // Thenar glow
-        const thenarGlow = new THREE.Mesh(thenarGeo.clone(), matGlow.clone());
-        thenarGlow.position.copy(thenar.position);
-        thenarGlow.scale.set(1.1, 1.1, 1.1);
-        tg.add(thenarGlow);
-        
-        // Skin crease at IP joint
-        const creaseGeo = new THREE.TorusGeometry(w * 0.48, S * 0.024, 5, 20, Math.PI * 0.85);
-        const crease = new THREE.Mesh(creaseGeo, matDim.clone());
-        crease.position.set(0, prox + meta + w * 0.24 - S * 0.05, w * 0.30);
-        crease.rotation.x = Math.PI / 2;
-        tg.add(crease);
-        
-        return tg;
+
+        // === ASSEMBLE THUMB ===
+
+        // METACARPAL
+        const metacarpalGroup = new THREE.Group();
+        const metacarpal = buildSegmentMesh('metacarpal',
+            METACARPAL_LEN, 1.6, 1.2, 1.4, 1.1
+        );
+        metacarpalGroup.add(metacarpal);
+        thumbGroup.add(metacarpalGroup);
+
+        // MCP JOINT AREA (creases between metacarpal and proximal)
+        const mcpCreases = createJointCreases(1.5, 1.15, 2);
+        mcpCreases.position.y = METACARPAL_LEN * S;
+        metacarpalGroup.add(mcpCreases);
+
+        // PROXIMAL PHALANX
+        const proximalGroup = new THREE.Group();
+        proximalGroup.position.y = METACARPAL_LEN * S;
+
+        const proximal = buildSegmentMesh('proximal',
+            PROXIMAL_LEN, 1.5, 1.15, 1.35, 1.0
+        );
+        proximalGroup.add(proximal);
+
+        // IP JOINT CREASES
+        const ipCreases = createJointCreases(1.35, 1.0, 3);
+        ipCreases.position.y = PROXIMAL_LEN * S;
+        proximalGroup.add(ipCreases);
+
+        // Natural MCP flexion - significant curl inward
+        proximalGroup.rotation.x = -35 * Math.PI / 180;
+        metacarpalGroup.add(proximalGroup);
+
+        // DISTAL PHALANX (with integrated nail and pad)
+        const distalGroup = new THREE.Group();
+        distalGroup.position.y = PROXIMAL_LEN * S;
+
+        const distal = buildSegmentMesh('distal',
+            DISTAL_LEN, 1.35, 1.0, 0.9, 0.7
+        );
+        distalGroup.add(distal);
+
+        // THUMBNAIL - Curved 3D nail shape
+        const nailGroup = new THREE.Group();
+        const nailW = 0.7 * S;
+        const nailL = DISTAL_LEN * 0.55 * S;
+        const nailSegsX = 8;
+        const nailSegsY = 12;
+        const nailVerts = [];
+        const nailIndices = [];
+
+        for (let yi = 0; yi <= nailSegsY; yi++) {
+            const yt = yi / nailSegsY;
+            for (let xi = 0; xi <= nailSegsX; xi++) {
+                const xt = xi / nailSegsX;
+
+                // Position along nail
+                const x = (xt - 0.5) * nailW;
+                const y = yt * nailL;
+
+                // Nail curvature: curved across width, slightly along length
+                const curveCross = Math.pow(Math.abs(xt - 0.5) * 2, 2) * 0.12 * S;
+                const curveLong = Math.pow(yt, 1.5) * 0.06 * S;
+                const z = -0.42 * S - curveCross - curveLong;
+
+                // Nail edge thickness at sides
+                const edgeThick = Math.abs(xt - 0.5) > 0.4 ? 0.02 * S : 0;
+
+                nailVerts.push(x, y, z - edgeThick);
+            }
+        }
+
+        for (let yi = 0; yi < nailSegsY; yi++) {
+            for (let xi = 0; xi < nailSegsX; xi++) {
+                const a = yi * (nailSegsX + 1) + xi;
+                const b = a + 1;
+                const c = a + nailSegsX + 1;
+                const d = c + 1;
+                nailIndices.push(a, c, b, b, c, d);
+            }
+        }
+
+        const nailGeo = new THREE.BufferGeometry();
+        nailGeo.setAttribute('position', new THREE.Float32BufferAttribute(nailVerts, 3));
+        nailGeo.setIndex(nailIndices);
+        nailGeo.computeVertexNormals();
+
+        const nail = new THREE.Mesh(nailGeo, matLight);
+        nail.position.y = DISTAL_LEN * 0.35 * S;
+        nailGroup.add(nail);
+
+        // Cuticle (lunula area)
+        const cuticle = new THREE.Mesh(
+            new THREE.RingGeometry(nailW * 0.15, nailW * 0.45, 16, 1, 0, Math.PI),
+            matDim
+        );
+        cuticle.rotation.x = Math.PI / 2 + 0.1;
+        cuticle.position.set(0, DISTAL_LEN * 0.38 * S, -0.44 * S);
+        nailGroup.add(cuticle);
+
+        distalGroup.add(nailGroup);
+
+        // Natural IP flexion - curl the tip inward
+        distalGroup.rotation.x = -25 * Math.PI / 180;
+        proximalGroup.add(distalGroup);
+
+        // Position thumb at CMC joint
+        thumbGroup.position.set(
+            THUMB_CMC.x * S,
+            THUMB_CMC.y * S,
+            THUMB_CMC.z * S
+        );
+
+        // Store references
+        thumbGroup.userData.name = 'thumb';
+        thumbGroup.userData.metacarpal = metacarpalGroup;
+        thumbGroup.userData.proximal = proximalGroup;
+        thumbGroup.userData.distal = distalGroup;
+        thumbGroup.userData.restAngles = REST_ANGLES.thumb;
+
+        return thumbGroup;
     }
-    
+
     // ============================================
-    // BUILD PALM - High-poly organic palm
+    // CREATE PALM - Anatomically accurate hand shape
     // ============================================
-    
-    function buildPalm() {
-        const pg = new THREE.Group();
-        const uS = 32; // High segment count for smooth curves
-        const vS = 24;
-        const verts = [], inds = [], uvs = [];
-        
-        for (let v = 0; v <= vS; v++) {
-            const vt = v / vS;
-            const y = (vt - 0.5) * PALM.length;
-            
-            // Organic width transition: narrower wrist, wider knuckles
-            const wCurve = smoothstep(vt);
-            const wFactor = 0.75 + wCurve * 0.25;
-            
-            for (let u = 0; u <= uS; u++) {
-                const ut = u / uS;
-                const ang = ut * Math.PI * 2;
-                const cos = Math.cos(ang);
-                const sin = Math.sin(ang);
-                
-                let rx = PALM.width * 0.5 * wFactor;
-                let rz = PALM.thickness * 0.5;
-                
-                // === ORGANIC MUSCLE BULGES ===
-                
-                // Thenar eminence (thumb muscle pad) - large, flowing
-                const thCenterU = 0.16;
-                const thCenterV = 0.38;
-                const thDistU = Math.min(Math.abs(ut - thCenterU), Math.abs(ut - thCenterU + 1), Math.abs(ut - thCenterU - 1));
-                const thDistV = Math.abs(vt - thCenterV);
-                const thDist = Math.sqrt(thDistU * thDistU * 5 + thDistV * thDistV * 4);
-                
-                if (thDist < 0.55 && sin > -0.18) {
-                    const intensity = Math.pow(1 - thDist / 0.55, 1.6);
-                    const bulge = intensity * 0.48 * PALM.thickness;
-                    rz += bulge * Math.max(0.12, sin + 0.18);
-                    rx += bulge * 0.35 * Math.max(0, -cos);
+    function createPalm() {
+        const palmGroup = new THREE.Group();
+        const S = SCALE;
+
+        // Derive palm dimensions from actual finger attachment positions
+        // Fingers attach at: index x=2.2, middle x=0.7, ring x=-0.8, pinky x=-2.2
+        // Palm should be ~0.15 units wider than outermost fingers
+        const fingerMinX = MCP_POSITIONS.pinky.x;   // -2.2
+        const fingerMaxX = MCP_POSITIONS.index.x;   // 2.2
+        const knuckleHalfWidth = Math.max(Math.abs(fingerMinX), Math.abs(fingerMaxX)) + 0.15;  // ~2.35
+        const wristHalfWidth = knuckleHalfWidth * 0.65;  // ~1.53
+
+        // Actual hand anatomy: 5 metacarpal bones fan out from wrist to knuckles
+        // Thumb metacarpal is offset and rotated
+        // Palm is NOT a simple shape - it's a complex 3D surface
+
+        // Key anatomical landmarks:
+        // - Thenar eminence: fleshy mound at base of thumb (palm side)
+        // - Hypothenar eminence: smaller mound on pinky side (palm side)
+        // - Metacarpal heads: knuckle bumps at top
+        // - Palm hollow: slight depression in center of palm
+        // - Carpal arch: concave across width at wrist
+
+        const numAngles = 48;  // High resolution around perimeter
+        const yLevels = 32;    // High resolution along length
+
+        // Create anatomical cross-section at height yt (0=wrist, 1=knuckles)
+        function getAnatomicalOutline(yt) {
+            const points = [];
+
+            for (let i = 0; i <= numAngles; i++) {
+                const t = i / numAngles;
+                // Map t to angle: start at palm center (+z), go counterclockwise
+                const angle = (t * 2 - 0.5) * Math.PI;  // -0.5π to 1.5π
+
+                // === BASE SHAPE: Asymmetric pentagon-like with curves ===
+                // Real palms are wider on thumb side, narrower on pinky side
+
+                // Width at this height (non-linear expansion from wrist to knuckles)
+                const widthCurve = Math.pow(yt, 0.6);  // Faster expansion near wrist
+                const halfWidth = wristHalfWidth + (knuckleHalfWidth - wristHalfWidth) * widthCurve;
+
+                // Asymmetry: thumb side slightly wider
+                const asymmetry = 1 + 0.08 * Math.max(0, Math.cos(angle));  // Wider on thumb side
+
+                // Thickness varies: thicker at wrist, thinner at knuckles
+                const baseThickness = PALM_THICKNESS * 0.5 * (1.1 - yt * 0.25);
+
+                // Base ellipse with asymmetry
+                let x = Math.cos(angle) * halfWidth * asymmetry;
+                let z = Math.sin(angle) * baseThickness;
+
+                // === ANATOMICAL MODIFICATIONS ===
+
+                // 1. THENAR EMINENCE - Large fleshy mound on thumb side (palm side, +x, +z)
+                // Peaks around yt=0.25-0.45, extends from thumb CMC toward index MCP
+                const thenarCenterY = 0.35;
+                const thenarRadiusY = 0.3;
+                const inThenarY = Math.abs(yt - thenarCenterY) < thenarRadiusY;
+
+                if (inThenarY && angle > -0.3 && angle < 1.2) {
+                    const yFactor = 1 - Math.abs(yt - thenarCenterY) / thenarRadiusY;
+                    const ySmooth = Math.pow(yFactor, 0.7);  // Smooth falloff
+
+                    // Thenar shape: more pronounced toward thumb, fades toward center
+                    const angleFactor = Math.sin((angle + 0.3) / 1.5 * Math.PI);
+                    const angleSmooth = Math.pow(Math.max(0, angleFactor), 0.8);
+
+                    const thenarStrength = ySmooth * angleSmooth;
+
+                    // Bulge outward (+x) and forward (+z)
+                    x += thenarStrength * 0.65 * Math.max(0.2, Math.cos(angle));
+                    z += thenarStrength * 0.55 * Math.max(0, Math.sin(angle));
                 }
-                
-                // Hypothenar eminence (pinky pad) - smaller but prominent
-                const hyDistU = Math.min(Math.abs(ut - 0.84), Math.abs(ut - 0.84 + 1));
-                const hyDistV = Math.abs(vt - 0.40);
-                const hyDist = Math.sqrt(hyDistU * hyDistU * 5 + hyDistV * hyDistV * 4);
-                
-                if (hyDist < 0.45 && sin > -0.12) {
-                    const intensity = Math.pow(1 - hyDist / 0.45, 1.5);
-                    const bulge = intensity * 0.35 * PALM.thickness;
-                    rz += bulge * Math.max(0.1, sin + 0.12);
-                    rx += bulge * 0.25 * Math.max(0, cos);
+
+                // 2. HYPOTHENAR EMINENCE - Smaller mound on pinky side (palm side, -x, +z)
+                // Peaks around yt=0.3-0.5
+                const hypoCenterY = 0.4;
+                const hypoRadiusY = 0.25;
+                const inHypoY = Math.abs(yt - hypoCenterY) < hypoRadiusY;
+
+                if (inHypoY && (angle > 1.8 || angle < -1.5)) {
+                    const yFactor = 1 - Math.abs(yt - hypoCenterY) / hypoRadiusY;
+                    const ySmooth = Math.pow(yFactor, 0.8);
+
+                    const normalizedAngle = angle > 1.8 ? angle - Math.PI : angle + Math.PI;
+                    const angleFactor = Math.cos(normalizedAngle * 0.8);
+                    const angleSmooth = Math.max(0, angleFactor);
+
+                    const hypoStrength = ySmooth * angleSmooth * 0.4;
+
+                    x -= hypoStrength * 0.35;
+                    z += hypoStrength * 0.4 * Math.max(0, Math.sin(angle));
                 }
-                
-                // Central palm hollow (cup of hand)
-                if (sin > 0.30 && vt > 0.22 && vt < 0.75) {
-                    const centeredness = Math.pow(1 - Math.abs(cos), 1.3);
-                    const lengthFac = 1 - Math.pow(Math.abs(vt - 0.48) / 0.27, 2);
-                    const hollow = sin * centeredness * lengthFac * 0.16 * PALM.thickness;
-                    rz -= Math.max(0, hollow);
+
+                // 3. PALM HOLLOW - Concave depression in center of palm
+                // Real palms have a natural cup shape
+                if (angle > 0.2 && angle < 2.5 && yt > 0.15 && yt < 0.85) {
+                    const centeredness = 1 - Math.abs(x / (halfWidth * 0.5));  // Most centered = strongest
+                    const yFactor = Math.sin((yt - 0.15) / 0.7 * Math.PI);
+                    const isFacingPalm = Math.sin(angle) > 0.3;
+
+                    if (isFacingPalm && centeredness > 0.3) {
+                        const hollowStrength = Math.pow(centeredness, 1.5) * yFactor * 0.15;
+                        z -= hollowStrength;
+                    }
                 }
-                
-                // Metacarpal ridges on back (visible bone structure)
-                if (sin < -0.32 && vt > 0.42) {
-                    const backness = -sin - 0.32;
-                    for (let f = 0; f < 4; f++) {
-                        const ridgeU = 0.28 + f * 0.14;
-                        const ridgeDist = Math.min(
-                            Math.abs(ut - ridgeU),
-                            Math.abs(ut - ridgeU + 1),
-                            Math.abs(ut - ridgeU - 1)
-                        );
-                        if (ridgeDist < 0.05) {
-                            const ridgeStr = Math.pow(1 - ridgeDist / 0.05, 1.4);
-                            rz -= ridgeStr * backness * 0.12 * PALM.thickness * (vt - 0.42) / 0.58;
+
+                // 4. METACARPAL RIDGES - Bones visible on back of hand
+                // 4 metacarpals for fingers (thumb metacarpal handled separately)
+                if ((angle < -0.5 || angle > 2.5) && yt > 0.2) {
+                    const metacarpalXs = [
+                        MCP_POSITIONS.index.x,
+                        MCP_POSITIONS.middle.x,
+                        MCP_POSITIONS.ring.x,
+                        MCP_POSITIONS.pinky.x
+                    ];
+
+                    for (const mcpX of metacarpalXs) {
+                        const distFromMC = Math.abs(x - mcpX);
+                        if (distFromMC < 0.5) {
+                            // Ridge strength increases toward knuckles
+                            const ridgeStrength = (1 - distFromMC / 0.5) * Math.pow(yt - 0.2, 0.8) * 0.12;
+                            z -= ridgeStrength;
+                        }
+                    }
+
+                    // Valleys between metacarpals
+                    for (let m = 0; m < 3; m++) {
+                        const valleyX = (metacarpalXs[m] + metacarpalXs[m + 1]) / 2;
+                        const distFromValley = Math.abs(x - valleyX);
+                        if (distFromValley < 0.35) {
+                            const valleyStrength = (1 - distFromValley / 0.35) * Math.pow(yt - 0.2, 0.6) * 0.06;
+                            z += valleyStrength;  // Inward valley
                         }
                     }
                 }
-                
-                // Knuckle arch at top
-                if (vt > 0.88) {
-                    const archT = (vt - 0.88) / 0.12;
-                    const archShape = Math.sin((ut - 0.28) * Math.PI / 0.44);
-                    if (ut > 0.28 && ut < 0.72) {
-                        rz -= archT * archShape * 0.08 * PALM.thickness;
+
+                // 5. KNUCKLE BUMPS - Metacarpal heads protrude at top
+                if (yt > 0.88) {
+                    const knuckleProgress = (yt - 0.88) / 0.12;
+                    const mcpXs = [
+                        MCP_POSITIONS.index.x,
+                        MCP_POSITIONS.middle.x,
+                        MCP_POSITIONS.ring.x,
+                        MCP_POSITIONS.pinky.x
+                    ];
+
+                    for (const mcpX of mcpXs) {
+                        const distFromKnuckle = Math.abs(x - mcpX);
+                        if (distFromKnuckle < 0.4) {
+                            const bumpStrength = (1 - distFromKnuckle / 0.4) * knuckleProgress;
+                            // Knuckles protrude on back of hand
+                            if (angle < -0.3 || angle > 2.8) {
+                                z -= bumpStrength * 0.18;
+                            }
+                            // Slight protrusion on palm side too
+                            if (angle > 0.3 && angle < 2.5) {
+                                z += bumpStrength * 0.06;
+                            }
+                        }
                     }
                 }
-                
-                const pt = superellipse(ang, rx, rz, 2.4);
+
+                // 6. CARPAL ARCH - Wrist has concave palm side (carpal tunnel area)
+                if (yt < 0.12 && angle > 0.3 && angle < 2.5) {
+                    const archStrength = (1 - yt / 0.12) * 0.12;
+                    const centeredness = 1 - Math.abs(Math.cos(angle));
+                    z -= archStrength * centeredness * Math.sin(angle);
+                }
+
+                // 7. EDGE TAPERING - Real palms have smooth, rounded edges
+                // The edge where palm meets back is not sharp
+                const edgeAngle = Math.abs(angle - Math.PI / 2);  // Distance from pure side
+                if (edgeAngle > 1.2) {
+                    // Smooth transition from palm to back
+                    const edgeSoftness = Math.pow((edgeAngle - 1.2) / (Math.PI / 2 - 1.2), 0.5) * 0.1;
+                    x *= (1 - edgeSoftness * 0.1);
+                }
+
+                // 8. ORGANIC MICRO-VARIATION - Natural irregularity
+                const seed1 = Math.sin(t * 37 + yt * 19);
+                const seed2 = Math.cos(t * 23 - yt * 31);
+                const seed3 = Math.sin((t + 0.5) * 17 + yt * 13);
+                const microNoise = (seed1 * seed2 * 0.015 + seed3 * 0.008);
+                x += microNoise * halfWidth;
+                z += microNoise * baseThickness * 0.3;
+
+                points.push({ x: x * S, z: z * S });
+            }
+
+            return points;
+        }
+
+        // Build the palm mesh with high detail
+        const verts = [];
+        const indices = [];
+
+        // Generate vertices for each Y level
+        for (let yi = 0; yi <= yLevels; yi++) {
+            const yt = yi / yLevels;
+            const y = yt * PALM_LENGTH * S;
+            const outline = getAnatomicalOutline(yt);
+
+            for (const pt of outline) {
                 verts.push(pt.x, y, pt.z);
-                uvs.push(ut, vt);
             }
         }
-        
-        // Generate indices
-        for (let v = 0; v < vS; v++) {
-            for (let u = 0; u < uS; u++) {
-                const a = v * (uS + 1) + u;
+
+        // Generate triangle indices
+        const ptsPerLevel = numAngles + 1;
+        for (let yi = 0; yi < yLevels; yi++) {
+            for (let pi = 0; pi < numAngles; pi++) {
+                const a = yi * ptsPerLevel + pi;
                 const b = a + 1;
-                const c = a + uS + 1;
+                const c = a + ptsPerLevel;
                 const d = c + 1;
-                inds.push(a, b, c, b, d, c);
+                indices.push(a, c, b, b, c, d);
             }
         }
-        
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setIndex(inds);
-        geo.computeVertexNormals();
-        
-        // Primary wireframe
-        pg.add(new THREE.Mesh(geo, matMain.clone()));
-        
-        // Secondary wireframe for depth
-        const pgWire = new THREE.Mesh(geo.clone(), matLight.clone());
-        pgWire.scale.set(1.018, 1, 1.018);
-        pg.add(pgWire);
-        
-        // Inner flesh glow
-        const pgFlesh = new THREE.Mesh(geo.clone(), matFlesh.clone());
-        pgFlesh.scale.set(0.94, 0.98, 0.94);
-        pg.add(pgFlesh);
-        
-        // === PALM CREASES - Organic flowing lines ===
-        const creases = [
-            // Heart line (upper transverse crease)
-            [[-.40, .14], [-.22, .22], [.02, .22], [.24, .16], [.38, .08]],
-            // Head line (middle crease)
-            [[-.42, -.04], [-.18, .04], [.08, .02], [.28, -.04], [.40, -.14]],
-            // Life line (curves around thenar)
-            [[-.38, .22], [-.35, .08], [-.32, -.12], [-.28, -.32], [-.22, -.46]]
-        ];
-        
-        creases.forEach((cr, idx) => {
-            const pts = cr.map(p => new THREE.Vector3(
-                p[0] * PALM.width * 0.95,
-                p[1] * PALM.length * 0.95,
-                PALM.thickness * 0.50
-            ));
-            const curve = new THREE.CatmullRomCurve3(pts);
-            const creaseGeo = new THREE.TubeGeometry(curve, 18, S * 0.028, 5, false);
-            pg.add(new THREE.Mesh(creaseGeo, matDim.clone()));
-            
-            // Double line for deeper creases
-            if (idx < 2) {
-                const pts2 = cr.map(p => new THREE.Vector3(
-                    p[0] * PALM.width * 0.95 + S * 0.03,
-                    p[1] * PALM.length * 0.95 - S * 0.02,
-                    PALM.thickness * 0.49
-                ));
-                const curve2 = new THREE.CatmullRomCurve3(pts2);
-                const creaseGeo2 = new THREE.TubeGeometry(curve2, 14, S * 0.018, 4, false);
-                pg.add(new THREE.Mesh(creaseGeo2, matDim.clone()));
-            }
-        });
-        
-        // Finger creases at knuckles
-        for (let f = 0; f < 4; f++) {
-            const fx = (-0.28 + f * 0.185) * PALM.width;
-            const fy = 0.44 * PALM.length;
-            const creaseGeo = new THREE.TorusGeometry(S * 0.55, S * 0.022, 5, 16, Math.PI * 0.75);
-            const crease = new THREE.Mesh(creaseGeo, matDim.clone());
-            crease.position.set(fx, fy, PALM.thickness * 0.48);
-            crease.rotation.x = Math.PI / 2;
-            pg.add(crease);
+
+        // Wrist end cap
+        const wristCenterIdx = verts.length / 3;
+        verts.push(0, 0, 0);
+        for (let pi = 0; pi < numAngles; pi++) {
+            indices.push(wristCenterIdx, pi + 1, pi);
         }
-        
-        return pg;
+
+        // Knuckle end cap
+        const topStart = yLevels * ptsPerLevel;
+        const topCenterIdx = verts.length / 3;
+        verts.push(0, PALM_LENGTH * S, 0);
+        for (let pi = 0; pi < numAngles; pi++) {
+            indices.push(topCenterIdx, topStart + pi, topStart + pi + 1);
+        }
+
+        const palmGeo = new THREE.BufferGeometry();
+        palmGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        palmGeo.setIndex(indices);
+        palmGeo.computeVertexNormals();
+
+        const palm = new THREE.Mesh(palmGeo, matMain);
+        palmGroup.add(palm);
+
+        // Inner structural layer for wireframe depth
+        const innerPalm = new THREE.Mesh(palmGeo.clone(), matDim);
+        innerPalm.scale.set(0.82, 0.97, 0.82);
+        palmGroup.add(innerPalm);
+
+        return palmGroup;
     }
-    
+
     // ============================================
-    // BUILD WRIST
+    // CREATE WRIST
     // ============================================
-    
-    // ============================================
-    // BUILD WRIST - Organic forearm transition
-    // ============================================
-    
-    function buildWrist() {
-        const wg = new THREE.Group();
-        const uS = 24; // Higher segments for smooth curves
-        const vS = 14;
-        const verts = [], inds = [], uvs = [];
-        
-        for (let v = 0; v <= vS; v++) {
-            const vt = v / vS;
-            const y = -vt * WRIST.length;
-            
-            // Organic taper from palm to forearm
-            const taperCurve = smoothstep(vt);
-            const taper = 0.92 + (1 - taperCurve) * 0.08;
-            
-            for (let u = 0; u <= uS; u++) {
-                const ut = u / uS;
-                const ang = ut * Math.PI * 2;
-                const sin = Math.sin(ang);
-                
-                let rx = WRIST.width * 0.5 * taper;
-                let rz = WRIST.depth * 0.5 * taper;
-                
-                // Ulnar styloid (pinky side) - prominent bone bump
-                const ulnarDist = Math.min(Math.abs(ut - 0.76), Math.abs(ut - 0.76 + 1));
-                if (ulnarDist < 0.12 && vt < 0.50) {
-                    const bumpStr = Math.pow(1 - ulnarDist / 0.12, 1.5) * Math.pow(1 - vt / 0.50, 1.3);
-                    rx += bumpStr * 0.15 * WRIST.width;
+    function createWrist() {
+        const wristGroup = new THREE.Group();
+        // Match wrist to palm's bottom dimensions
+        const fingerMaxX = Math.max(Math.abs(MCP_POSITIONS.index.x), Math.abs(MCP_POSITIONS.pinky.x));
+        const knuckleHalfWidth = fingerMaxX + 0.15;
+        const wristHalfWidth = knuckleHalfWidth * 0.65;  // Same as palm bottom
+        const wristWidth = wristHalfWidth * 2 * SCALE;  // Full width, scaled
+        const wristDepth = PALM_THICKNESS * SCALE * 0.85;
+        const wristLength = PALM_LENGTH * SCALE * 0.3;
+
+        // Build wrist as tapered elliptical cylinder
+        const uSegs = 16;
+        const vSegs = 8;
+        const verts = [];
+        const indices = [];
+
+        for (let v = 0; v <= vSegs; v++) {
+            const vt = v / vSegs;
+            const y = -vt * wristLength;  // Goes downward from y=0
+
+            // Taper toward forearm
+            const taper = 1 - vt * 0.15;
+            const w = wristWidth * taper;
+            const d = wristDepth * taper;
+
+            for (let u = 0; u <= uSegs; u++) {
+                const theta = (u / uSegs) * Math.PI * 2;
+                const x = Math.cos(theta) * w * 0.5;
+                let z = Math.sin(theta) * d * 0.5;
+
+                // Slight bone bumps on sides (ulna/radius styloids)
+                if (Math.abs(Math.cos(theta)) > 0.7 && vt < 0.4) {
+                    const bump = (1 - vt / 0.4) * 0.15 * wristDepth;
+                    z += Math.sin(theta) > 0 ? bump : bump * 0.5;
                 }
-                
-                // Radial styloid (thumb side)
-                const radialDist = Math.min(Math.abs(ut - 0.24), Math.abs(ut - 0.24 + 1));
-                if (radialDist < 0.10 && vt < 0.40) {
-                    const bumpStr = Math.pow(1 - radialDist / 0.10, 1.4) * Math.pow(1 - vt / 0.40, 1.2);
-                    rx += bumpStr * 0.12 * WRIST.width;
-                }
-                
-                // Flexor tendons on palm side
-                if (sin > 0.25 && vt > 0.20) {
-                    const tendonBulge = (sin - 0.25) * 0.08 * WRIST.depth;
-                    rz += tendonBulge;
-                }
-                
-                // Back of wrist - flatter
-                if (sin < -0.20) {
-                    rz *= 0.95 + sin * 0.05;
-                }
-                
-                const pt = superellipse(ang, rx, rz, 2.35);
-                verts.push(pt.x, y, pt.z);
-                uvs.push(ut, vt);
+
+                verts.push(x, y, z);
             }
         }
-        
-        for (let v = 0; v < vS; v++) {
-            for (let u = 0; u < uS; u++) {
-                const a = v * (uS + 1) + u;
+
+        for (let v = 0; v < vSegs; v++) {
+            for (let u = 0; u < uSegs; u++) {
+                const a = v * (uSegs + 1) + u;
                 const b = a + 1;
-                const c = a + uS + 1;
+                const c = a + uSegs + 1;
                 const d = c + 1;
-                inds.push(a, b, c, b, d, c);
+                indices.push(a, b, c, b, d, c);
             }
         }
-        
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setIndex(inds);
-        geo.computeVertexNormals();
-        
-        // Primary wireframe
-        wg.add(new THREE.Mesh(geo, matMain.clone()));
-        
-        // Secondary wireframe
-        const wgWire = new THREE.Mesh(geo.clone(), matLight.clone());
-        wgWire.scale.set(1.02, 1, 1.02);
-        wg.add(wgWire);
-        
-        // Inner flesh
-        const wgFlesh = new THREE.Mesh(geo.clone(), matFlesh.clone());
-        wgFlesh.scale.set(0.94, 0.98, 0.94);
-        wg.add(wgFlesh);
-        
-        // Wrist creases - more organic
-        for (let i = 0; i < 3; i++) {
-            const cGeo = new THREE.TorusGeometry(
-                WRIST.width * 0.42 + i * S * 0.06,
-                S * 0.024, 5, 24, Math.PI * 1.15
-            );
-            const c = new THREE.Mesh(cGeo, matDim.clone());
-            c.position.set(0, -WRIST.length * (0.18 + i * 0.28), WRIST.depth * 0.35);
-            c.rotation.x = Math.PI / 2;
-            c.rotation.z = -Math.PI * 0.06 + i * 0.02;
-            wg.add(c);
-        }
-        
-        // Extensor tendons on back - more visible
-        for (let t = 0; t < 4; t++) {
-            const pts = [];
-            const xOff = (-0.30 + t * 0.20) * WRIST.width;
-            for (let i = 0; i <= 10; i++) {
-                const vt = i / 10;
-                const wave = Math.sin(vt * Math.PI) * S * 0.04;
-                pts.push(new THREE.Vector3(
-                    xOff + wave * (t % 2 ? 1 : -1),
-                    -vt * WRIST.length * 1.08,
-                    -WRIST.depth * 0.42
-                ));
-            }
-            const curve = new THREE.CatmullRomCurve3(pts);
-            const tenGeo = new THREE.TubeGeometry(curve, 14, S * 0.028, 5, false);
-            wg.add(new THREE.Mesh(tenGeo, matDim.clone()));
-        }
-        
-        // Ulna and radius hints on sides
-        [-1, 1].forEach((side, idx) => {
-            const bonePts = [];
-            for (let i = 0; i <= 8; i++) {
-                const vt = i / 8;
-                bonePts.push(new THREE.Vector3(
-                    side * WRIST.width * (0.38 + vt * 0.05),
-                    -vt * WRIST.length * 0.95,
-                    0
-                ));
-            }
-            const boneCurve = new THREE.CatmullRomCurve3(bonePts);
-            const boneGeo = new THREE.TubeGeometry(boneCurve, 12, S * 0.035, 5, false);
-            wg.add(new THREE.Mesh(boneGeo, matDim.clone()));
-        });
-        
-        wg.position.y = -PALM.length * 0.5;
-        return wg;
+
+        const wristGeo = new THREE.BufferGeometry();
+        wristGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        wristGeo.setIndex(indices);
+        wristGeo.computeVertexNormals();
+
+        const wrist = new THREE.Mesh(wristGeo, matMain);
+        wristGroup.add(wrist);
+
+        // Inner layer
+        const innerWrist = new THREE.Mesh(wristGeo.clone(), matDim);
+        innerWrist.scale.set(0.75, 0.98, 0.75);
+        wristGroup.add(innerWrist);
+
+        return wristGroup;
     }
-    
+
     // ============================================
-    // ASSEMBLE HAND
+    // CREATE WEBBING BETWEEN FINGERS
     // ============================================
-    
-    // Palm
-    const palm = buildPalm();
-    group.add(palm);
-    
-    // Wrist
-    const wrist = buildWrist();
-    group.add(wrist);
-    
-    // Fingers
-    const fingers = {};
-    
-    Object.keys(FINGER_DATA).forEach(name => {
-        const fd = FINGER_DATA[name];
-        const finger = buildFinger(fd, name);
-        
-        // MCP joint (knuckle) - larger, with glow
-        const mcpGeo = createJoint(fd.w * S * 0.48);
-        const mcp = new THREE.Mesh(mcpGeo, matLight.clone());
-        mcp.position.set(fd.ax * PALM.width, fd.ay * PALM.length, 0);
-        group.add(mcp);
-        
-        // MCP glow
-        const mcpGlow = new THREE.Mesh(mcpGeo.clone(), matGlow.clone());
-        mcpGlow.position.copy(mcp.position);
-        mcpGlow.scale.set(1.2, 1.15, 1.2);
-        group.add(mcpGlow);
-        
-        // Position finger
-        finger.position.set(
-            fd.ax * PALM.width,
-            fd.ay * PALM.length + fd.w * S * 0.25,
-            0
+    function createWebbing(finger1Pos, finger2Pos, depth) {
+        const webGeo = new THREE.PlaneGeometry(
+            Math.abs(finger2Pos.x - finger1Pos.x) * SCALE * 1.1,
+            depth * SCALE,
+            4, 6
         );
-        
-        // Set initial rotation and store base values for animation
-        const baseRotX = -0.06; // Slight natural curl
-        const baseRotY = 0;
-        const baseRotZ = fd.spr;
-        
-        finger.rotation.set(baseRotX, baseRotY, baseRotZ);
-        finger.userData.baseRotX = baseRotX;
-        finger.userData.baseRotY = baseRotY;
-        finger.userData.baseRotZ = baseRotZ;
-        
-        fingers[name] = finger;
-        group.add(finger);
-    });
-    
-    // Thumb
-    const thumb = buildThumb();
-    thumb.position.set(
-        THUMB_DATA.pos[0] * PALM.width,
-        THUMB_DATA.pos[1] * PALM.length,
-        PALM.thickness * 0.18
-    );
-    
-    // Set thumb rotation and store base values
-    const thumbRotX = THUMB_DATA.rot[0];
-    const thumbRotY = THUMB_DATA.rot[1];
-    const thumbRotZ = THUMB_DATA.rot[2];
-    
-    thumb.rotation.set(thumbRotX, thumbRotY, thumbRotZ);
-    thumb.userData.baseRotX = thumbRotX;
-    thumb.userData.baseRotY = thumbRotY;
-    thumb.userData.baseRotZ = thumbRotZ;
-    
-    fingers['thumb'] = thumb;
-    group.add(thumb);
-    
-    // Knuckle prominences - larger, more anatomical
-    const knuckleX = [-0.28, -0.02, 0.22, 0.44];
-    knuckleX.forEach((xf, idx) => {
-        const kGeo = createJoint(S * 0.38);
-        const k = new THREE.Mesh(kGeo, matLight.clone());
-        k.position.set(xf * PALM.width, PALM.length * 0.47, -PALM.thickness * 0.38);
-        k.scale.set(1.35, 0.48, 0.85);
-        group.add(k);
-        
-        // Knuckle glow
-        const kGlow = new THREE.Mesh(kGeo.clone(), matGlow.clone());
-        kGlow.position.copy(k.position);
-        kGlow.scale.set(1.45, 0.55, 0.95);
-        group.add(kGlow);
-    });
-    
-    // Dorsal veins - more visible, branching
-    const veins = [
-        [[-0.32, 0.42], [-0.28, 0.14], [-0.25, -0.12], [-0.28, -0.35]],
-        [[0.00, 0.46], [-0.04, 0.12], [0.02, -0.08], [-0.02, -0.32]],
-        [[0.30, 0.40], [0.28, 0.10], [0.32, -0.14], [0.28, -0.30]]
-    ];
-    
-    veins.forEach(vein => {
-        const pts = vein.map(p => new THREE.Vector3(
-            p[0] * PALM.width, p[1] * PALM.length, -PALM.thickness * 0.48
-        ));
-        const curve = new THREE.CatmullRomCurve3(pts);
-        const vGeo = new THREE.TubeGeometry(curve, 18, S * 0.032, 5, false);
-        group.add(new THREE.Mesh(vGeo, matDim.clone()));
-        
-        // Secondary thinner vein alongside
-        const pts2 = pts.map(p => p.clone().add(new THREE.Vector3(S * 0.08, S * 0.05, 0)));
-        const curve2 = new THREE.CatmullRomCurve3(pts2);
-        const vGeo2 = new THREE.TubeGeometry(curve2, 12, S * 0.018, 4, false);
-        const vMat2 = matDim.clone();
-        vMat2.opacity = 0.25;
-        group.add(new THREE.Mesh(vGeo2, vMat2));
-    });
-    
-    // Webbing between fingers - more organic
-    const webPairs = [
-        ['index', 'middle'],
-        ['middle', 'ring'],
-        ['ring', 'pinky']
-    ];
-    
-    webPairs.forEach(([f1, f2]) => {
-        const d1 = FINGER_DATA[f1];
-        const d2 = FINGER_DATA[f2];
-        const x1 = d1.ax * PALM.width;
-        const x2 = d2.ax * PALM.width;
-        const y = (d1.ay + d2.ay) / 2 * PALM.length;
-        
-        // Larger, more visible webbing
-        const webGeo = new THREE.PlaneGeometry(Math.abs(x2 - x1) * 0.65, S * 1.2, 8, 6);
-        const webPos = webGeo.attributes.position;
-        for (let i = 0; i < webPos.count; i++) {
-            const px = webPos.getX(i);
-            const py = webPos.getY(i);
-            // Organic curved web
-            const xNorm = px / (Math.abs(x2 - x1) * 0.325);
-            const yNorm = py / (S * 0.6);
-            const curve = Math.sin((xNorm + 1) * Math.PI * 0.5) * 0.12;
-            const taper = 1 - Math.pow(yNorm, 2) * 0.3;
-            webPos.setZ(i, curve * S * taper + py * 0.18);
-            webPos.setX(i, px * (1 - Math.abs(yNorm) * 0.2));
+
+        // Curve the webbing
+        const pos = webGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            const y = pos.getY(i);
+            const normalizedY = y / (depth * SCALE * 0.5);
+            // Curve down in middle
+            const curve = (1 - normalizedY * normalizedY) * depth * SCALE * 0.15;
+            pos.setZ(i, curve);
         }
         webGeo.computeVertexNormals();
-        
-        const webMat = matDim.clone();
-        webMat.side = THREE.DoubleSide;
-        webMat.opacity = 0.38;
-        const web = new THREE.Mesh(webGeo, webMat);
-        web.position.set((x1 + x2) / 2, y + S * 0.4, PALM.thickness * 0.12);
-        web.rotation.x = -0.38;
-        group.add(web);
-        
-        // Webbing wireframe
-        const webWire = new THREE.Mesh(webGeo.clone(), matLight.clone());
-        webWire.position.copy(web.position);
-        webWire.rotation.copy(web.rotation);
-        webWire.scale.set(1.02, 1.02, 1);
-        group.add(webWire);
-    });
-    
-    // Thumb webbing - larger and more organic
-    const thumbWebGeo = new THREE.PlaneGeometry(PALM.width * 0.38, PALM.length * 0.32, 10, 8);
-    const thumbWebPos = thumbWebGeo.attributes.position;
-    for (let i = 0; i < thumbWebPos.count; i++) {
-        let x = thumbWebPos.getX(i);
-        let y = thumbWebPos.getY(i);
-        const nx = x / (PALM.width * 0.19);
-        const ny = y / (PALM.length * 0.16);
-        // Organic curve
-        const z = Math.sin((nx + 1) * Math.PI * 0.5) * Math.sin((ny + 1) * Math.PI * 0.5) * S * 0.5;
-        thumbWebPos.setX(i, x * (0.65 + ny * 0.35));
-        thumbWebPos.setZ(i, z - (1 - nx) * ny * S * 0.3);
+
+        const web = new THREE.Mesh(webGeo, matWeb);
+        web.position.set(
+            (finger1Pos.x + finger2Pos.x) * 0.5 * SCALE,
+            (finger1Pos.y - depth * 0.3) * SCALE,
+            (finger1Pos.z + finger2Pos.z) * 0.5 * SCALE + 0.1
+        );
+        web.rotation.x = -0.2;
+        return web;
     }
-    thumbWebGeo.computeVertexNormals();
-    
-    const thumbWebMat = matDim.clone();
-    thumbWebMat.side = THREE.DoubleSide;
-    thumbWebMat.opacity = 0.35;
-    const thumbWeb = new THREE.Mesh(thumbWebGeo, thumbWebMat);
-    thumbWeb.position.set(-PALM.width * 0.34, -PALM.length * 0.02, PALM.thickness * 0.08);
-    thumbWeb.rotation.set(-0.38, 0.32, 0.52);
+
+    // ============================================
+    // ASSEMBLE THE HAND
+    // ============================================
+
+    // Palm
+    const palm = createPalm();
+    group.add(palm);
+
+    // Wrist
+    const wrist = createWrist();
+    group.add(wrist);
+
+    // Fingers dictionary for animation
+    const fingers = {};
+
+    // Create anatomically accurate thumb
+    const thumb = createThumb();
+    // Thumb orientation for left hand - sticks out to the side
+    thumb.rotation.set(0.2, 0.4, 1.0);
+    thumb.userData.baseRotX = 0.2;
+    thumb.userData.baseRotY = 0.4;
+    thumb.userData.baseRotZ = 1.0;
+    fingers.thumb = thumb;
+    group.add(thumb);
+
+    // Create index finger
+    const index = createFinger('index', {
+        length: FINGER_LENGTHS.index,
+        baseWidth: FINGER_WIDTHS.index.base,
+        tipWidth: FINGER_WIDTHS.index.tip,
+        mcpPos: MCP_POSITIONS.index,
+        restAngles: REST_ANGLES.index
+    });
+    index.rotation.z = 0.05;  // Slight spread
+    index.userData.baseRotZ = 0.05;
+    fingers.index = index;
+    group.add(index);
+
+    // Create middle finger
+    const middle = createFinger('middle', {
+        length: FINGER_LENGTHS.middle,
+        baseWidth: FINGER_WIDTHS.middle.base,
+        tipWidth: FINGER_WIDTHS.middle.tip,
+        mcpPos: MCP_POSITIONS.middle,
+        restAngles: REST_ANGLES.middle
+    });
+    middle.userData.baseRotZ = 0;
+    fingers.middle = middle;
+    group.add(middle);
+
+    // Create ring finger
+    const ring = createFinger('ring', {
+        length: FINGER_LENGTHS.ring,
+        baseWidth: FINGER_WIDTHS.ring.base,
+        tipWidth: FINGER_WIDTHS.ring.tip,
+        mcpPos: MCP_POSITIONS.ring,
+        restAngles: REST_ANGLES.ring
+    });
+    ring.rotation.z = -0.04;
+    ring.userData.baseRotZ = -0.04;
+    fingers.ring = ring;
+    group.add(ring);
+
+    // Create pinky finger
+    const pinky = createFinger('pinky', {
+        length: FINGER_LENGTHS.pinky,
+        baseWidth: FINGER_WIDTHS.pinky.base,
+        tipWidth: FINGER_WIDTHS.pinky.tip,
+        mcpPos: MCP_POSITIONS.pinky,
+        restAngles: REST_ANGLES.pinky
+    });
+    pinky.rotation.z = -0.1;
+    pinky.userData.baseRotZ = -0.1;
+    fingers.pinky = pinky;
+    group.add(pinky);
+
+    // Webbing between fingers
+    const webIndexMiddle = createWebbing(MCP_POSITIONS.index, MCP_POSITIONS.middle, FINGER_LENGTHS.index * 0.18);
+    group.add(webIndexMiddle);
+
+    const webMiddleRing = createWebbing(MCP_POSITIONS.middle, MCP_POSITIONS.ring, FINGER_LENGTHS.middle * 0.18);
+    group.add(webMiddleRing);
+
+    const webRingPinky = createWebbing(MCP_POSITIONS.ring, MCP_POSITIONS.pinky, FINGER_LENGTHS.ring * 0.20);
+    group.add(webRingPinky);
+
+    // Thumb webbing (larger)
+    const thumbWeb = new THREE.Mesh(
+        new THREE.PlaneGeometry(PALM_WIDTH * SCALE * 0.35, PALM_LENGTH * SCALE * 0.25, 4, 4),
+        matWeb
+    );
+    thumbWeb.position.set(PALM_WIDTH * SCALE * 0.32, PALM_LENGTH * SCALE * 0.45, PALM_THICKNESS * SCALE * 0.1);
+    thumbWeb.rotation.set(-0.3, 0.4, 0.3);
     group.add(thumbWeb);
-    
-    // Subtle energy particles
+
+    // ============================================
+    // DECORATIVE ELEMENTS
+    // ============================================
+
+    // Energy particles
     const particles = [];
     for (let i = 0; i < 4; i++) {
-        const pGeo = new THREE.SphereGeometry(S * 0.08, 5, 4);
-        const pMat = matGlow.clone();
-        pMat.opacity = 0.20;
-        const p = new THREE.Mesh(pGeo, pMat);
-        p.userData.orbit = {
-            radiusX: (1.8 + Math.random() * 1.5) * S,
-            radiusY: (2.2 + Math.random() * 1.8) * S,
-            radiusZ: (1.5 + Math.random() * 1.0) * S,
-            speed: 0.04 + Math.random() * 0.05,
-            phase: Math.random() * Math.PI * 2,
-            offsetY: (-PALM.length * 0.3 + Math.random() * PALM.length * 0.5)
-        };
-        particles.push(p);
-        group.add(p);
-    }
-    
-    // Subtle energy rings
-    const rings = [];
-    for (let i = 0; i < 2; i++) {
-        const rGeo = new THREE.TorusGeometry(
-            (WRIST.width * 0.50 + i * S * 0.2),
-            S * 0.022, 5, 28
+        const particle = new THREE.Mesh(
+            new THREE.SphereGeometry(0.15 * SCALE, 6, 6),
+            matGlow
         );
-        const rMat = matGlow.clone();
-        rMat.opacity = 0.12 - i * 0.04;
-        const r = new THREE.Mesh(rGeo, rMat);
-        r.position.y = -PALM.length * 0.5 - WRIST.length * 0.5 - i * S * 0.18;
-        r.rotation.x = Math.PI / 2;
-        r.userData.orbitSpeed = 0.05 + i * 0.012;
-        r.userData.wobblePhase = i * 0.6;
-        rings.push(r);
-        group.add(r);
+        particle.userData.orbit = {
+            radiusX: 1.5 + Math.random() * 1.5,
+            radiusY: 1 + Math.random(),
+            radiusZ: 1 + Math.random(),
+            speed: 0.5 + Math.random() * 0.5,
+            phase: Math.random() * Math.PI * 2,
+            offsetY: PALM_LENGTH * SCALE * 0.4
+        };
+        particles.push(particle);
+        group.add(particle);
     }
-    
+
+
     // ============================================
-    // METADATA
+    // FINAL SETUP
     // ============================================
-    
+
+    // Position hand in natural pose
+    group.rotation.set(0.1, -0.05, 0.08);
+
+    // Store references for animation
     group.userData.type = 'swimmer_hand';
     group.userData.fingers = fingers;
     group.userData.particles = particles;
-    group.userData.rings = rings;
-    group.userData.allMaterials = allMaterials;
     group.userData.swimPhase = 0;
-    group.userData.SCALE = S;
-    group.userData.PALM_LENGTH = PALM.length;
+    group.userData.PALM_LENGTH = PALM_LENGTH * SCALE;
+
+    // Store materials for theme switching
+    group.userData.materials = allMaterials;
     group.userData.colors = {
         primary: COL.main,
         wire: COL.light,
         glow: COL.glow,
         accent: COL.light
     };
-    
-    return group;
-}
 
-function createGeodesicSphere() {
-    const group = new THREE.Group();
-    const outerGeo = new THREE.IcosahedronGeometry(8, 1);
-    const outerMat = createWireframeMaterial(0x7ec8e3);
-    const outer = new THREE.Mesh(outerGeo, outerMat);
-    group.add(outer);
-    
-    const innerGeo = new THREE.OctahedronGeometry(4, 0);
-    const innerMat = createIridescentMaterial(0.3);
-    const inner = new THREE.Mesh(innerGeo, innerMat);
-    inner.userData.rotationSpeed = 0.02;
-    group.add(inner);
-    
-    group.userData.type = 'geodesic_sphere';
-    group.userData.inner = inner;
     return group;
 }
 
@@ -2898,24 +2823,110 @@ function createTrussBridge() {
     return group;
 }
 
-function createTurbineBlade() {
+function createQuadcopter() {
     const group = new THREE.Group();
-    const hubGeo = new THREE.SphereGeometry(2, 16, 16);
-    const hubMat = createIridescentMaterial(0.7);
-    const hub = new THREE.Mesh(hubGeo, hubMat);
-    group.add(hub);
-    
-    for (let i = 0; i < 3; i++) {
-        const bladeGeo = new THREE.BoxGeometry(1, 10, 0.3);
-        const blade = new THREE.Mesh(bladeGeo, hubMat);
-        blade.position.y = 6;
-        blade.rotation.x = 0.2;
-        const bladeGroup = new THREE.Group();
-        bladeGroup.add(blade);
-        bladeGroup.rotation.z = (i / 3) * Math.PI * 2;
-        group.add(bladeGroup);
+
+    // Central body - compact sphere
+    const bodyGeo = new THREE.SphereGeometry(1.2, 16, 16);
+    const bodyMat = createIridescentMaterial(0.5);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    group.add(body);
+
+    // Camera/sensor dome on bottom
+    const domeGeo = new THREE.SphereGeometry(0.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const domeMat = new THREE.MeshPhysicalMaterial({
+        color: 0x111122,
+        metalness: 0.9,
+        roughness: 0.1,
+        clearcoat: 1.0
+    });
+    const dome = new THREE.Mesh(domeGeo, domeMat);
+    dome.position.y = -0.8;
+    dome.rotation.x = Math.PI;
+    group.add(dome);
+
+    const propellers = [];
+    const armMat = createIridescentMaterial(0.6);
+
+    // 4 arms + propellers at 45, 135, 225, 315 degrees (X pattern)
+    for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 + Math.PI / 4; // Offset by 45 degrees
+
+        // Arm - thin elongated box
+        const armGeo = new THREE.BoxGeometry(5, 0.3, 0.5);
+        const arm = new THREE.Mesh(armGeo, armMat);
+        arm.position.x = Math.cos(angle) * 2.5;
+        arm.position.z = Math.sin(angle) * 2.5;
+        arm.position.y = 0.2;
+        arm.rotation.y = -angle;
+        group.add(arm);
+
+        // Motor housing at arm end
+        const motorGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 12);
+        const motor = new THREE.Mesh(motorGeo, bodyMat);
+        motor.position.x = Math.cos(angle) * 5;
+        motor.position.z = Math.sin(angle) * 5;
+        motor.position.y = 0.5;
+        group.add(motor);
+
+        // Propeller - 2-blade design using thin boxes
+        const propGroup = new THREE.Group();
+        const propMat = createWireframeMaterial(0x88ccff);
+        propMat.wireframe = false;
+        propMat.opacity = 0.7;
+
+        // Blade 1
+        const blade1Geo = new THREE.BoxGeometry(3.5, 0.08, 0.4);
+        const blade1 = new THREE.Mesh(blade1Geo, propMat);
+        propGroup.add(blade1);
+
+        // Blade 2 (perpendicular)
+        const blade2Geo = new THREE.BoxGeometry(0.4, 0.08, 3.5);
+        const blade2 = new THREE.Mesh(blade2Geo, propMat);
+        propGroup.add(blade2);
+
+        propGroup.position.x = Math.cos(angle) * 5;
+        propGroup.position.z = Math.sin(angle) * 5;
+        propGroup.position.y = 0.9;
+
+        // Alternate spin direction for realism
+        propGroup.userData.spinDirection = i % 2 === 0 ? 1 : -1;
+
+        group.add(propGroup);
+        propellers.push(propGroup);
     }
-    group.userData.type = 'turbine_blade';
+
+    // Landing skids
+    const skidMat = new THREE.MeshPhysicalMaterial({
+        color: 0x333344,
+        metalness: 0.8,
+        roughness: 0.3
+    });
+
+    for (let side = -1; side <= 1; side += 2) {
+        const skidGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 8);
+        skidGeo.rotateZ(Math.PI / 2);
+        const skid = new THREE.Mesh(skidGeo, skidMat);
+        skid.position.set(0, -1.5, side * 2);
+        group.add(skid);
+
+        // Skid supports
+        for (let x = -1; x <= 1; x += 2) {
+            const supportGeo = new THREE.CylinderGeometry(0.08, 0.08, 1, 6);
+            const support = new THREE.Mesh(supportGeo, skidMat);
+            support.position.set(x * 1.5, -1, side * 2);
+            group.add(support);
+        }
+    }
+
+    group.userData.type = 'quadcopter';
+    group.userData.propellers = propellers;
+    group.userData.waypoints = [];
+    group.userData.currentWaypoint = 0;
+    group.userData.waypointProgress = 0;
+    group.userData.waypointSpeed = 0.3; // ~3.3 seconds per waypoint
+    group.userData.rotationSpeed = 0; // Disable default rotation (quadcopter has custom rotation)
+
     return group;
 }
 
@@ -3197,7 +3208,7 @@ function updateStructureMaterials(isDark) {
             }
         }
     });
-    
+
     // Update custom shader materials
     customShaderMaterials.forEach(mat => {
         mat.uniforms.isDark.value = isDark;
@@ -3440,9 +3451,99 @@ function animateThreeJS() {
                 structure.rotation.x += deltaTime * 0.1;
                 structure.rotation.y += deltaTime * 0.15;
                 break;
+
+            case 'quadcopter':
+                // ===================================================
+                // SECTION 1: Propeller Animation
+                // ===================================================
+                if (structure.userData.propellers) {
+                    structure.userData.propellers.forEach(prop => {
+                        prop.rotation.y += deltaTime * 30 * prop.userData.spinDirection;
+                    });
+                }
+
+                // ===================================================
+                // SECTION 2: Waypoint Navigation
+                // ===================================================
+                if (structure.userData.waypoints && structure.userData.waypoints.length > 1) {
+                    const waypoints = structure.userData.waypoints;
+
+                    // Initialize base position storage (once)
+                    if (!structure.userData.basePosition) {
+                        structure.userData.basePosition = new THREE.Vector3();
+                    }
+
+                    // Advance progress along current segment (frame-rate independent)
+                    structure.userData.waypointProgress = (structure.userData.waypointProgress || 0) + deltaTime * structure.userData.waypointSpeed;
+
+                    // Advance to next waypoint when segment complete
+                    if (structure.userData.waypointProgress >= 1) {
+                        structure.userData.waypointProgress -= 1; // Keep overflow for smooth transition
+                        structure.userData.currentWaypoint = (structure.userData.currentWaypoint + 1) % waypoints.length;
+                    }
+
+                    // Get indices AFTER potential advancement to avoid 1-frame teleport
+                    const currentIdx = structure.userData.currentWaypoint || 0;
+                    const nextIdx = (currentIdx + 1) % waypoints.length;
+
+                    // Smooth easing function (ease-in-out quadratic)
+                    const t = structure.userData.waypointProgress;
+                    const easeT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+                    // Calculate interpolated position between waypoints
+                    const startPos = waypoints[currentIdx];
+                    const endPos = waypoints[nextIdx];
+                    structure.userData.basePosition.lerpVectors(startPos, endPos, easeT);
+
+                    // ===================================================
+                    // SECTION 3: Orientation Smoothing
+                    // ===================================================
+                    const dirVec = new THREE.Vector3().subVectors(endPos, startPos);
+                    const dirLen = dirVec.length();
+
+                    if (dirLen > 0.01) {
+                        dirVec.divideScalar(dirLen); // Safe normalize
+
+                        // Initialize smoothed direction on first frame
+                        if (!structure.userData.smoothDir) {
+                            structure.userData.smoothDir = { x: dirVec.x, z: dirVec.z };
+                        }
+
+                        // Frame-rate independent exponential smoothing
+                        const smoothFactor = 1 - Math.pow(1 - 0.03, deltaTime * 60);
+                        structure.userData.smoothDir.x += (dirVec.x - structure.userData.smoothDir.x) * smoothFactor;
+                        structure.userData.smoothDir.z += (dirVec.z - structure.userData.smoothDir.z) * smoothFactor;
+
+                        const sd = structure.userData.smoothDir;
+
+                        // Calculate target rotations based on movement direction
+                        const targetRoll = -sd.x * 0.25;
+                        const targetPitch = sd.z * 0.15;
+                        const targetYaw = Math.atan2(sd.x, sd.z);
+
+                        // Frame-rate independent rotation smoothing
+                        const rotSmoothFactor = 1 - Math.pow(1 - 0.02, deltaTime * 60);
+                        structure.rotation.z += (targetRoll - structure.rotation.z) * rotSmoothFactor;
+                        structure.rotation.x += (targetPitch - structure.rotation.x) * rotSmoothFactor;
+
+                        // Smooth yaw with angle wrapping
+                        let yawDiff = targetYaw - structure.rotation.y;
+                        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+                        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+                        structure.rotation.y += yawDiff * rotSmoothFactor;
+                    }
+
+                    // ===================================================
+                    // SECTION 4: Apply Position with Hover Bob
+                    // ===================================================
+                    const hoverOffset = Math.sin(time * 6) * 0.01;
+                    structure.position.copy(structure.userData.basePosition);
+                    structure.position.y += hoverOffset;
+                }
+                break;
         }
     });
-    
+
     // Camera motion
     const camTime = time * PHI_INV * 0.1;
     camera.position.x = Math.sin(camTime) * PHI * 2;
@@ -3609,7 +3710,65 @@ function loadContent(contentType, container) {
 }
 
 function getProjectsContent() {
-    return '<h1 class="expanded-title">Research Projects</h1><div class="projects-grid"><div class="project-card"><div class="project-image">[Project Image]</div><h3 class="project-title">Autonomous Systems</h3><p class="project-description">Developing next-generation autonomous systems with advanced sensor fusion and real-time decision making capabilities.</p><div class="project-tags"><span class="project-tag">Robotics</span><span class="project-tag">AI/ML</span><span class="project-tag">Active</span></div></div><div class="project-card"><div class="project-image">[Project Image]</div><h3 class="project-title">Smart Materials</h3><p class="project-description">Research into responsive materials that adapt to environmental conditions for applications in aerospace and biomedical engineering.</p><div class="project-tags"><span class="project-tag">Materials</span><span class="project-tag">Nano</span><span class="project-tag">Active</span></div></div><div class="project-card"><div class="project-image">[Project Image]</div><h3 class="project-title">Energy Systems</h3><p class="project-description">Innovative approaches to sustainable energy generation, storage, and distribution systems.</p><div class="project-tags"><span class="project-tag">Energy</span><span class="project-tag">Sustainability</span><span class="project-tag">Active</span></div></div><div class="project-card"><div class="project-image">[Project Image]</div><h3 class="project-title">Biomedical Devices</h3><p class="project-description">Creating cutting-edge medical devices and diagnostic tools using advanced engineering principles.</p><div class="project-tags"><span class="project-tag">Biomedical</span><span class="project-tag">Devices</span><span class="project-tag">Active</span></div></div></div>';
+    const projects = [
+        {
+            title: 'Real-World 3D Environments',
+            description: 'In collaboration with Religious Studies, we have been doing 3D reconstruction of sites in Nepal. By combining LiDAR data with terrestrial and aerial photogrammetry we can produce highly accurate 3D models of real-world locations.',
+            tags: ['3D Modeling', 'LiDAR', 'Photogrammetry']
+        },
+        {
+            title: 'Magnetohydrodynamic Drive',
+            description: 'In collaboration with Applied Math, undergraduate Tate Semone is designing a device that harnesses the conductive properties of salt water to produce a propulsion system with no moving parts, using a combination of electric and magnetic fields.',
+            tags: ['Propulsion', 'Applied Math', 'Physics']
+        },
+        {
+            title: 'Swarm Robots',
+            description: 'Undergraduate Sanskriti Negi is working on two separate projects utilizing swarm robots. The first is a manta ray based robot for seafloor mapping. The second uses deformable graspers for picking up unusually shaped objects.',
+            tags: ['Robotics', 'Swarm Intelligence', 'Marine']
+        },
+        {
+            title: 'Virtual Reality Experiences',
+            description: 'We are using game engines like Unity to create VR applications that revolutionize classroom learning. We are exploring techniques that would allow users to experience large VR environments in classroom-sized locations.',
+            tags: ['VR', 'Unity', 'Education']
+        },
+        {
+            title: 'Optimizing Hand Position for Swimming',
+            description: 'In collaboration with Applied Math, EXSS, and the U.S. Olympic swim team, we are researching ways to increase swimmer speed by perfecting hand position. In parallel, we are engineering a glove that can track hand position in real time.',
+            tags: ['Biomechanics', 'Olympics', 'Wearables']
+        },
+        {
+            title: 'Autonomous Vehicles',
+            description: 'In our version of an autonomous vehicle, instead of pointing our sensor array outward, we focus inward on the occupant of our vehicle—a goldfish. We track the goldfish inside the tank and move the vehicle based on its position.',
+            tags: ['Autonomous', 'Computer Vision', 'Robotics']
+        },
+        {
+            title: 'Augmented Aurality',
+            description: 'In collaboration with VCAIL, we are developing a listening enhancement device that uses an array of microphones to allow users to filter out ambient noises and focus on one single sound source with increased clarity.',
+            tags: ['Audio', 'Signal Processing', 'Accessibility']
+        },
+        {
+            title: 'Smart Irrigation System',
+            description: 'Undergraduate Darwin Lemus is designing a system to optimize irrigation in greenhouses. His system monitors soil moisture for each plant, consistently adding just the right amount of water to maintain plant health.',
+            tags: ['IoT', 'Agriculture', 'Sustainability']
+        }
+    ];
+
+    let html = '<h1 class="expanded-title">Research Projects</h1><div class="projects-grid">';
+
+    projects.forEach(project => {
+        html += '<div class="project-card">';
+        html += '<div class="project-image">[Project Image]</div>';
+        html += '<h3 class="project-title">' + project.title + '</h3>';
+        html += '<p class="project-description">' + project.description + '</p>';
+        html += '<div class="project-tags">';
+        project.tags.forEach(tag => {
+            html += '<span class="project-tag">' + tag + '</span>';
+        });
+        html += '</div></div>';
+    });
+
+    html += '</div>';
+    return html;
 }
 
 function getPeopleContent() {
@@ -3685,11 +3844,11 @@ function getPeopleContent() {
 }
 
 function getAboutContent() {
-    return '<h1 class="expanded-title">About EEL</h1><div class="content-section"><h2 class="section-title">Our Mission</h2><p class="about-text">The Experimental Engineering Lab (EEL) is dedicated to pushing the boundaries of engineering through innovative research, interdisciplinary collaboration, and hands-on experimentation. We bridge the gap between theoretical concepts and practical applications, creating solutions that address real-world challenges.</p></div><div class="content-section"><h2 class="section-title">History</h2><p class="about-text">Founded in 2015, EEL began as a small research initiative focused on autonomous systems. Over the years, we have expanded our scope to include smart materials, energy systems, and biomedical engineering. Today, we are recognized as a leading center for experimental engineering research.</p></div><div class="content-section"><h2 class="section-title">Facilities</h2><p class="about-text">Our state-of-the-art facilities include advanced prototyping labs, testing chambers, computational resources, and specialized equipment for materials characterization. We provide our researchers with the tools they need to transform ideas into reality.</p></div><div class="content-section"><h2 class="section-title">Collaborations</h2><p class="about-text">EEL maintains strong partnerships with industry leaders, government agencies, and academic institutions worldwide. These collaborations enhance our research capabilities and ensure that our work has meaningful impact beyond the laboratory.</p></div>';
+    return '<h1 class="expanded-title">About EEL</h1><div class="content-section"><p class="about-text">Content coming soon.</p></div>';
 }
 
 function getJoinContent() {
-    return '<h1 class="expanded-title">Join Our Lab</h1><div class="content-section"><p class="about-text">We are always looking for talented and motivated individuals to join our team. Whether you\'re a prospective graduate student, undergraduate researcher, or postdoctoral fellow, EEL offers exciting opportunities to work on cutting-edge engineering challenges.</p></div><div class="opportunities-list"><div class="opportunity-card"><h3 class="opportunity-title">Graduate Positions</h3><p class="opportunity-description">We accept PhD and MS students with backgrounds in mechanical engineering, electrical engineering, materials science, and related fields. Graduate researchers receive full funding, mentorship, and access to world-class facilities.</p></div><div class="opportunity-card"><h3 class="opportunity-title">Undergraduate Research</h3><p class="opportunity-description">Undergraduate students can gain hands-on research experience through our research assistant program. Positions are available year-round with flexible schedules that accommodate academic commitments.</p></div><div class="opportunity-card"><h3 class="opportunity-title">Postdoctoral Positions</h3><p class="opportunity-description">We periodically have openings for postdoctoral researchers with expertise in our core research areas. Postdocs have the opportunity to lead independent projects while collaborating with our diverse team.</p></div></div><div style="text-align: center; margin-top: 40px;"><a href="#" class="apply-button" onclick="return false;">Apply Now</a></div><div class="content-section" style="margin-top: 40px;"><h2 class="section-title">Contact</h2><p class="about-text">For inquiries about joining EEL, please contact us at:<br><br>Email: eel-admissions@university.edu<br>Phone: (555) 123-4567<br>Office: Engineering Building, Room 301</p></div>';
+    return '<h1 class="expanded-title">Join Our Lab</h1><div class="content-section"><p class="about-text">Content coming soon.</p></div>';
 }
 
 // ============================================
@@ -3714,5 +3873,5 @@ if (document.readyState === 'loading') {
 
 console.log('%c\u26A1 EEL - EXPERIMENTAL ENGINEERING LAB', 'color: #7ec8e3; font-size: 24px; font-weight: 100;');
 console.log('%c\u03C6 = ' + PHI.toFixed(3), 'color: #a8d5e8; font-size: 12px;');
-console.log('%c\u2726 13 Engineering Structures with Anatomical Swimmer Hand', 'color: #a8d5e8; font-size: 12px;');
+console.log('%c\u2726 13 Engineering Structures with Realistic Organic Human Hand', 'color: #a8d5e8; font-size: 12px;');
 console.log('%c\u25C8 Circuit Grid Matrix Connection System', 'color: #7ec8e3; font-size: 12px;');
