@@ -1,5 +1,22 @@
 {
+  "name": "eel-website",
+  "version": "1.0.0",
+  "description": "E.E.L. Application Portal with Backend API",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.7",
+    "dotenv": "^16.3.1"
+  },
   "devDependencies": {
     "puppeteer": "^24.35.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
