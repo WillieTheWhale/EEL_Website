@@ -1,0 +1,196 @@
+{
+  "metadata": {
+    "source_file": "Experimental_Engineering_Lab_Responses.xlsx",
+    "total_responses": 12,
+    "generated_at": "2026-01-29T18:04:05.639520",
+    "notes": [
+      "Names are derived from LinkedIn URLs where available",
+      "Some names were mapped from known team member patterns",
+      "Person 11 has no LinkedIn URL - name needs manual entry",
+      "Graduation dates are formatted as Month Year",
+      "Headshot URLs link to Google Drive files"
+    ]
+  },
+  "team_members": [
+    {
+      "id": 1,
+      "name": "Markandeya Yalamanchi",
+      "major": "Computer Science",
+      "other_major": null,
+      "academic_status": "Freshman",
+      "expected_graduation": "May 2028",
+      "project_summary": "Developing redirected walking (RDW) techniques for Meta Quest 3 VR, enabling users to navigate large virtual environments within smaller physical spaces. Currently building predictive models to anticipate reset frequency based on virtual environment topology, moving beyond implementing existing algorithms to discovering novel relationships between environment design and RDW effectiveness.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1Fgu7ZmoTuURD_C69eQzawySWfspCCzcj",
+        "drive_id": "1Fgu7ZmoTuURD_C69eQzawySWfspCCzcj"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/markyala",
+      "submission_timestamp": "2026-01-21T13:37:18.579000"
+    },
+    {
+      "id": 2,
+      "name": "Hengli Wang",
+      "major": "Computer Science",
+      "other_major": null,
+      "academic_status": "Sophomore",
+      "expected_graduation": "December 2005",
+      "project_summary": "The Swimmer Hand Project.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1uCVtv8-_q5euXkyn3J5CRlqBtKEGBDFa",
+        "drive_id": "1uCVtv8-_q5euXkyn3J5CRlqBtKEGBDFa"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/hengliwang3300",
+      "submission_timestamp": "2026-01-21T15:03:41.513000"
+    },
+    {
+      "id": 3,
+      "name": "Ethan Derosa",
+      "major": "Biomedical Engineering",
+      "other_major": null,
+      "academic_status": "Junior",
+      "expected_graduation": "May 2027",
+      "project_summary": "Assisting with the hardware components of the fish driving car.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1RROq9bMPue_uH0Icrdx17bo6n9SqVsLR",
+        "drive_id": "1RROq9bMPue_uH0Icrdx17bo6n9SqVsLR"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/ethandre",
+      "submission_timestamp": "2026-01-21T16:57:08.764000"
+    },
+    {
+      "id": 4,
+      "name": "Tate Semone",
+      "major": "Physics",
+      "other_major": null,
+      "academic_status": "Sophomore",
+      "expected_graduation": "May 2028",
+      "project_summary": "My project tests magnetic-field orientations to maximize flow efficiency in a magnetohydrodynamic drive. Model 1 uses a circularly oriented B-field with a radially outward electric field; Model 2 utilizes a Halbach array to concentrate flux in the channel. Efficiency is evaluated using Particle Image Velocimetry (PIV) flow measurements.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1-Dne7-QRMv_lLtay_EjhJ7EGimuvFJVY",
+        "drive_id": "1-Dne7-QRMv_lLtay_EjhJ7EGimuvFJVY"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/tate-semone-105905268",
+      "submission_timestamp": "2026-01-21T20:22:38.002000"
+    },
+    {
+      "id": 5,
+      "name": "Sofia Morais",
+      "major": "Biomedical Engineering",
+      "other_major": null,
+      "academic_status": "Junior",
+      "expected_graduation": "May 2027",
+      "project_summary": "Designing a glove to track finger position for sports and physical therapy applications by integrating flex sensors with Arduino microcontrollers to measure finger bending and separation, while showing real-time hand movement on a hand model in Unity. She also enjoys learning fabrication skills such as welding and milling. ",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1NbugFp1qGnRV8PBpzrP5FLMljFqft6co",
+        "drive_id": "1NbugFp1qGnRV8PBpzrP5FLMljFqft6co"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/sofia-morais-486ba3277",
+      "submission_timestamp": "2026-01-22T12:06:03.879000"
+    },
+    {
+      "id": 6,
+      "name": "Fletcher Stuart",
+      "major": "Computer Science",
+      "other_major": null,
+      "academic_status": "Senior",
+      "expected_graduation": "May 2026",
+      "project_summary": "I am developing an Unreal Engine application to visualize the Swayambhu temple in Kathmandu, Nepal. The application is intended to educate and immerse people in the site.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1eYlzSQGHPtXJfqhzvB1KBdFjjUgvBBDF",
+        "drive_id": "1eYlzSQGHPtXJfqhzvB1KBdFjjUgvBBDF"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/fletchstu",
+      "submission_timestamp": "2026-01-22T13:11:58.269000"
+    },
+    {
+      "id": 7,
+      "name": "Elyssa Snively",
+      "major": "Biomedical Engineering",
+      "other_major": null,
+      "academic_status": "Junior",
+      "expected_graduation": "May 2027",
+      "project_summary": "My project reprograms the Boston Dynamics Spot robot to operate as an autonomous guide dog, using AI-driven navigation, mapping, localization, obstacle detection, and voice-based destination commands. The system integrates perception, decision-making, and a custom physical handle interface to provide safe, timely guidance for visually impaired users on campus.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1XHsRCnrX_I47g2SWpMEHjE2nIn56wrVO",
+        "drive_id": "1XHsRCnrX_I47g2SWpMEHjE2nIn56wrVO"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/elyssa-snively",
+      "submission_timestamp": "2026-01-22T16:00:47.836000"
+    },
+    {
+      "id": 8,
+      "name": "Ishi Varshney",
+      "major": "Computer Science",
+      "other_major": null,
+      "academic_status": "Sophomore",
+      "expected_graduation": "May 2028",
+      "project_summary": "My current project reprograms the Boston Dynamics Spot robot to act as an autonomous guide dog, enabling safe, intuitive navigation for visually impaired users. Initially focused on the UNC campus, the system uses AI-driven perception and voice commands to support scalable, location-independent mobility beyond environments where traditional guide dogs can be trained.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1Oqa1W88SEENPn-otdU7KjQzofo1YCTWq",
+        "drive_id": "1Oqa1W88SEENPn-otdU7KjQzofo1YCTWq"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/ishi-varshney",
+      "submission_timestamp": "2026-01-23T13:09:26.693000"
+    },
+    {
+      "id": 9,
+      "name": "Alexa Tinajero",
+      "major": "Computer Science",
+      "other_major": null,
+      "academic_status": "Sophomore",
+      "expected_graduation": "May 2028",
+      "project_summary": "This project involves developing the software that allows the Boston Dynamics Spot robot to navigate a campus environment independently as a guide for visually impaired users. I focus on how the robot interprets its surroundings through mapping, localization, and obstacle detection, makes navigation decisions using AI-based planning, and responds to voice-based destination commands. These components work together with a physical guidance handle to support safe, timely movement through real-world campus spaces.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1lHouI1ED69I9nLZfuxhSG6d7MJmCdpQw",
+        "drive_id": "1lHouI1ED69I9nLZfuxhSG6d7MJmCdpQw"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/alexatinajero",
+      "submission_timestamp": "2026-01-23T14:06:06.906000"
+    },
+    {
+      "id": 10,
+      "name": "Coleman Stephens",
+      "major": "Biomedical Engineering",
+      "other_major": null,
+      "academic_status": "Junior",
+      "expected_graduation": "May 2027",
+      "project_summary": "My project involves utilizing a Boston Dynamics Spot robot to act as a seeing eye dog. AI-driven navigation, mapping, localization, collision avoidance, and voice commands are all implemented to use Spot as a seeing eye dog. The system combines perception, decision-making, and a custom physical handle interface to deliver safe, timely guidance for visually impaired users navigating campus.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=15vHsI4KjfbDpNZxkEM7zykpYSyufgQ_I",
+        "drive_id": "15vHsI4KjfbDpNZxkEM7zykpYSyufgQ_I"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/coleman-stephens",
+      "submission_timestamp": "2026-01-25T18:46:41.467000"
+    },
+    {
+      "id": 11,
+      "name": "Unknown Person 11",
+      "major": "Physics",
+      "other_major": null,
+      "academic_status": "Sophomore",
+      "expected_graduation": "June 2028",
+      "project_summary": "Studying the dynamics of drag on hand position in fluids for swimmers.",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1XuNxFZNmdStKaAfE8l5ejH435a679Omv",
+        "drive_id": "1XuNxFZNmdStKaAfE8l5ejH435a679Omv"
+      },
+      "linkedin_url": null,
+      "submission_timestamp": "2026-01-26T19:38:16.302000"
+    },
+    {
+      "id": 12,
+      "name": "Riley Goodwin",
+      "major": "Biomedical Engineering",
+      "other_major": null,
+      "academic_status": "Freshman",
+      "expected_graduation": "May 2029",
+      "project_summary": "I'm currently helping code a Fish operated vehicle that uses a camera to track the movement of a fish, allowing it to both accelerate and change directions. I'm on a team working on creating a waterproof movement tracking glove that is used to find the optimal hand positioning for swimmers. ",
+      "headshot": {
+        "url": "https://drive.google.com/open?id=1l5ok39DYl2pma-xje2o-w7nBZXLIoD2X",
+        "drive_id": "1l5ok39DYl2pma-xje2o-w7nBZXLIoD2X"
+      },
+      "linkedin_url": "https://www.linkedin.com/in/riley-goodwinq",
+      "submission_timestamp": "2026-01-28T15:36:01.704000"
+    }
+  ]
+}
