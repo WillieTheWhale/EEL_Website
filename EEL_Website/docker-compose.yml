@@ -1,0 +1,28 @@
+services:
+  eel-app:
+    build: .
+    container_name: eel-website
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-eel-admin-2024}
+      - EMAIL_USER=${EMAIL_USER:-}
+      - EMAIL_PASS=${EMAIL_PASS:-}
+      - NOTIFY_EMAIL=${NOTIFY_EMAIL:-wilk05@unc.edu}
+      - SITE_URL=${SITE_URL:-http://localhost:8080}
+    volumes:
+      # Persist application data
+      - eel-data:/app/backend/data
+      - eel-uploads:/app/backend/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  eel-data:
+  eel-uploads:

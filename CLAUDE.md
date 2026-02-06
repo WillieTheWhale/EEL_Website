@@ -4,34 +4,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EEL (Experimental Engineering Lab) is a single-page interactive website featuring a futuristic "cybercore" design with physics-based UI elements, Three.js 3D rendering, and sophisticated glassmorphism effects.
+EEL (Experimental Engineering Lab) is a single-page interactive website featuring a futuristic "cybercore" design with physics-based UI elements, Three.js 3D rendering, and sophisticated glassmorphism effects. It includes a backend application portal with form submission, file uploads, email notifications, and an admin dashboard.
 
 ## Development Commands
 
 ```bash
-# Install dependencies (for Puppeteer, used for testing/screenshots)
-cd website && npm install
+# Install all dependencies (backend + dev tools)
+cd EEL_Website
+npm install
 
-# Local development - open directly in browser
-open website/index.html
-# Or use any local server (Python, Node, etc.)
-python3 -m http.server 8000 --directory website
+# Start backend server (serves frontend + API)
+npm start
+# Server runs at http://localhost:8080
+
+# Or for static frontend only (no form submission)
+# Open EEL_Website/index.html directly in a browser
 ```
-
-There is no build step - this is a vanilla HTML/CSS/JS project loaded directly in the browser.
 
 ## Architecture
 
-### Core Files (`website/`)
+### Main Files (in EEL_Website/)
 
-- **index.html** - Main page with embedded critical CSS for fast rendering, early theme detection script, and semantic HTML structure
-- **script.js** (~3150 lines) - Main JavaScript containing all interactive systems
-- **styles.css** (~2250 lines) - Full styling including light/dark themes, glassmorphism, and responsive breakpoints
-- **mobile.js** - Mobile portrait mode detection and physics disabling
+- `index.html` - Entry point with inlined critical CSS and deferred script loading
+- `script.js` (~3,150 lines) - Core application with all major systems
+- `styles.css` (~2,250 lines) - Theming, glassmorphism, and responsive breakpoints
+- `mobile.js` - Mobile device detection and portrait mode handling
+- `application.html` - Application form page (Portal 2 aesthetic)
+- `application.js` - Form submission logic (posts to `/api/applications`)
+- `application.css` - Application form styling
+- `vision-pro.html` - Vision Pro demo page
 
-### JavaScript Systems (in `script.js`)
+### Backend (in EEL_Website/backend/)
 
-The codebase uses an object-oriented pattern with singleton modules:
+- `server.js` - Express server, serves static frontend + API routes
+- `routes/applications.js` - POST/GET/DELETE `/api/applications` endpoints
+- `routes/admin.js` - Admin dashboard route
+- `views/admin.html` - Admin dashboard UI (password-protected)
+- `data/applications.json` - Application submissions storage
+- `uploads/` - Resume PDF file storage
+
+### Modules (in EEL_Website/modules/)
+
+- `anatomy/FingerKinematics.js` - 3D finger animation
+- `animation/AnimationConfig.js`, `SwimAnimationController.js` - Animation systems
+- `visionpro/` - Vision Pro assembly, geometry, materials, lighting, post-processing
+
+### Core Systems in script.js
 
 | System | Description |
 |--------|-------------|
@@ -44,24 +62,91 @@ The codebase uses an object-oriented pattern with singleton modules:
 | `EngineeringStructures` | Decorative animated SVG elements |
 | `PanelExpansion` | Morphing animation when panels expand to full-screen overlays |
 
-### Design System
+### 3D Rendering (Three.js)
 
-The site uses golden ratio (PHI = 1.618) and Fibonacci sequences throughout:
-- CSS variables: `--phi`, `--phi-inv`, `--fib-1` through `--fib-55`
-- Golden positions: `--golden-x1: 38.2%`, `--golden-x2: 61.8%`
-- Timing based on Fibonacci numbers
+WebGL scene with multiple engineering structures. Custom iridescent shader materials and wireframe rendering. Pure vanilla JS with Three.js as the only external library.
 
-Theme colors use a "Titanium Horizon" palette with CSS custom properties that switch between light and dark modes via `body[data-theme="dark"]`.
+## Backend API
 
-### Content Sections
+### Endpoints
 
-Four navigation panels (Projects, People, About, Join Us) expand into full-screen overlays. Content is defined inline in `script.js` within the `PanelExpansion.getContentForType()` method.
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/applications` | None | Submit new application (multipart form-data) |
+| GET | `/api/applications` | Bearer token | List all applications |
+| GET | `/api/applications/:id/resume` | Bearer token | Download resume PDF |
+| DELETE | `/api/applications/:id` | Bearer token | Delete application |
+| GET | `/admin` | None (login page) | Admin dashboard |
 
-## Key Implementation Details
+### Environment Variables (.env)
 
-- **No framework** - Pure vanilla JS with Three.js as the only external library
-- **Critical CSS** is inlined in `<head>` to prevent FOUC
-- **Theme detection** runs before body renders to prevent flash
-- **`.js-positioned` class** hides elements until JavaScript calculates their positions
-- **Mobile portrait mode** disables physics and switches to scrollable layout
-- **Puppeteer** devDependency is for screenshot/testing purposes only
+```
+PORT=8080
+ADMIN_PASSWORD=eel-admin-2024
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+NOTIFY_EMAIL=wilk05@unc.edu
+SITE_URL=http://localhost:8080
+```
+
+### Dependencies
+
+- `express` - Web server
+- `multer` - File upload handling
+- `nodemailer` - Email notifications
+- `dotenv` - Environment variables
+- `puppeteer` (dev) - Browser automation/testing
+
+## Key Patterns
+
+### Golden Ratio Mathematics
+
+CSS variables: `--phi`, `--phi-inv`, `--fib-1` through `--fib-55`
+Golden positions: `--golden-x1: 38.2%`, `--golden-x2: 61.8%`
+Theme colors use a "Titanium Horizon" palette with CSS custom properties.
+
+### Physics System
+
+Panel interactions use spring physics with velocity tracking, collision detection, damping, and viewport boundary constraints.
+
+### Theme System
+
+Three localStorage keys:
+- `eel-has-visited` - First visit tracking
+- `eel-theme` - Saved preference ('light' or 'dark')
+- `eel-theme-manually-set` - Manual override flag
+
+Custom `themechange` event fires when theme updates.
+
+### Mobile Handling
+
+Mobile portrait mode detected via touch capability, pointer type, and viewport width (<=768px). Physics disabled in portrait mode; alternative scrollable layout used.
+
+## Naming Conventions
+
+- **JavaScript:** camelCase for variables/functions, PascalCase for classes
+- **CSS classes:** hyphenated (`.nav-panel`, `.panel-glass-container`)
+- **CSS variables:** `--accent-cyan` for primary accent color
+- **Data attributes:** `data-angle`, `data-content-type`
+
+## Navigation Structure
+
+Four radial panels at fixed angles:
+- **Projects** (315°) - Research initiatives
+- **People** (45°) - Team member showcase with LinkedIn integration
+- **About** (135°) - Lab information
+- **Join Us** (225°) - Application portal with "Apply Now" button
+
+## Deployment
+
+Docker and OpenShift deployment configs included:
+- `Dockerfile` - Node.js Alpine container
+- `docker-compose.yml` - Local Docker deployment with persistent volumes
+- `openshift-deploy.yaml` - Red Hat OpenShift deployment with PVCs and secrets
+
+## Extra Resources
+
+- `copy/eel_team_responses.json` - Team survey response data
+- `headshots/` - Processed team member photos (used by website)
+- `headshots-raw/` - Original unprocessed team photos
+- `EEL_Logo.ai` - Logo source file (Adobe Illustrator)

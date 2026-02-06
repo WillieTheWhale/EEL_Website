@@ -1,3 +1,10 @@
-node_modules/
+# Claude Code
+.claude/
+
+# OS files
 .DS_Store
-Video_Clips/
+Thumbs.db
+nul
+
+# Reference/design assets (large files)
+Reference_Images/
