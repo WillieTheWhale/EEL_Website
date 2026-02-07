@@ -17,6 +17,7 @@ COPY website/backend/ ./backend/
 COPY website/index.html website/styles.css website/script.js website/mobile.js ./
 COPY website/application.html website/application.css website/application.js ./
 COPY website/EEL_Logo.png website/EEL_Logo.svg ./
+COPY website/favicon.ico website/favicon.png website/apple-touch-icon.png ./
 COPY website/headshots/ ./headshots/
 COPY website/modules/ ./modules/
 COPY website/vision-pro.html ./
