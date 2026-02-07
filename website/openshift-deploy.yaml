@@ -27,6 +27,7 @@ items:
         containers:
         - name: eel-website
           image: ghcr.io/williethewhale/eel-website:latest
+          imagePullPolicy: Always
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -162,3 +163,6 @@ items:
 #   OPENSHIFT_SERVER    - Your OpenShift cluster API URL (e.g., https://api.your-cluster.openshiftapps.com:6443)
 #   OPENSHIFT_TOKEN     - Service account token (oc sa get-token deployer)
 #   OPENSHIFT_NAMESPACE - Target namespace/project name
+#
+# 4. To force a redeployment with the latest image:
+# oc rollout restart deployment/eel-website

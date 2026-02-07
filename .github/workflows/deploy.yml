@@ -61,8 +61,9 @@ jobs:
 
       - name: Update deployment image
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           oc set image deployment/eel-website \
-            eel-website=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            eel-website=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${SHORT_SHA} \
             --namespace=${{ secrets.OPENSHIFT_NAMESPACE }}
 
       - name: Wait for rollout
