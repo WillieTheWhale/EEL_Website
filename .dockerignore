@@ -7,9 +7,12 @@ headshots
 Video_Clips
 EEL_Logo.ai
 EEL_Logo.png
-CLAUDE.md
+EEL_Website
 website/node_modules
-website/package.json
-website/package-lock.json
-website/scale-test*.png
 website/.DS_Store
+website/.gitignore
+website/.dockerignore
+website/Dockerfile
+website/docker-compose.yml
+website/openshift-deploy.yaml
+website/.env.example

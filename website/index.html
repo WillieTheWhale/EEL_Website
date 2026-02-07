@@ -9,13 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    
+
     <!-- Preload critical font with display swap for faster text rendering -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&display=swap"></noscript>
-    
-    <!-- Preload Three.js for faster loading -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" as="script">
     
     <!-- Critical CSS inlined to prevent render blocking -->
     <style>
@@ -32,8 +29,6 @@
         body[data-theme="dark"] {
             background: linear-gradient(180deg, #0C0E12 0%, #12161C 50%, #181D25 100%);
         }
-        #debug { display: none; }
-        
         /* CRITICAL FIX: Hide elements before JS positions them - prevents FOUC */
         .js-positioned {
             visibility: hidden !important;
@@ -97,9 +92,6 @@
     </script>
 </head>
 <body>
-    <!-- Debug Panel -->
-    <div id="debug">Loading Three.js...</div>
-    
     <!-- Expanded Container Overlay -->
     <div class="expanded-overlay" id="expandedOverlay">
         <div class="expanded-container" id="expandedContainer">
@@ -182,7 +174,7 @@
                 <div class="medallion-glow"></div>
                 <div class="medallion-content">
                     <div class="medallion-logo">
-                        <img src="EEL_Logo.svg" alt="EEL - Experimental Engineering Lab" class="eel-logo-img">
+                        <img src="EEL_Logo.svg" alt="EEL - Experimental Engineering Lab" class="eel-logo-img" width="120" height="120" decoding="async">
                     </div>
                 </div>
             </div>

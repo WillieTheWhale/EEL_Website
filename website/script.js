@@ -135,6 +135,8 @@ const CircuitGridMatrix = {
     nodesGroup: null,
     packetsGroup: null,
     initialized: false,
+    cachedMedallionEl: null,
+    cachedMedallionRadius: 100,
     
     // Grid configuration
     gridSize: 40, // Grid cell size in pixels
@@ -216,6 +218,12 @@ const CircuitGridMatrix = {
         container.appendChild(this.svg);
         this.initialized = true;
         this.lastUpdateTime = performance.now();
+
+        // Cache medallion radius
+        this.cachedMedallionEl = document.getElementById('centralMedallion');
+        if (this.cachedMedallionEl) {
+            this.cachedMedallionRadius = this.cachedMedallionEl.offsetWidth / 2;
+        }
         
         console.log('%cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Circuit Grid Matrix initialized', 'color: #7ec8e3; font-weight: bold;');
     },
@@ -338,6 +346,7 @@ const CircuitGridMatrix = {
             el.setAttribute('width', '8');
             el.setAttribute('height', '8');
             el.setAttribute('rx', '1');
+            el.style.transform = 'rotate(45deg)';
             this.packetsGroup.appendChild(el);
             packet.element = el;
         });
@@ -540,10 +549,10 @@ const CircuitGridMatrix = {
     },
     
     // Get point along path at given progress (0-1)
-    getPointAtProgress: function(points, progress) {
+    getPointAtProgress: function(points, progress, precomputedLength) {
         if (points.length < 2) return points[0] || { x: 0, y: 0 };
-        
-        const totalLength = this.calculatePathLength(points);
+
+        const totalLength = precomputedLength || this.calculatePathLength(points);
         const targetLength = progress * totalLength;
         
         let currentLength = 0;
@@ -573,20 +582,18 @@ const CircuitGridMatrix = {
         this.lastUpdateTime = now;
         
         const center = MedallionSystem.getCenter();
-        const medallionEl = document.getElementById('centralMedallion');
-        const medallionRadius = medallionEl ? medallionEl.offsetWidth / 2 : 100;
+        const medallionRadius = this.cachedMedallionRadius;
         
         // Update each connection
         this.connections.forEach((conn, panelId) => {
             const panelData = radialPanelPhysics.panels.get(panelId);
             if (!panelData) return;
             
-            const rect = panelData.element.getBoundingClientRect();
             const panelRect = {
                 x: panelData.position.x,
                 y: panelData.position.y,
-                width: rect.width,
-                height: rect.height
+                width: panelData.width || 180,
+                height: panelData.height || 240
             };
             
             // Get panel angle from data attribute
@@ -639,14 +646,12 @@ const CircuitGridMatrix = {
             }
             
             // Get packet position
-            const pos = this.getPointAtProgress(conn.pathPoints, packet.progress);
+            const pos = this.getPointAtProgress(conn.pathPoints, packet.progress, conn.totalLength);
             
             // Update packet element positions
             if (packet.element) {
                 packet.element.setAttribute('x', pos.x - 4);
                 packet.element.setAttribute('y', pos.y - 4);
-                packet.element.style.transform = `rotate(45deg)`;
-                packet.element.style.transformOrigin = `${pos.x}px ${pos.y}px`;
             }
             if (packet.glowElement) {
                 packet.glowElement.setAttribute('x', pos.x - 6);
@@ -659,14 +664,53 @@ const CircuitGridMatrix = {
     },
     
     updateJunctionNodes: function(conn, points) {
-        // Remove old junction nodes
+        // Expected junction count: 1 start + (points.length - 2) midpoints + 1 end = points.length
+        const expectedCount = points.length;
+
+        // If junction count matches, reuse existing elements and just update positions
+        if (conn.junctions.length === expectedCount && expectedCount > 0) {
+            // Update start node position
+            const startPoint = points[0];
+            const startJunction = conn.junctions[0];
+            startJunction.x = startPoint.x;
+            startJunction.y = startPoint.y;
+            if (startJunction.element) {
+                startJunction.element.setAttribute('cx', startPoint.x);
+                startJunction.element.setAttribute('cy', startPoint.y);
+            }
+
+            // Update mid junction positions
+            for (let i = 1; i < points.length - 1; i++) {
+                const junction = conn.junctions[i];
+                junction.x = points[i].x;
+                junction.y = points[i].y;
+                if (junction.element) {
+                    junction.element.setAttribute('x', points[i].x - 5);
+                    junction.element.setAttribute('y', points[i].y - 5);
+                }
+            }
+
+            // Update end node position
+            const endPoint = points[points.length - 1];
+            const endJunction = conn.junctions[conn.junctions.length - 1];
+            endJunction.x = endPoint.x;
+            endJunction.y = endPoint.y;
+            if (endJunction.element) {
+                endJunction.element.setAttribute('cx', endPoint.x);
+                endJunction.element.setAttribute('cy', endPoint.y);
+            }
+
+            return;
+        }
+
+        // Full rebuild: count changed (rare — route gained/lost a turn point)
         conn.junctions.forEach(node => {
             if (node.element && node.element.parentNode) {
                 node.element.parentNode.removeChild(node.element);
             }
         });
         conn.junctions = [];
-        
+
         // Create start node at medallion edge (first point)
         if (points.length > 0) {
             const startPoint = points[0];
@@ -676,7 +720,7 @@ const CircuitGridMatrix = {
                 element: null,
                 pulseIntensity: 0
             };
-            
+
             const startEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             startEl.setAttribute('class', 'circuit-medallion-port');
             startEl.setAttribute('cx', startPoint.x);
@@ -684,11 +728,11 @@ const CircuitGridMatrix = {
             startEl.setAttribute('r', '5');
             startEl.setAttribute('filter', 'url(#nodeGlow)');
             this.nodesGroup.appendChild(startEl);
-            
+
             startNode.element = startEl;
             conn.junctions.push(startNode);
         }
-        
+
         // Create junction nodes at each turn point (skip start and end)
         for (let i = 1; i < points.length - 1; i++) {
             const junction = {
@@ -697,7 +741,7 @@ const CircuitGridMatrix = {
                 element: null,
                 pulseIntensity: 0
             };
-            
+
             // Create diamond-shaped junction node
             const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             el.setAttribute('class', 'circuit-junction');
@@ -708,13 +752,12 @@ const CircuitGridMatrix = {
             el.setAttribute('rx', '2');
             el.setAttribute('filter', 'url(#nodeGlow)');
             el.style.transform = 'rotate(45deg)';
-            el.style.transformOrigin = `${points[i].x}px ${points[i].y}px`;
             this.nodesGroup.appendChild(el);
-            
+
             junction.element = el;
             conn.junctions.push(junction);
         }
-        
+
         // Create endpoint nodes (on panel edge)
         if (points.length > 0) {
             const endPoint = points[points.length - 1];
@@ -724,7 +767,7 @@ const CircuitGridMatrix = {
                 element: null,
                 pulseIntensity: 0
             };
-            
+
             const el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             el.setAttribute('class', 'circuit-endpoint');
             el.setAttribute('cx', endPoint.x);
@@ -732,7 +775,7 @@ const CircuitGridMatrix = {
             el.setAttribute('r', '6');
             el.setAttribute('filter', 'url(#nodeGlow)');
             this.nodesGroup.appendChild(el);
-            
+
             endNode.element = el;
             conn.junctions.push(endNode);
         }
@@ -740,16 +783,18 @@ const CircuitGridMatrix = {
     
     pulseNearbyJunctions: function(packetPos, junctions) {
         const pulseRadius = 30;
-        
+        const pulseRadiusSq = pulseRadius * pulseRadius;
+
         junctions.forEach(junction => {
             const dx = packetPos.x - junction.x;
             const dy = packetPos.y - junction.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if (dist < pulseRadius) {
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < pulseRadiusSq) {
+                const dist = Math.sqrt(distSq);
                 const intensity = 1 - (dist / pulseRadius);
                 junction.pulseIntensity = Math.max(junction.pulseIntensity, intensity);
-                
+
                 if (junction.element) {
                     junction.element.classList.add('pulsing');
                     junction.element.style.setProperty('--pulse-intensity', intensity);
@@ -766,6 +811,9 @@ const CircuitGridMatrix = {
     onResize: function() {
         if (!this.initialized) return;
         this.createGridBackground();
+        if (this.cachedMedallionEl) {
+            this.cachedMedallionRadius = this.cachedMedallionEl.offsetWidth / 2;
+        }
     },
     
     fadeOut: function() {
@@ -1060,7 +1108,17 @@ class RadialPanelPhysics {
     detectAndResolveCollisions() {
         if (!this.collisionSettings.enabled) return;
         const panelArray = Array.from(this.panels.values());
-        
+
+        // Skip if no panels are moving
+        let anyMoving = false;
+        for (let i = 0; i < panelArray.length; i++) {
+            if (panelArray[i].isMoving && !panelArray[i].isDragging && !panelArray[i].physicsDisabled) {
+                anyMoving = true;
+                break;
+            }
+        }
+        if (!anyMoving) return;
+
         for (let iteration = 0; iteration < this.collisionSettings.iterations; iteration++) {
             for (let i = 0; i < panelArray.length; i++) {
                 for (let j = i + 1; j < panelArray.length; j++) {
@@ -1070,11 +1128,11 @@ class RadialPanelPhysics {
                     if (panelA.isDragging || panelB.isDragging || panelA.physicsDisabled || panelB.physicsDisabled) continue;
                     
                     const ax = panelA.position.x, ay = panelA.position.y;
-                    const aw = panelA.width || panelA.element.offsetWidth;
-                    const ah = panelA.height || panelA.element.offsetHeight;
+                    const aw = panelA.width;
+                    const ah = panelA.height;
                     const bx = panelB.position.x, by = panelB.position.y;
-                    const bw = panelB.width || panelB.element.offsetWidth;
-                    const bh = panelB.height || panelB.element.offsetHeight;
+                    const bw = panelB.width;
+                    const bh = panelB.height;
                     const buffer = this.collisionSettings.minDistance;
                     
                     const overlapX = Math.min(ax + aw + buffer, bx + bw + buffer) - Math.max(ax - buffer, bx - buffer);
@@ -1119,15 +1177,15 @@ class RadialPanelPhysics {
             
             // Boundary checking for anchor positions
             const padding = 10;
-            const panelWidth = panelData.width || panelData.element.offsetWidth;
-            const panelHeight = panelData.height || panelData.element.offsetHeight;
+            const panelWidth = panelData.width;
+            const panelHeight = panelData.height;
             anchorX = Math.max(padding, Math.min(anchorX, window.innerWidth - panelWidth - padding));
             anchorY = Math.max(padding, Math.min(anchorY, window.innerHeight - panelHeight - padding));
             
             const dx = anchorX - panelData.position.x;
             const dy = anchorY - panelData.position.y;
             
-            if (Math.sqrt(dx * dx + dy * dy) > 5) {
+            if (dx * dx + dy * dy > 25) {
                 panelData.velocity.x += dx * this.springConstants.stiffness / panelData.mass;
                 panelData.velocity.y += dy * this.springConstants.stiffness / panelData.mass;
             }
@@ -1183,8 +1241,8 @@ class RadialPanelPhysics {
             } else {
                 // Panel hasn't been moved - recalculate position based on new viewport
                 const angleRad = (panelData.anchorAngle * Math.PI) / 180;
-                let anchorX = center.x + Math.cos(angleRad) * distances.x - panelData.element.offsetWidth / 2;
-                let anchorY = center.y + Math.sin(angleRad) * distances.y - panelData.element.offsetHeight / 2;
+                let anchorX = center.x + Math.cos(angleRad) * distances.x - panelData.width / 2;
+                let anchorY = center.y + Math.sin(angleRad) * distances.y - panelData.height / 2;
                 
                 // Boundary checking
                 anchorX = Math.max(padding, Math.min(anchorX, window.innerWidth - panelData.width - padding));
@@ -1291,7 +1349,7 @@ function initThreeJS() {
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         const isDark = document.body.getAttribute('data-theme') === 'dark';
-        scene.fog = new THREE.Fog(isDark ? 0x0a0b0f : 0xf0f8ff, 50, 200);
+        scene.fog = new THREE.Fog(isDark ? 0x0a0b0f : 0xd0d2d4, 50, 200);
         
         camera = new THREE.PerspectiveCamera(PHI * 45, window.innerWidth / window.innerHeight, PHI_INV, 1000);
         camera.position.set(0, 0, PHI * 30);
@@ -2669,7 +2727,7 @@ function createCircuitTrace() {
     const nodes = [];
     nodePositions.forEach(pos => {
         const nodeGeo = new THREE.SphereGeometry(0.5, 8, 8);
-        const node = new THREE.Mesh(nodeGeo, nodeMat.clone());
+        const node = new THREE.Mesh(nodeGeo, nodeMat);
         node.position.set(pos.x, pos.y, 0);
         group.add(node);
         nodes.push(node);
@@ -3160,17 +3218,18 @@ function updateStructureMaterials(isDark) {
     });
     
     // Update fog
-    if (scene && scene.fog) scene.fog.color.set(isDark ? 0x0a0b0f : 0xf0f8ff);
+    if (scene && scene.fog) scene.fog.color.set(isDark ? 0x0a0b0f : 0xd0d2d4);
 }
 
+let cachedCursorEl = null;
 function onMouseMove(event) {
     mouseX = (event.clientX / window.innerWidth) * 2 - 1;
     mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    const cursor = document.getElementById('chromeCursor');
-    if (cursor) {
-        cursor.style.left = event.clientX + 'px';
-        cursor.style.top = event.clientY + 'px';
+
+    if (!cachedCursorEl) cachedCursorEl = document.getElementById('chromeCursor');
+    if (cachedCursorEl) {
+        cachedCursorEl.style.left = event.clientX + 'px';
+        cachedCursorEl.style.top = event.clientY + 'px';
     }
 }
 
@@ -3189,7 +3248,12 @@ function onWindowResize() {
 
 function animateThreeJS() {
     requestAnimationFrame(animateThreeJS);
-    
+
+    if (document.hidden) {
+        clock.getDelta(); // Prevent large delta spike on resume
+        return;
+    }
+
     const deltaTime = clock.getDelta();
     const time = clock.getElapsedTime();
     
@@ -3442,7 +3506,8 @@ function animateThreeJS() {
                     // ===================================================
                     // SECTION 3: Orientation Smoothing
                     // ===================================================
-                    const dirVec = new THREE.Vector3().subVectors(endPos, startPos);
+                    if (!structure.userData._dirVec) structure.userData._dirVec = new THREE.Vector3();
+                    const dirVec = structure.userData._dirVec.subVectors(endPos, startPos);
                     const dirLen = dirVec.length();
 
                     if (dirLen > 0.01) {
@@ -3495,8 +3560,8 @@ function animateThreeJS() {
                     const current = structure.userData.fadeOpacity;
                     const diff = target - current;
                     if (Math.abs(diff) > 0.001) {
-                        // Smooth exponential ease — reaches target in ~0.5s
-                        const fadeSmoothFactor = 1 - Math.pow(0.02, deltaTime);
+                        // Smooth exponential ease — reaches target in ~0.25s
+                        const fadeSmoothFactor = 1 - Math.pow(0.00001, deltaTime);
                         structure.userData.fadeOpacity = current + diff * fadeSmoothFactor;
                         structure.userData.allMaterials.forEach(mat => {
                             mat.opacity = mat.userData.baseOpacity !== undefined
@@ -3573,7 +3638,7 @@ function expandPanel(panelId, contentType) {
     loadContent(contentType, expandedContent);
     TetherSystem.fadeOut();
     fadeDrone(0);
-    
+
     expandedOverlay.style.pointerEvents = '';
     expandedOverlay.classList.add('active');
     expandedContainer.style.pointerEvents = '';
@@ -3659,7 +3724,8 @@ function collapsePanel() {
         }
         
         if (previousFocus && previousFocus.focus) previousFocus.focus();
-        
+        previousFocus = null;
+
         isExpanded = false;
         isCollapsing = false;
         currentExpandedPanel = null;
@@ -3866,8 +3932,53 @@ function getPeopleContent() {
             status: 'Junior',
             graduation: 'May 2027',
             project: 'Assisting with the hardware components of the fish driving car.',
-            headshot: null,
+            headshot: 'headshots/ethan-derosa.jpg',
             linkedin: 'https://www.linkedin.com/in/ethandre'
+        },
+        {
+            name: 'Coleman Stephens',
+            major: 'Biomedical Engineering',
+            status: 'Junior',
+            graduation: 'May 2027',
+            project: 'My project involves utilizing a Boston Dynamics Spot robot to act as a seeing eye dog. AI-driven navigation, mapping, localization, collision avoidance, and voice commands are all implemented to use Spot as a seeing eye dog. The system combines perception, decision-making, and a custom physical handle interface to deliver safe, timely guidance for visually impaired users navigating campus.',
+            headshot: 'headshots/coleman-stephens.jfif',
+            linkedin: 'https://www.linkedin.com/in/coleman-stephens'
+        },
+        {
+            name: 'Mihika Tyagi',
+            major: 'Data Science & Computer Science',
+            status: 'Junior',
+            graduation: 'May 2027',
+            project: 'My current focus is on the Nepal VR project, in which we are implementing Redirected Walking to create a better experience navigating the temple model.',
+            headshot: 'headshots/mihika-tyagi.jpg',
+            linkedin: 'https://www.linkedin.com/in/mihika-tyagi'
+        },
+        {
+            name: 'Ethan Hernandez',
+            major: 'Computer Science',
+            status: 'Senior',
+            graduation: 'May 2026',
+            project: 'Digital recreation of Fred Brooks\' office using photogrammetry and virtual reality which will transform into a version of the Pit Room Experiment. Models of furniture are created using RealityScan and Blender.',
+            headshot: 'headshots/ethan-hernandez.jpg',
+            linkedin: 'https://www.linkedin.com/in/ethan-hernandez0703'
+        },
+        {
+            name: 'Siera Gashi',
+            major: 'Biomedical Engineering',
+            status: 'Sophomore',
+            graduation: 'May 2028',
+            project: 'I have assisted in analyzing swimmer hand models to study fluid dynamics and optimization, as well as supporting a Parkinson\'s disease project that utilizes motion-sensing data to analyze movement patterns and quantify motor symptoms.',
+            headshot: 'headshots/siera-gashi.jpeg',
+            linkedin: 'https://www.linkedin.com/in/siera-gashi-2a991422b'
+        },
+        {
+            name: 'William Keffer',
+            major: 'Computer Science & Math',
+            status: 'Sophomore',
+            graduation: 'May 2028',
+            project: 'Developed and deployed the EEL website frontend and backend.',
+            headshot: 'headshots/william-keffer.jpg',
+            linkedin: 'https://www.linkedin.com/in/williamkeffer'
         }
     ];
 
@@ -3895,8 +4006,6 @@ function getPeopleContent() {
         'Noah Butler',
         'Andy Choe',
         'Matthew Czar',
-        'Siera Gashi',
-        'Ethan Hernandez',
         'Toluwani Ilesanmi',
         'Cameron Johnson',
         'Darwin Lemus',
@@ -3904,13 +4013,10 @@ function getPeopleContent() {
         'David Majernik',
         'Eba Moreda',
         'Sanskriti Negi',
-        'Coleman Stephens',
         'Meghan Parker',
         'Allen Solomon',
-        'Mihika Tyagi',
         'Alexander Yevchenko',
-        'Sidharth Yeramaddu',
-        'William Keffer'
+        'Sidharth Yeramaddu'
     ];
 
     // Render featured members with full profiles
@@ -3922,13 +4028,13 @@ function getPeopleContent() {
             var initials = member.name.split(' ').map(function(n) { return n[0]; }).join('');
             html += '<div class="person-image placeholder-image"><span>' + initials + '</span></div>';
         }
-        html += '<div class="person-info">';
+        html += '<div class="person-name-row">';
         html += '<h3 class="person-name">' + member.name + '</h3>';
+        html += linkedinLink(member.linkedin);
+        html += '</div>';
         html += '<p class="person-details">' + member.major + ' · ' + member.status + '</p>';
         html += '<p class="person-graduation">Expected Graduation: ' + member.graduation + '</p>';
         html += '<p class="person-bio">' + member.project + '</p>';
-        html += linkedinLink(member.linkedin);
-        html += '</div>';
         html += '</div>';
     });
 
@@ -3952,7 +4058,36 @@ function getAboutContent() {
 }
 
 function getJoinContent() {
-    return '<h1 class="expanded-title">Join Our Lab</h1><div class="content-section"><p class="about-text">Content coming soon.</p></div>';
+    return `
+        <h1 class="expanded-title">Join Our Lab</h1>
+        <div class="content-section">
+            <p class="about-text">
+                The Experimental Engineering Lab is always looking for passionate individuals
+                who want to push the boundaries of what's possible. Whether you're a seasoned
+                engineer or just starting your journey, we welcome creative minds ready to
+                tackle challenging projects.
+            </p>
+            <div class="join-requirements">
+                <h3 class="requirements-title">What We're Looking For</h3>
+                <ul class="requirements-list">
+                    <li>Curiosity and willingness to learn</li>
+                    <li>Collaborative mindset</li>
+                    <li>Minimum 5 hours/week commitment</li>
+                    <li>Valid UNC email address</li>
+                </ul>
+            </div>
+            <div class="join-cta">
+                <a href="application.html" class="apply-now-btn">
+                    <span class="btn-text">APPLY NOW</span>
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+    `;
 }
 
 // ============================================
@@ -3979,3 +4114,23 @@ console.log('%c\u26A1 EEL - EXPERIMENTAL ENGINEERING LAB', 'color: #7ec8e3; font
 console.log('%c\u03C6 = ' + PHI.toFixed(3), 'color: #a8d5e8; font-size: 12px;');
 console.log('%c\u2726 13 Engineering Structures with Realistic Organic Human Hand', 'color: #a8d5e8; font-size: 12px;');
 console.log('%c\u25C8 Circuit Grid Matrix Connection System', 'color: #7ec8e3; font-size: 12px;');
+
+// Dispose Three.js resources on page unload to free GPU memory
+window.addEventListener('beforeunload', function() {
+    if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+    }
+    if (scene) {
+        scene.traverse(function(obj) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(function(mat) { mat.dispose(); });
+                } else {
+                    obj.material.dispose();
+                }
+            }
+        });
+    }
+});

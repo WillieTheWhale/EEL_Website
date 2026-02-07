@@ -1,34 +1,40 @@
-FROM nginx:1.27-alpine
+# E.E.L. Application Portal
+# Optimized for Red Hat OpenShift deployment
 
-# Copy custom nginx config for OpenShift compatibility (non-root, port 8080)
-COPY nginx.conf /etc/nginx/nginx.conf
+FROM node:20-alpine
 
-# Copy website files to nginx html directory
-COPY website/ /usr/share/nginx/html/
+# Create app directory
+WORKDIR /app
 
-# Remove dev-only files that shouldn't be served
-RUN rm -rf /usr/share/nginx/html/node_modules \
-           /usr/share/nginx/html/package.json \
-           /usr/share/nginx/html/package-lock.json \
-           /usr/share/nginx/html/.DS_Store \
-           /usr/share/nginx/html/scale-test*.png
+# OpenShift runs containers as non-root by default
+# Create directories and set permissions
+RUN mkdir -p /app/backend/data /app/backend/uploads && \
+    chown -R node:node /app
 
-# OpenShift runs containers as an arbitrary non-root UID.
-# Adjust file ownership and directory permissions so nginx can
-# write its pid file, cache, and temp files under any UID.
-RUN chown -R 1001:0 /usr/share/nginx/html && \
-    chmod -R g=u /usr/share/nginx/html && \
-    chown -R 1001:0 /var/cache/nginx && \
-    chmod -R g=u /var/cache/nginx && \
-    chown -R 1001:0 /var/log/nginx && \
-    chmod -R g=u /var/log/nginx && \
-    # nginx.pid needs to be writable
-    touch /var/run/nginx.pid && \
-    chown 1001:0 /var/run/nginx.pid && \
-    chmod g=u /var/run/nginx.pid
+# Copy package files from website directory
+COPY website/package*.json ./
 
+# Install dependencies (production only)
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copy application code
+COPY --chown=node:node website/backend/ ./backend/
+COPY --chown=node:node website/index.html website/styles.css website/script.js website/mobile.js ./
+COPY --chown=node:node website/application.html website/application.css website/application.js ./
+COPY --chown=node:node website/EEL_Logo.png website/EEL_Logo.svg ./
+COPY --chown=node:node website/headshots/ ./headshots/
+COPY --chown=node:node website/modules/ ./modules/
+COPY --chown=node:node website/vision-pro.html ./
+
+# Switch to non-root user
+USER node
+
+# Expose port (OpenShift typically uses 8080)
 EXPOSE 8080
 
-USER 1001
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:8080', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application
+CMD ["node", "backend/server.js"]
