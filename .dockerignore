@@ -1,0 +1,15 @@
+.git
+.gitignore
+.DS_Store
+.claude
+copy
+headshots
+Video_Clips
+EEL_Logo.ai
+EEL_Logo.png
+CLAUDE.md
+website/node_modules
+website/package.json
+website/package-lock.json
+website/scale-test*.png
+website/.DS_Store
