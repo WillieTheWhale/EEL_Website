@@ -6,11 +6,6 @@ FROM node:20-alpine
 # Create app directory
 WORKDIR /app
 
-# OpenShift runs containers as non-root by default
-# Create directories and set permissions
-RUN mkdir -p /app/backend/data /app/backend/uploads && \
-    chown -R node:node /app
-
 # Copy package files from website directory
 COPY website/package*.json ./
 
@@ -18,13 +13,20 @@ COPY website/package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy application code
-COPY --chown=node:node website/backend/ ./backend/
-COPY --chown=node:node website/index.html website/styles.css website/script.js website/mobile.js ./
-COPY --chown=node:node website/application.html website/application.css website/application.js ./
-COPY --chown=node:node website/EEL_Logo.png website/EEL_Logo.svg ./
-COPY --chown=node:node website/headshots/ ./headshots/
-COPY --chown=node:node website/modules/ ./modules/
-COPY --chown=node:node website/vision-pro.html ./
+COPY website/backend/ ./backend/
+COPY website/index.html website/styles.css website/script.js website/mobile.js ./
+COPY website/application.html website/application.css website/application.js ./
+COPY website/EEL_Logo.png website/EEL_Logo.svg ./
+COPY website/headshots/ ./headshots/
+COPY website/modules/ ./modules/
+COPY website/vision-pro.html ./
+
+# OpenShift runs containers as an arbitrary non-root UID in group 0.
+# Set ownership and group-write permissions AFTER all COPY steps so
+# the writable directories (data, uploads) are accessible at runtime.
+RUN chown -R node:0 /app && \
+    chmod -R g=u /app/backend/data && \
+    chmod -R g=u /app/backend/uploads
 
 # Switch to non-root user
 USER node
