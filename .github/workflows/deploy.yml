@@ -49,6 +49,7 @@ jobs:
   deploy:
     name: Deploy to OpenShift
     needs: build-and-push
+    if: ${{ secrets.OPENSHIFT_SERVER != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Log in to OpenShift
