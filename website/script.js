@@ -2856,6 +2856,21 @@ function createQuadcopter() {
     group.userData.waypointSpeed = 0.3; // ~3.3 seconds per waypoint
     group.userData.rotationSpeed = 0; // Disable default rotation (quadcopter has custom rotation)
 
+    // Fade state for panel expansion hide/show
+    group.userData.fadeOpacity = 1;
+    group.userData.fadeTarget = 1;
+
+    // Collect all materials and enable transparency for fade support
+    group.userData.allMaterials = [];
+    group.traverse(child => {
+        if (child.isMesh && child.material) {
+            child.material.transparent = true;
+            // Preserve original opacity for materials that aren't fully opaque (e.g. propeller blades)
+            child.material.userData.baseOpacity = child.material.opacity;
+            group.userData.allMaterials.push(child.material);
+        }
+    });
+
     return group;
 }
 
@@ -3471,6 +3486,33 @@ function animateThreeJS() {
                     structure.position.copy(structure.userData.basePosition);
                     structure.position.y += hoverOffset;
                 }
+
+                // ===================================================
+                // SECTION 5: Fade Opacity (panel expansion hide/show)
+                // ===================================================
+                if (structure.userData.fadeTarget !== undefined) {
+                    const target = structure.userData.fadeTarget;
+                    const current = structure.userData.fadeOpacity;
+                    const diff = target - current;
+                    if (Math.abs(diff) > 0.001) {
+                        // Smooth exponential ease — reaches target in ~0.5s
+                        const fadeSmoothFactor = 1 - Math.pow(0.02, deltaTime);
+                        structure.userData.fadeOpacity = current + diff * fadeSmoothFactor;
+                        structure.userData.allMaterials.forEach(mat => {
+                            mat.opacity = mat.userData.baseOpacity !== undefined
+                                ? mat.userData.baseOpacity * structure.userData.fadeOpacity
+                                : structure.userData.fadeOpacity;
+                        });
+                    } else if (current !== target) {
+                        // Snap to exact target
+                        structure.userData.fadeOpacity = target;
+                        structure.userData.allMaterials.forEach(mat => {
+                            mat.opacity = mat.userData.baseOpacity !== undefined
+                                ? mat.userData.baseOpacity * target
+                                : target;
+                        });
+                    }
+                }
                 break;
         }
     });
@@ -3483,6 +3525,18 @@ function animateThreeJS() {
     camera.lookAt(0, 0, 0);
     
     renderer.render(scene, camera);
+}
+
+// ============================================
+// DRONE FADE HELPER
+// ============================================
+
+function fadeDrone(targetOpacity) {
+    structures.forEach(s => {
+        if (s.userData.type === 'quadcopter') {
+            s.userData.fadeTarget = targetOpacity;
+        }
+    });
 }
 
 // ============================================
@@ -3518,6 +3572,7 @@ function expandPanel(panelId, contentType) {
     
     loadContent(contentType, expandedContent);
     TetherSystem.fadeOut();
+    fadeDrone(0);
     
     expandedOverlay.style.pointerEvents = '';
     expandedOverlay.classList.add('active');
@@ -3581,6 +3636,7 @@ function collapsePanel() {
         panel.classList.remove('hidden');
         panel.setAttribute('aria-expanded', 'false');
         TetherSystem.fadeIn();
+        fadeDrone(1);
         
         setTimeout(() => {
             document.querySelectorAll('.nav-panel').forEach(p => { p.style.pointerEvents = ''; });
