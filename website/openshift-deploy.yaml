@@ -53,8 +53,22 @@ items:
                 optional: true
           - name: NOTIFY_EMAIL
             value: "wilk05@unc.edu"
+          - name: SMTP_HOST
+            valueFrom:
+              secretKeyRef:
+                name: eel-secrets
+                key: smtp-host
+                optional: true
+          - name: SMTP_PORT
+            valueFrom:
+              secretKeyRef:
+                name: eel-secrets
+                key: smtp-port
+                optional: true
+          - name: SMTP_FROM
+            value: "wilk05@unc.edu"
           - name: SITE_URL
-            value: "https://eel-website.apps.your-cluster.openshiftapps.com"
+            value: "https://eel-website.apps.cloudapps.unc.edu"
           volumeMounts:
           - name: data-volume
             mountPath: /app/backend/data
@@ -147,6 +161,14 @@ items:
 # Setup instructions:
 #
 # 1. Create application secrets:
+#
+#    For UNC relay (relay.unc.edu, no email creds needed):
+# oc create secret generic eel-secrets \
+#   --from-literal=admin-password='your-secure-password' \
+#   --from-literal=smtp-host='relay.unc.edu' \
+#   --from-literal=smtp-port='587'
+#
+#    For Gmail SMTP (local dev / non-UNC):
 # oc create secret generic eel-secrets \
 #   --from-literal=admin-password='your-secure-password' \
 #   --from-literal=email-user='your-email@gmail.com' \
