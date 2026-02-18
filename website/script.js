@@ -4019,6 +4019,16 @@ function getPeopleContent() {
         'Sidharth Yeramaddu'
     ];
 
+    // Sort all members by last name (A→Z)
+    featuredMembers.sort(function(a, b) {
+        return a.name.split(' ').pop().toLowerCase()
+            .localeCompare(b.name.split(' ').pop().toLowerCase());
+    });
+    otherMembers.sort(function(a, b) {
+        return a.split(' ').pop().toLowerCase()
+            .localeCompare(b.split(' ').pop().toLowerCase());
+    });
+
     // Render featured members with full profiles
     featuredMembers.forEach(function(member) {
         html += '<div class="person-card featured-card">';
@@ -4061,6 +4071,9 @@ function getJoinContent() {
     return `
         <h1 class="expanded-title">Join Our Lab</h1>
         <div class="content-section">
+            <div class="join-poster">
+                <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img">
+            </div>
             <p class="about-text">
                 The Experimental Engineering Lab is always looking for passionate individuals
                 who want to push the boundaries of what's possible. Whether you're a seasoned
@@ -4091,21 +4104,198 @@ function getJoinContent() {
 }
 
 // ============================================
+// INTERLOCKING GEARS SVG - Panel Icons
+// ============================================
+// Three-layer rendering for true mechanical interlocking:
+//   Layer 1: Full large gear (behind)
+//   Layer 2: Full small gear (in front)
+//   Layer 3: Large gear teeth only, clipped to small gear zone (topmost)
+// This makes large gear teeth visually enter small gear gaps,
+// while small gear teeth (Layer 2) enter large gear gaps (over Layer 1).
+
+const GEAR_CONFIG = (function() {
+    // Module m=4, same for both gears so teeth mesh
+    const m = 4;
+    const lgTeeth = 12, smTeeth = 10;
+    const lgPitch = m * lgTeeth / 2;          // 24
+    const smPitch = m * smTeeth / 2;          // 20
+    const addendum = 0.75 * m;                // 3 — tooth height above pitch
+    const dedendum = 1.25 * m;                // 5 — valley depth below pitch
+    const centerDist = lgPitch + smPitch;     // 44
+
+    const lgOuterR = lgPitch + addendum;      // 27
+    const lgRootR  = lgPitch - dedendum;      // 19
+    const smOuterR = smPitch + addendum;      // 23
+    const smRootR  = smPitch - dedendum;      // 15
+
+    // Position large gear upper-left, small gear lower-right
+    const lgCx = 31, lgCy = 30;
+    const meshAngle = Math.atan2(3, 4);       // ~36.87°
+    const smCx = lgCx + centerDist * Math.cos(meshAngle);  // ~66.2
+    const smCy = lgCy + centerDist * Math.sin(meshAngle);  // ~56.4
+
+    // Phase offsets for proper meshing at t=0:
+    // Large gear: GAP faces the small gear at meshAngle
+    // Small gear: TOOTH faces the large gear at meshAngle+π
+    const lgSector = (2 * Math.PI) / lgTeeth;
+    const smSector = (2 * Math.PI) / smTeeth;
+
+    // Large gear — align nearest gap center with meshAngle
+    const lgGap0 = -Math.PI / 2 + lgSector / 2;
+    const lgGapIdx = Math.round((meshAngle - lgGap0) / lgSector);
+    const lgPhase = meshAngle - (lgGap0 + lgGapIdx * lgSector);
+
+    // Small gear — align nearest TOOTH center with opposite mesh angle
+    const smMesh = meshAngle + Math.PI;
+    const smTooth0 = -Math.PI / 2;  // first tooth center (not gap!)
+    const smToothIdx = Math.round((smMesh - smTooth0) / smSector);
+    const smPhase = smMesh - (smTooth0 + smToothIdx * smSector);
+
+    // Rotation durations (gear ratio = teeth ratio)
+    const lgDur = 20;
+    const smDur = lgDur * smTeeth / lgTeeth;  // 16.667
+
+    return {
+        lg: { cx: lgCx, cy: lgCy, outerR: lgOuterR, rootR: lgRootR,
+              ringR: 16, holeR: 11, teeth: lgTeeth, phase: lgPhase },
+        sm: { cx: smCx, cy: smCy, outerR: smOuterR, rootR: smRootR,
+              ringR: 12, holeR: 8,  teeth: smTeeth, phase: smPhase },
+        lgDur: lgDur, smDur: smDur
+    };
+})();
+
+function buildGearPaths(g) {
+    const sector = (2 * Math.PI) / g.teeth;
+    // Tooth profile fractions (of sector) — sized for proper meshing
+    const rootHalf = 0.26;  // half-width at root
+    const tipHalf  = 0.16;  // half-width at tip
+
+    // Full gear outline (teeth + body) with center hole
+    const pts = [];
+    for (let i = 0; i < g.teeth; i++) {
+        const c = i * sector - Math.PI / 2 + g.phase;
+        const a1 = c - rootHalf * sector;
+        const a2 = c - tipHalf  * sector;
+        const a3 = c + tipHalf  * sector;
+        const a4 = c + rootHalf * sector;
+        pts.push([g.rootR * Math.cos(a1), g.rootR * Math.sin(a1)]);
+        pts.push([g.outerR * Math.cos(a2), g.outerR * Math.sin(a2)]);
+        pts.push([g.outerR * Math.cos(a3), g.outerR * Math.sin(a3)]);
+        pts.push([g.rootR * Math.cos(a4), g.rootR * Math.sin(a4)]);
+    }
+    let full = 'M' + pts[0][0].toFixed(2) + ',' + pts[0][1].toFixed(2);
+    for (let i = 1; i < pts.length; i++)
+        full += ' L' + pts[i][0].toFixed(2) + ',' + pts[i][1].toFixed(2);
+    full += ' Z';
+    // Center hole (counter-clockwise for evenodd cutout)
+    full += ' M' + g.holeR.toFixed(2) + ',0';
+    full += ' A' + g.holeR + ',' + g.holeR + ' 0 0 0 ' + (-g.holeR).toFixed(2) + ',0';
+    full += ' A' + g.holeR + ',' + g.holeR + ' 0 0 0 ' + g.holeR.toFixed(2) + ',0 Z';
+
+    // Teeth-only path (individual tooth quads, no body/hole)
+    let teeth = '';
+    for (let i = 0; i < g.teeth; i++) {
+        const c = i * sector - Math.PI / 2 + g.phase;
+        const a1 = c - rootHalf * sector;
+        const a2 = c - tipHalf  * sector;
+        const a3 = c + tipHalf  * sector;
+        const a4 = c + rootHalf * sector;
+        teeth += 'M' + (g.rootR * Math.cos(a1)).toFixed(2) + ',' + (g.rootR * Math.sin(a1)).toFixed(2);
+        teeth += ' L' + (g.outerR * Math.cos(a2)).toFixed(2) + ',' + (g.outerR * Math.sin(a2)).toFixed(2);
+        teeth += ' L' + (g.outerR * Math.cos(a3)).toFixed(2) + ',' + (g.outerR * Math.sin(a3)).toFixed(2);
+        teeth += ' L' + (g.rootR * Math.cos(a4)).toFixed(2) + ',' + (g.rootR * Math.sin(a4)).toFixed(2);
+        teeth += ' Z ';
+    }
+
+    return { full: full, teeth: teeth.trim() };
+}
+
+function createInterlockingGearsSVG(uid) {
+    const cfg = GEAR_CONFIG;
+    const lg = cfg.lg, sm = cfg.sm;
+    const lgPaths = buildGearPaths(lg);
+    const smPaths = buildGearPaths(sm);
+    const clipId = 'gc' + uid;
+
+    // Viewbox to contain both gears with padding
+    const vw = Math.ceil(sm.cx + sm.outerR + 3);
+    const vh = Math.ceil(sm.cy + sm.outerR + 3);
+
+    // All paths are relative to gear center (drawn at origin, translated by group)
+    return '<svg class="panel-icon-svg" viewBox="0 0 ' + vw + ' ' + vh + '" xmlns="http://www.w3.org/2000/svg">'
+        + '<defs><clipPath id="' + clipId + '">'
+        + '<circle cx="' + sm.cx.toFixed(2) + '" cy="' + sm.cy.toFixed(2) + '" r="' + (sm.outerR + 1) + '"/>'
+        + '</clipPath></defs>'
+        // Layer 1: Full large gear
+        + '<g class="gear-lg-rotate" data-cx="' + lg.cx + '" data-cy="' + lg.cy + '">'
+        + '<path d="' + lgPaths.full + '" fill="#6B7B8D" fill-rule="evenodd" transform="translate(' + lg.cx + ',' + lg.cy + ')"/>'
+        + '<circle cx="' + lg.cx + '" cy="' + lg.cy + '" r="' + lg.ringR + '" fill="none" stroke="#A8C5B8" stroke-width="2.5"/>'
+        + '</g>'
+        // Layer 2: Full small gear
+        + '<g class="gear-sm-rotate" data-cx="' + sm.cx.toFixed(2) + '" data-cy="' + sm.cy.toFixed(2) + '">'
+        + '<path d="' + smPaths.full + '" fill="#6B7B8D" fill-rule="evenodd" transform="translate(' + sm.cx.toFixed(2) + ',' + sm.cy.toFixed(2) + ')"/>'
+        + '<circle cx="' + sm.cx.toFixed(2) + '" cy="' + sm.cy.toFixed(2) + '" r="' + sm.ringR + '" fill="none" stroke="#A8C5B8" stroke-width="2"/>'
+        + '</g>'
+        // Layer 3: Large gear teeth only, clipped to small gear zone
+        + '<g clip-path="url(#' + clipId + ')">'
+        + '<g class="gear-lg-rotate" data-cx="' + lg.cx + '" data-cy="' + lg.cy + '">'
+        + '<path d="' + lgPaths.teeth + '" fill="#6B7B8D" transform="translate(' + lg.cx + ',' + lg.cy + ')"/>'
+        + '</g></g>'
+        + '</svg>';
+}
+
+// Single animation loop for all panel gear icons
+let _gearAnimRunning = false;
+function animatePanelGears() {
+    const t = performance.now() / 1000;
+    const cfg = GEAR_CONFIG;
+    const lgAngle = (t / cfg.lgDur) * 360;
+    const smAngle = -(t / cfg.smDur) * 360;
+
+    const lgEls = document.querySelectorAll('.gear-lg-rotate');
+    const smEls = document.querySelectorAll('.gear-sm-rotate');
+
+    for (let i = 0; i < lgEls.length; i++) {
+        const el = lgEls[i];
+        el.setAttribute('transform',
+            'rotate(' + lgAngle.toFixed(3) + ' ' + el.dataset.cx + ' ' + el.dataset.cy + ')');
+    }
+    for (let i = 0; i < smEls.length; i++) {
+        const el = smEls[i];
+        el.setAttribute('transform',
+            'rotate(' + smAngle.toFixed(3) + ' ' + el.dataset.cx + ' ' + el.dataset.cy + ')');
+    }
+    requestAnimationFrame(animatePanelGears);
+}
+
+function initPanelGearIcons() {
+    document.querySelectorAll('.panel-icon').forEach(function(el, idx) {
+        el.innerHTML = createInterlockingGearsSVG(idx);
+    });
+    if (!_gearAnimRunning) {
+        _gearAnimRunning = true;
+        requestAnimationFrame(animatePanelGears);
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
+        initPanelGearIcons();
         radialPanelPhysics = new RadialPanelPhysics();
         checkThreeJS();
-        
+
         setTimeout(() => {
             document.querySelectorAll('.js-positioned:not(.ready)').forEach(el => el.classList.add('ready'));
         }, 2000);
     });
 } else {
     ThemeManager.init();
+    initPanelGearIcons();
     radialPanelPhysics = new RadialPanelPhysics();
     checkThreeJS();
 }
