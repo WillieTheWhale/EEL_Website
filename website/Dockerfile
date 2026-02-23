@@ -19,6 +19,7 @@ COPY index.html styles.css script.js mobile.js ./
 COPY application.html application.css application.js ./
 COPY EEL_Logo.png EEL_Logo.svg ./
 COPY headshots/ ./headshots/
+COPY images/ ./images/
 COPY modules/ ./modules/
 COPY vision-pro.html ./
 

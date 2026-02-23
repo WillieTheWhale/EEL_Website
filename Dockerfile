@@ -19,6 +19,7 @@ COPY website/application.html website/application.css website/application.js ./
 COPY website/EEL_Logo.png website/EEL_Logo.svg ./
 COPY website/favicon.ico website/favicon.png website/apple-touch-icon.png ./
 COPY website/headshots/ ./headshots/
+COPY website/images/ ./images/
 COPY website/modules/ ./modules/
 COPY website/vision-pro.html ./
 
