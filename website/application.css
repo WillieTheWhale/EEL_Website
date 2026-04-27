@@ -167,28 +167,6 @@ body {
     margin-top: 2px;
 }
 
-.system-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--success);
-}
-
-.status-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    color: var(--text-muted);
-}
-
 /* ========================================
    TEST CHAMBER MAIN AREA
    ======================================== */
@@ -504,32 +482,6 @@ select.field-input option[disabled] {
     text-align: center;
 }
 
-.submit-warning {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    background: var(--portal-orange-dim);
-    margin-bottom: 24px;
-}
-
-.warning-stripe {
-    width: 4px;
-    height: 20px;
-    background: repeating-linear-gradient(
-        45deg,
-        var(--portal-orange),
-        var(--portal-orange) 2px,
-        var(--panel-dark) 2px,
-        var(--panel-dark) 4px
-    );
-}
-
-.submit-warning span {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
 .submit-button {
     display: inline-flex;
     align-items: center;
@@ -726,10 +678,6 @@ select.field-input option[disabled] {
 
     .nav-back span {
         display: none;
-    }
-
-    .system-status {
-        margin-left: auto;
     }
 
     .chamber-header {

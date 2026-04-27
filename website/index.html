@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="EELRedraw.svg" as="image" type="image/svg+xml">
 
     <!-- Preload critical font with display swap for faster text rendering -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -19,16 +22,15 @@
     
     <!-- Critical CSS inlined to prevent render blocking -->
     <style>
-        /* Critical above-the-fold styles only */
+        /* Critical above-the-fold styles — matches styles.css theme variables */
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
         body { 
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(180deg, #FAFBFC 0%, #EEF2F5 50%, #E2E8ED 100%);
+            background: linear-gradient(180deg, #DDDEE0 0%, #CCCED0 50%, #BBBEC2 100%);
             overflow: hidden;
             height: 100vh;
             position: relative;
         }
-        /* Dark mode critical styles */
         body[data-theme="dark"] {
             background: linear-gradient(180deg, #0C0E12 0%, #12161C 50%, #181D25 100%);
         }
@@ -166,6 +168,7 @@
         <!-- Chrome Title -->
         <h1 class="chrome-title fade-element js-positioned" id="siteTitle">EEL</h1>
         <p class="subtitle fade-element js-positioned" id="siteSubtitle">Experimental Engineering Lab</p>
+        <p class="tagline fade-element js-positioned" id="siteTagline">Building the Next Generation of Research Engineers</p>
         
         <!-- Central Medallion -->
         <div class="central-medallion fade-element js-positioned" id="centralMedallion">
@@ -177,7 +180,7 @@
                 <div class="medallion-glow"></div>
                 <div class="medallion-content">
                     <div class="medallion-logo">
-                        <img src="EEL_Logo.svg" alt="EEL - Experimental Engineering Lab" class="eel-logo-img" width="120" height="120" decoding="async">
+                        <img src="EELRedraw.svg" alt="EEL - Experimental Engineering Lab" class="eel-logo-img" width="120" height="120" decoding="async" fetchpriority="high">
                     </div>
                 </div>
             </div>
@@ -209,7 +212,7 @@
         </div>
         
         <!-- Navigation Panels - Radial Layout -->
-        <div class="nav-panel fade-element js-positioned" id="panel-projects" data-angle="315" data-content-type="projects">
+        <div class="nav-panel fade-element js-positioned" id="panel-projects" data-angle="225" data-content-type="projects">
             <div class="panel-glass-container">
                 <div class="panel-glass-layer panel-glass-base"></div>
                 <div class="panel-glass-layer panel-glass-gloss"></div>
@@ -232,7 +235,7 @@
             </div>
         </div>
         
-        <div class="nav-panel fade-element js-positioned" id="panel-people" data-angle="45" data-content-type="people">
+        <div class="nav-panel fade-element js-positioned" id="panel-people" data-angle="315" data-content-type="people">
             <div class="panel-glass-container">
                 <div class="panel-glass-layer panel-glass-base"></div>
                 <div class="panel-glass-layer panel-glass-gloss"></div>
@@ -278,7 +281,7 @@
             </div>
         </div>
         
-        <div class="nav-panel fade-element js-positioned" id="panel-join" data-angle="225" data-content-type="join">
+        <div class="nav-panel fade-element js-positioned" id="panel-join" data-angle="45" data-content-type="join">
             <div class="panel-glass-container">
                 <div class="panel-glass-layer panel-glass-base"></div>
                 <div class="panel-glass-layer panel-glass-gloss"></div>

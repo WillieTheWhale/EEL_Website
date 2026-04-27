@@ -39,32 +39,15 @@ items:
               secretKeyRef:
                 name: eel-secrets
                 key: admin-password
-          - name: EMAIL_USER
-            valueFrom:
-              secretKeyRef:
-                name: eel-secrets
-                key: email-user
-                optional: true
-          - name: EMAIL_PASS
-            valueFrom:
-              secretKeyRef:
-                name: eel-secrets
-                key: email-pass
-                optional: true
           - name: NOTIFY_EMAIL
             value: "wilk05@unc.edu"
+          # UNC campus SMTP relay — no authentication required from campus subnets.
+          # relay.unc.edu accepts connections from UNC IP space (which CloudApps uses).
+          # FROM must be a real, existing @unc.edu address (UNC DMARC policy, 2024).
           - name: SMTP_HOST
-            valueFrom:
-              secretKeyRef:
-                name: eel-secrets
-                key: smtp-host
-                optional: true
+            value: "relay.unc.edu"
           - name: SMTP_PORT
-            valueFrom:
-              secretKeyRef:
-                name: eel-secrets
-                key: smtp-port
-                optional: true
+            value: "587"
           - name: SMTP_FROM
             value: "wilk05@unc.edu"
           - name: SITE_URL
@@ -160,19 +143,14 @@ items:
 ---
 # Setup instructions:
 #
-# 1. Create application secrets:
+# Email is configured to use relay.unc.edu (UNC campus SMTP relay, no auth needed).
+# SMTP_HOST, SMTP_PORT, SMTP_FROM, and NOTIFY_EMAIL are all hardcoded above.
+# No email-related secrets are required.
 #
-#    For UNC relay (relay.unc.edu, no email creds needed):
-# oc create secret generic eel-secrets \
-#   --from-literal=admin-password='your-secure-password' \
-#   --from-literal=smtp-host='relay.unc.edu' \
-#   --from-literal=smtp-port='587'
+# 1. Create application secrets (admin password only):
 #
-#    For Gmail SMTP (local dev / non-UNC):
 # oc create secret generic eel-secrets \
-#   --from-literal=admin-password='your-secure-password' \
-#   --from-literal=email-user='your-email@gmail.com' \
-#   --from-literal=email-pass='your-app-password'
+#   --from-literal=admin-password='your-secure-password'
 #
 # 2. Create GHCR pull secret (for pulling images from GitHub Container Registry):
 # oc create secret docker-registry ghcr-pull-secret \
@@ -188,3 +166,6 @@ items:
 #
 # 4. To force a redeployment with the latest image:
 # oc rollout restart deployment/eel-website
+#
+# 5. To verify email is working after deploy, check pod logs:
+# oc logs deployment/eel-website | grep -i email
