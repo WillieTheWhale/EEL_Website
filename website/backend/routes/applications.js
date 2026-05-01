@@ -207,7 +207,7 @@ async function sendNotificationEmail(application) {
             html: html,
             attachments: attachments
         });
-        console.log('Notification email sent to ' + notifyEmail);
+        console.log('Notification email sent to: ' + notifyEmail);
     } catch (err) {
         console.error('Failed to send notification email:', err.message);
     }

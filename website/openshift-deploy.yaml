@@ -40,7 +40,7 @@ items:
                 name: eel-secrets
                 key: admin-password
           - name: NOTIFY_EMAIL
-            value: "wilk05@unc.edu"
+            value: "wilk05@unc.edu,mahaney@cs.unc.edu"
           # UNC campus SMTP relay — no authentication required from campus subnets.
           # relay.unc.edu accepts connections from UNC IP space (which CloudApps uses).
           # FROM must be a real, existing @unc.edu address (UNC DMARC policy, 2024).

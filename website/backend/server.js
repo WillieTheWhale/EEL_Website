@@ -64,9 +64,9 @@ app.listen(PORT, () => {
     const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
     const notifyEmail = process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
     if (smtpHost) {
-        console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: ${notifyEmail}`);
+        console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: [${notifyEmail}]`);
     } else if (process.env.EMAIL_USER) {
-        console.log(`Email: Gmail SMTP as ${process.env.EMAIL_USER} | to: ${notifyEmail}`);
+        console.log(`Email: Gmail SMTP as ${process.env.EMAIL_USER} | to: [${notifyEmail}]`);
     } else {
         console.log('Email: NOT CONFIGURED — set SMTP_HOST for relay or EMAIL_USER/EMAIL_PASS for Gmail');
     }
