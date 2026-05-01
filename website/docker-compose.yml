@@ -7,8 +7,9 @@ services:
     environment:
       - PORT=8080
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-eel-admin-2024}
-      - EMAIL_USER=${EMAIL_USER:-}
-      - EMAIL_PASS=${EMAIL_PASS:-}
+      - SMTP_HOST=${SMTP_HOST:-relay.unc.edu}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_FROM=${SMTP_FROM:-wilk05@unc.edu}
       - NOTIFY_EMAIL=${NOTIFY_EMAIL:-wilk05@unc.edu}
       - SITE_URL=${SITE_URL:-http://localhost:8080}
     volumes:

@@ -17,11 +17,11 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY backend/ ./backend/
 COPY index.html styles.css script.js mobile.js ./
 COPY application.html application.css application.js ./
-COPY EEL_Logo.png EEL_Logo.svg ./
+COPY EEL_Logo.png EEL_Logo.svg EELRedraw.svg EELRedraw.png ./
+COPY favicon.ico favicon.png apple-touch-icon.png ./
 COPY headshots/ ./headshots/
 COPY images/ ./images/
 COPY modules/ ./modules/
-COPY vision-pro.html ./
 
 # OpenShift runs containers as an arbitrary non-root UID in group 0.
 # Set ownership and group-write permissions AFTER all COPY steps so
