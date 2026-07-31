@@ -2796,6 +2796,78 @@ function getPeopleContent() {
             project: 'My team and I are researching the forces required for swimming and the technique required to maximize stroke efficiency. We are also studying the drag crisis and how it can be applied to swimming bodies.',
             headshot: null,
             linkedin: 'https://www.linkedin.com/in/meczar'
+        },
+        {
+            name: 'Ansh Aryan',
+            major: 'Computer Science',
+            status: 'Alumnus',
+            graduation: 'May 2026',
+            project: 'Ansh is a UNC computer science alumnus who developed and presented 3D reconstruction and cultural-preservation work for Swayambhu Stories, optimizing a large photogrammetry model for the web.',
+            headshot: 'headshots/ansh-aryan.jpeg',
+            linkedin: 'https://www.linkedin.com/in/ansh-aryan03'
+        },
+        {
+            name: 'Noah Butler',
+            major: 'Computer Science',
+            status: 'Undergraduate',
+            graduation: null,
+            project: 'Noah is a computer science student at UNC working on XR, computer graphics, redirected walking, and mixed-reality simulation systems.',
+            headshot: 'headshots/noah-butler.png',
+            linkedin: 'https://www.linkedin.com/in/n-rock'
+        },
+        {
+            name: 'Cameron Johnson',
+            major: 'Mathematics & Economics',
+            status: 'Junior',
+            graduation: 'December 2027',
+            project: 'Cameron is a Morehead-Cain Scholar studying Mathematics and Economics. His interdisciplinary work pairs data-driven problem solving with community leadership and educational equity.',
+            headshot: 'headshots/cameron-johnson.jpeg',
+            linkedin: 'https://www.linkedin.com/in/camjunc'
+        },
+        {
+            name: 'Matias Magallanes',
+            major: 'UNC Undergraduate',
+            status: 'Junior',
+            graduation: 'December 2027',
+            project: 'Matias is a UNC undergraduate and a member of the EEL research team.',
+            headshot: 'headshots/matias-magallanes.jpeg',
+            linkedin: 'https://www.linkedin.com/in/matias-magallanes-8194872a9'
+        },
+        {
+            name: 'Eba Moreda',
+            major: 'Biomedical Engineering',
+            status: 'Junior',
+            graduation: 'December 2027',
+            project: 'Eba is a biomedical engineering undergraduate at UNC and a member of the EEL research team.',
+            headshot: 'headshots/eba-moreda.jpeg',
+            linkedin: 'https://www.linkedin.com/in/ebamoreda'
+        },
+        {
+            name: 'Sanskriti Negi',
+            major: 'Biomedical Engineering & Computer Science',
+            status: 'Junior',
+            graduation: 'December 2027',
+            project: 'Sanskriti is a biomedical engineering and computer science student at UNC pursuing a career in robotics.',
+            headshot: 'headshots/sanskriti-negi.jpeg',
+            linkedin: 'https://www.linkedin.com/in/sanskriti-negi-unc'
+        },
+        {
+            name: 'Allen Solomon',
+            major: 'Computer Science',
+            status: 'Alumnus',
+            graduation: 'May 2026',
+            project: 'Allen is a UNC computer science alumnus and aspiring game developer with experience in C#, Java, Python, and web development.',
+            headshot: 'headshots/allen-solomon.jpeg',
+            linkedin: 'https://www.linkedin.com/in/allen-solomon-68b8a3267'
+        },
+        {
+            name: 'Sidharth Yeramaddu',
+            major: 'Applied Mathematics & Computer Science',
+            status: 'Undergraduate',
+            graduation: null,
+            project: 'Sidharth is an applied mathematics and computer science student at UNC.',
+            headshot: 'headshots/sidharth-yeramaddu.jpeg',
+            linkedin: 'https://www.linkedin.com/in/sidharth-yeramaddu'
         }
     ];
 
@@ -2819,17 +2891,9 @@ function getPeopleContent() {
         '<h2 class="people-section-title">Research Team</h2>',
         '<div class="people-grid featured-grid">');
 
-    // Other team members without full profiles yet
+    // Members without a verified public profile remain as simple team cards.
     const otherMembers = [
-        'Matthew Alexander',
-        'Ansh Aryan',
-        'Noah Butler',
-        'Cameron Johnson',
-        'Matias Magallanes',
-        'Eba Moreda',
-        'Sanskriti Negi',
-        'Allen Solomon',
-        'Sidharth Yeramaddu'
+        'Matthew Alexander'
     ];
 
     // Sort all members by last name (A→Z)
@@ -2858,9 +2922,11 @@ function getPeopleContent() {
             '<h3 class="person-name">', member.name, '</h3>',
             linkedinLink(member.linkedin),
             '</div>',
-            '<p class="person-details">', member.major, ' \u00B7 ', member.status, '</p>',
-            '<p class="person-graduation">Expected Graduation: ', member.graduation, '</p>',
-            accoladeBadge(member.name),
+            '<p class="person-details">', member.major, ' \u00B7 ', member.status, '</p>');
+        if (member.graduation) {
+            parts.push('<p class="person-graduation">Expected Graduation: ', member.graduation, '</p>');
+        }
+        parts.push(accoladeBadge(member.name),
             foundingBadge(member.name),
             '<p class="person-bio">', member.project, '</p>',
             '</div>');
