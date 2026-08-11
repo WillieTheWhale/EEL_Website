@@ -39,8 +39,8 @@ items:
               secretKeyRef:
                 name: eel-secrets
                 key: admin-password
-          - name: NOTIFY_EMAIL
-            value: "wilk05@unc.edu,mahaney@cs.unc.edu"
+          - name: NOTIFY_EMAILS
+            value: "wilk05@unc.edu,markyala@unc.edu"
           # UNC campus SMTP relay — no authentication required from campus subnets.
           # relay.unc.edu accepts connections from UNC IP space (which CloudApps uses).
           # FROM must be a real, existing @unc.edu address (UNC DMARC policy, 2024).
@@ -144,7 +144,7 @@ items:
 # Setup instructions:
 #
 # Email is configured to use relay.unc.edu (UNC campus SMTP relay, no auth needed).
-# SMTP_HOST, SMTP_PORT, SMTP_FROM, and NOTIFY_EMAIL are all hardcoded above.
+# SMTP_HOST, SMTP_PORT, SMTP_FROM, and NOTIFY_EMAILS are all hardcoded above.
 # No email-related secrets are required.
 #
 # 1. Create application secrets (admin password only):

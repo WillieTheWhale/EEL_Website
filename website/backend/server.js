@@ -62,7 +62,7 @@ app.listen(PORT, () => {
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT || '587';
     const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
-    const notifyEmail = process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
+    const notifyEmail = process.env.NOTIFY_EMAILS || process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
     if (smtpHost) {
         console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: [${notifyEmail}]`);
     } else if (process.env.EMAIL_USER) {

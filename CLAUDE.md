@@ -85,7 +85,7 @@ PORT=8080
 ADMIN_PASSWORD=eel-admin-2024
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
-NOTIFY_EMAIL=wilk05@unc.edu
+NOTIFY_EMAILS=wilk05@unc.edu,markyala@unc.edu
 SITE_URL=http://localhost:8080
 ```
 

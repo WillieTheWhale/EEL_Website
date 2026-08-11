@@ -94,13 +94,23 @@ function createMailTransporter() {
     });
 }
 
-// Helper: Send notification email with resume attachment
+function notificationRecipients() {
+    const configuredRecipients = process.env.NOTIFY_EMAILS || process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
+    return [...new Set(
+        configuredRecipients
+            .split(/[;,]/)
+            .map((recipient) => recipient.trim())
+            .filter(Boolean)
+    )];
+}
+
+// Send one message per reviewer so recipients cannot see one another.
 async function sendNotificationEmail(application) {
     const emailUser = process.env.EMAIL_USER;
     const emailPass = process.env.EMAIL_PASS;
     const smtpHost = process.env.SMTP_HOST;
     const smtpFrom = process.env.SMTP_FROM || emailUser;
-    const notifyEmail = process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
+    const recipients = notificationRecipients();
 
     // Need either SMTP_HOST (relay, no creds required) or Gmail creds
     if (!smtpHost && (!emailUser || !emailPass)) {
@@ -110,6 +120,11 @@ async function sendNotificationEmail(application) {
 
     if (!smtpFrom) {
         console.log('No sender address configured (set SMTP_FROM or EMAIL_USER)');
+        return;
+    }
+
+    if (!recipients.length) {
+        console.log('No notification recipients configured (set NOTIFY_EMAILS or NOTIFY_EMAIL)');
         return;
     }
 
@@ -132,7 +147,12 @@ async function sendNotificationEmail(application) {
         // Escape HTML in user-provided text
         function esc(str) {
             if (!str) return '';
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         // Format multi-line text, preserving line breaks
@@ -145,69 +165,75 @@ async function sendNotificationEmail(application) {
             hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
         });
 
-        const html = `
-<div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-    <div style="background: #1a2a3a; padding: 20px 24px; border-radius: 8px 8px 0 0;">
-        <h1 style="color: #7ec8e3; margin: 0; font-size: 20px; font-weight: 400; letter-spacing: 1px;">
-            E.E.L. &mdash; New Application
-        </h1>
-    </div>
-    <div style="background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px;">
-
-        <p style="margin: 0 0 16px; padding: 10px 14px; background: #e8f4f8; border-left: 4px solid #7ec8e3; border-radius: 4px; font-size: 14px;">
-            Reference: <strong>${esc(application.reference)}</strong> &nbsp;|&nbsp; Submitted: ${submittedDate}
-        </p>
-
-        <h2 style="font-size: 15px; color: #1a2a3a; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin: 20px 0 12px;">
-            Identification
-        </h2>
-        <p style="margin: 6px 0;"><strong>Full Name:</strong> ${esc(application.fullName)}</p>
-        <p style="margin: 6px 0;"><strong>Pronouns:</strong> ${esc(application.pronouns) || 'Not provided'}</p>
-        <p style="margin: 6px 0;"><strong>UNC Email:</strong> <a href="mailto:${esc(application.email)}">${esc(application.email)}</a></p>
-        <p style="margin: 6px 0;"><strong>Year of Study:</strong> ${esc(application.yearOfStudy)}</p>
-        <p style="margin: 6px 0;"><strong>Major:</strong> ${esc(application.major)}</p>
-        <p style="margin: 6px 0;"><strong>LinkedIn:</strong> ${application.linkedin ? '<a href="' + esc(application.linkedin) + '">' + esc(application.linkedin) + '</a>' : 'Not provided'}</p>
-
-        <h2 style="font-size: 15px; color: #1a2a3a; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin: 20px 0 12px;">
-            Documentation
-        </h2>
-        <p style="margin: 6px 0;"><strong>Weekly Availability:</strong> ${application.hours} hours/week</p>
-        <p style="margin: 6px 0;"><strong>Resume:</strong> ${esc(application.resumeFilename)} (attached)</p>
-
-        <h2 style="font-size: 15px; color: #1a2a3a; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin: 20px 0 12px;">
-            Aptitude Assessment
-        </h2>
-
-        <p style="margin: 12px 0 4px;"><strong>What can you contribute to E.E.L.?</strong></p>
-        <div style="margin: 0 0 16px; padding: 10px 14px; background: #fff; border: 1px solid #e8e8e8; border-radius: 4px; font-size: 14px; line-height: 1.6;">
-            ${fmt(application.contribution)}
-        </div>
-
-        <p style="margin: 12px 0 4px;"><strong>Project Proposal:</strong></p>
-        <div style="margin: 0 0 16px; padding: 10px 14px; background: #fff; border: 1px solid #e8e8e8; border-radius: 4px; font-size: 14px; line-height: 1.6;">
-            ${fmt(application.projectIdea)}
-        </div>
-
-        <p style="margin: 12px 0 4px;"><strong>Additional Information:</strong></p>
-        <div style="margin: 0 0 16px; padding: 10px 14px; background: #fff; border: 1px solid #e8e8e8; border-radius: 4px; font-size: 14px; line-height: 1.6;">
-            ${fmt(application.additionalSkills) || '<em>Not provided</em>'}
-        </div>
-
-        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-        <p style="font-size: 12px; color: #888; margin: 0; text-align: center;">
-            <a href="${process.env.SITE_URL || 'http://localhost:8080'}/admin" style="color: #7ec8e3;">View in Admin Dashboard</a>
-        </p>
-    </div>
-</div>`;
-
-        await transporter.sendMail({
-            from: smtpFrom,
-            to: notifyEmail,
-            subject: `New E.E.L. Application: ${application.fullName}`,
-            html: html,
-            attachments: attachments
+        const siteUrl = (process.env.SITE_URL || 'http://localhost:8080').replace(/\/$/, '');
+        const dashboardUrl = `${siteUrl}/admin`;
+        const linkedIn = application.linkedin
+            ? `<a href="${esc(application.linkedin)}" style="color:#0056a6;">${esc(application.linkedin)}</a>`
+            : 'Not provided';
+        const html = `<!doctype html>
+<html lang="en"><body style="margin:0; padding:0; background:#f5f6f7; color:#1f2933; font-family:Arial, Helvetica, sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f6f7;"><tr><td align="center" style="padding:28px 16px;">
+<table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%; max-width:640px; background:#ffffff; border:1px solid #d9dee3;">
+<tr><td style="height:6px; background:#4b9cd3;"></td></tr>
+<tr><td style="padding:28px 32px 22px; border-bottom:1px solid #d9dee3;"><p style="margin:0 0 6px; color:#13294b; font-size:21px; font-weight:700;">Experimental Engineering Lab</p><p style="margin:0; color:#52606d; font-size:14px;">University of North Carolina at Chapel Hill</p></td></tr>
+<tr><td style="padding:28px 32px 8px;"><h1 style="margin:0 0 10px; color:#13294b; font-size:20px; line-height:1.3;">New application received</h1><p style="margin:0; color:#52606d; font-size:14px; line-height:1.5;">Reference ${esc(application.reference)} &middot; Submitted ${submittedDate}</p></td></tr>
+<tr><td style="padding:12px 32px 8px;"><h2 style="margin:0; padding-bottom:8px; color:#13294b; font-size:16px; border-bottom:1px solid #d9dee3;">Applicant information</h2></td></tr>
+<tr><td style="padding:0 32px 14px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size:14px; line-height:1.5;">
+<tr><td style="padding:5px 12px 5px 0; width:150px; color:#52606d; font-weight:700;">Full name</td><td style="padding:5px 0;">${esc(application.fullName)}</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">Pronouns</td><td style="padding:5px 0;">${esc(application.pronouns) || 'Not provided'}</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">UNC email</td><td style="padding:5px 0;"><a href="mailto:${esc(application.email)}" style="color:#0056a6;">${esc(application.email)}</a></td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">Year of study</td><td style="padding:5px 0;">${esc(application.yearOfStudy)}</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">Major</td><td style="padding:5px 0;">${esc(application.major)}</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">LinkedIn</td><td style="padding:5px 0;">${linkedIn}</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">Availability</td><td style="padding:5px 0;">${application.hours} hours per week</td></tr>
+<tr><td style="padding:5px 12px 5px 0; color:#52606d; font-weight:700;">Resume</td><td style="padding:5px 0;">${esc(application.resumeFilename)} (attached)</td></tr>
+</table></td></tr>
+<tr><td style="padding:12px 32px 8px;"><h2 style="margin:0; padding-bottom:8px; color:#13294b; font-size:16px; border-bottom:1px solid #d9dee3;">Application responses</h2></td></tr>
+<tr><td style="padding:0 32px 28px; font-size:14px; line-height:1.55;"><p style="margin:14px 0 4px; color:#52606d; font-weight:700;">Contribution to the lab</p><p style="margin:0;">${fmt(application.contribution)}</p><p style="margin:18px 0 4px; color:#52606d; font-weight:700;">Project idea</p><p style="margin:0;">${fmt(application.projectIdea)}</p><p style="margin:18px 0 4px; color:#52606d; font-weight:700;">Additional information</p><p style="margin:0;">${fmt(application.additionalSkills) || 'Not provided'}</p></td></tr>
+<tr><td style="padding:18px 32px; background:#f5f6f7; border-top:1px solid #d9dee3; color:#52606d; font-size:12px; line-height:1.5;"><a href="${esc(dashboardUrl)}" style="color:#0056a6;">View in the application dashboard</a><br>This notification was sent directly to you as an Experimental Engineering Lab application reviewer.</td></tr>
+</table></td></tr></table>
+</body></html>`;
+        const subject = `New EEL application - ${application.fullName}`;
+        const text = [
+            'Experimental Engineering Lab',
+            'University of North Carolina at Chapel Hill',
+            '',
+            'New application received',
+            `Reference: ${application.reference}`,
+            `Submitted: ${submittedDate}`,
+            '',
+            `Full name: ${application.fullName}`,
+            `Pronouns: ${application.pronouns || 'Not provided'}`,
+            `UNC email: ${application.email}`,
+            `Year of study: ${application.yearOfStudy}`,
+            `Major: ${application.major}`,
+            `LinkedIn: ${application.linkedin || 'Not provided'}`,
+            `Availability: ${application.hours} hours per week`,
+            `Resume: ${application.resumeFilename} (attached)`,
+            '',
+            'Contribution to the lab:', application.contribution,
+            '', 'Project idea:', application.projectIdea,
+            '', 'Additional information:', application.additionalSkills || 'Not provided',
+            '', `Application dashboard: ${dashboardUrl}`
+        ].join('\n');
+        const deliveryResults = await Promise.allSettled(
+            recipients.map((recipient) => transporter.sendMail({
+                from: `"Experimental Engineering Lab" <${smtpFrom}>`,
+                to: recipient,
+                subject,
+                text,
+                html,
+                attachments
+            }))
+        );
+        deliveryResults.forEach((result, index) => {
+            const recipient = recipients[index];
+            if (result.status === 'fulfilled') {
+                console.log(`Notification email sent to: ${recipient}`);
+            } else {
+                console.error(`Failed to send notification email to ${recipient}:`, result.reason.message);
+            }
         });
-        console.log('Notification email sent to: ' + notifyEmail);
     } catch (err) {
         console.error('Failed to send notification email:', err.message);
     }
