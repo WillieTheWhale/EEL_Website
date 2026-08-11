@@ -150,3 +150,4 @@ Docker and OpenShift deployment configs included:
 - `headshots/` - Processed team member photos (used by website)
 - `headshots-raw/` - Original unprocessed team photos
 - `EEL_Logo.ai` - Logo source file (Adobe Illustrator)
+.
