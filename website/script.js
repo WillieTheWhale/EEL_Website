@@ -2562,9 +2562,9 @@ function getPeopleContent() {
 
     // Founding Engineers — members of the first undergraduate cohort of the EEL
     const foundingEngineers = new Set([
-        'Andy Choe', 'Ethan DeRosa', 'Siera Gashi', 'Darwin Lemus',
+        'Ethan DeRosa', 'Siera Gashi', 'Darwin Lemus',
         'Matias Magallanes', 'Sofia Morais', 'Sanskriti Negi',
-        'Meghan Parker', 'Tate Semone', 'Elyssa Snively', 'Alexander Yevchenko'
+        'Tate Semone', 'Elyssa Snively', 'Alexander Yevchenko'
     ]);
 
     // Inline bolt SVG path for the founding badge icon
@@ -2625,15 +2625,6 @@ function getPeopleContent() {
             project: 'Designing a glove to track finger position for sports and physical therapy applications by integrating flex sensors with Arduino microcontrollers to measure finger bending and separation, while showing real-time hand movement on a hand model in Unity. She also enjoys learning fabrication skills such as welding and milling.',
             headshot: 'headshots/sofia-morais.jpeg',
             linkedin: 'https://www.linkedin.com/in/sofia-morais-486ba3277'
-        },
-        {
-            name: 'Fletcher Stuart',
-            major: 'Computer Science',
-            status: 'Senior',
-            graduation: 'May 2026',
-            project: 'I am developing an Unreal Engine application to visualize the Swayambhu temple in Kathmandu, Nepal. The application is intended to educate and immerse people in the site.',
-            headshot: 'headshots/fletcher-stuart.jpg',
-            linkedin: 'https://www.linkedin.com/in/fletchstu'
         },
         {
             name: 'Elyssa Snively',
@@ -2708,15 +2699,6 @@ function getPeopleContent() {
             linkedin: 'https://www.linkedin.com/in/mihika-tyagi'
         },
         {
-            name: 'Ethan Hernandez',
-            major: 'Computer Science',
-            status: 'Senior',
-            graduation: 'May 2026',
-            project: 'Digital recreation of Fred Brooks\' office using photogrammetry and virtual reality which will transform into a version of the Pit Room Experiment. Models of furniture are created using RealityScan and Blender.',
-            headshot: 'headshots/ethan-hernandez.jpg',
-            linkedin: 'https://www.linkedin.com/in/ethan-hernandez0703'
-        },
-        {
             name: 'Siera Gashi',
             major: 'Biomedical Engineering',
             status: 'Sophomore',
@@ -2733,24 +2715,6 @@ function getPeopleContent() {
             project: 'Developed and deployed the EEL website frontend and backend.',
             headshot: 'headshots/william-keffer.jpg',
             linkedin: 'https://www.linkedin.com/in/williamkeffer'
-        },
-        {
-            name: 'Andy Choe',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2026',
-            project: 'I am working on the embedded system side of the Augmented Aurality project, streaming audio data from mics to a PC using a microcontroller.',
-            headshot: 'headshots/andy-choe.jpg',
-            linkedin: 'https://www.linkedin.com/in/andy-choe-931768297'
-        },
-        {
-            name: 'Meghan Parker',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2026',
-            project: 'I am working on designing a custom wearable and printed circuit board (PCB) to implement beamforming software into a streamlined, ergonomic form factor with applications as an assistive hearing device.',
-            headshot: 'headshots/meghan-parker.jpg',
-            linkedin: 'https://www.linkedin.com/in/meghan-parker-2746ba303'
         },
         {
             name: 'Alexander Yevchenko',
@@ -2798,15 +2762,6 @@ function getPeopleContent() {
             linkedin: 'https://www.linkedin.com/in/meczar'
         },
         {
-            name: 'Ansh Aryan',
-            major: 'Computer Science',
-            status: 'Alumnus',
-            graduation: 'May 2026',
-            project: 'Ansh is a UNC computer science alumnus who developed and presented 3D reconstruction and cultural-preservation work for Swayambhu Stories, optimizing a large photogrammetry model for the web.',
-            headshot: 'headshots/ansh-aryan.jpeg',
-            linkedin: 'https://www.linkedin.com/in/ansh-aryan03'
-        },
-        {
             name: 'Noah Butler',
             major: 'Computer Science',
             status: 'Undergraduate',
@@ -2850,15 +2805,6 @@ function getPeopleContent() {
             project: 'Sanskriti is a biomedical engineering and computer science student at UNC pursuing a career in robotics.',
             headshot: 'headshots/sanskriti-negi.jpeg',
             linkedin: 'https://www.linkedin.com/in/sanskriti-negi-unc'
-        },
-        {
-            name: 'Allen Solomon',
-            major: 'Computer Science',
-            status: 'Alumnus',
-            graduation: 'May 2026',
-            project: 'Allen is a UNC computer science alumnus and aspiring game developer with experience in C#, Java, Python, and web development.',
-            headshot: 'headshots/allen-solomon.jpeg',
-            linkedin: 'https://www.linkedin.com/in/allen-solomon-68b8a3267'
         },
         {
             name: 'Sidharth Yeramaddu',
