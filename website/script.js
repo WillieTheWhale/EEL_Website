@@ -2754,20 +2754,20 @@ function getPeopleContent() {
         },
         {
             name: 'Alexander Yevchenko',
-            major: 'Computer Science',
-            status: 'Sophomore',
-            graduation: 'May 2028',
-            project: 'Alex currently works on the Swimmer Hand project, planning out design, soldering, and debugging code. He also TIG welds!',
-            headshot: null,
+            major: 'Computer Science, Business & Physics',
+            status: 'Junior',
+            graduation: 'December 2027',
+            project: 'Alexander co-developed a real-time flex-sensor glove with Sofia Morais to study swimmer hand positioning, with applications in sports, rehabilitation, and virtual reality.',
+            headshot: 'headshots/alexander-yevchenko.png',
             linkedin: 'https://www.linkedin.com/in/alexanderyevchenko'
         },
         {
             name: 'Darwin Lemus',
-            major: 'Computer Science',
+            major: 'Computer Science & Physics',
             status: 'Sophomore',
-            graduation: 'May 2028',
-            project: 'My work is focused on creating high fidelity AR and VR environments. Most recently I created a lightweight web AR experience that uses contrast points in the room as anchors, replacing the need for any fiduciary markers. In this lab I have also engineered an IOT centered smart greenhouse irrigation system for the houseplants in the lab, with custom PCB designs and a smart cloud dashboard.',
-            headshot: null,
+            graduation: 'December 2027',
+            project: 'Darwin is an Honors Carolina computer science and physics student at UNC and a Gates and Williamson Scholar.',
+            headshot: 'headshots/darwin-lemus.jpeg',
             linkedin: 'https://www.linkedin.com/in/dlemus89'
         },
         {
@@ -2775,8 +2775,8 @@ function getPeopleContent() {
             major: 'Computer Science',
             status: 'Freshman',
             graduation: 'May 2029',
-            project: 'I contribute to the Manta Ray robot project through hands-on involvement in robot construction, testing, and iterative prototyping. I assist with component layout, wiring, assembling and soldering electronic parts.',
-            headshot: null,
+            project: 'Toluwani contributes to swarm robotics research through robot construction, testing, prototyping, schematic design, wiring, and hardware integration.',
+            headshot: 'headshots/toluwani-ilesanmi.jpeg',
             linkedin: 'https://www.linkedin.com/in/toluwaniile'
         },
         {
@@ -2784,17 +2784,17 @@ function getPeopleContent() {
             major: 'Computer Science',
             status: 'Junior',
             graduation: 'May 2027',
-            project: 'I am developing a Redirected Walking plugin for Unreal Engine VR. It enables region-specific redirection by allowing developers to assign and blend different RDW techniques to specific virtual areas. This modular approach optimizes natural locomotion and minimizes resets by tailoring redirection to the environment\'s geometry.',
-            headshot: null,
+            project: 'David is a computer science student at UNC and a software engineering intern at Wells Fargo.',
+            headshot: 'headshots/david-majernik.png',
             linkedin: 'https://www.linkedin.com/in/davidmajernik'
         },
         {
             name: 'Matthew Czar',
-            major: 'Chemistry',
+            major: 'Biochemistry & Statistics',
             status: 'Freshman',
             graduation: 'May 2029',
-            project: 'My team and I are researching the forces required for swimming and the technique required to maximize stroke efficiency. We are also studying the drag crisis and how it can be applied to swimming bodies.',
-            headshot: null,
+            project: 'Matthew researches swimming hydrodynamics in the Applied Engineering Lab and Joint Mathematics and Marine Science Fluid Laboratories to optimize body position for elite athletes.',
+            headshot: 'headshots/matthew-czar.png',
             linkedin: 'https://www.linkedin.com/in/meczar'
         },
         {
