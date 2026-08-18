@@ -2527,6 +2527,10 @@ body[data-theme="dark"] .circuit-medallion-port.pulsing {
 }
 
 /* Data Packets */
+.circuit-packet-group {
+    will-change: transform;
+}
+
 .circuit-packet {
     fill: #ffffff;
     opacity: 0.95;
@@ -2582,4 +2586,3 @@ body[data-theme="dark"] .trace-gradient-end {
     stop-color: var(--accent-cyan);
     stop-opacity: 0.6;
 }
-

@@ -48,9 +48,11 @@
             
             if (this.isMobile && this.isPortrait) {
                 body.classList.add('mobile-portrait');
+                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(true);
                 this.disablePanelPhysics();
             } else {
                 body.classList.remove('mobile-portrait');
+                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(false);
                 this.enablePanelPhysics();
             }
         },

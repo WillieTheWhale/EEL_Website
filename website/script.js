@@ -4,6 +4,43 @@
 const PHI = 1.618033988749;
 const PHI_INV = 0.618033988749;
 
+// Mobile portrait CSS hides the WebGL canvas and circuit network completely.
+// Keep their state available for orientation changes, but do not spend every
+// frame rendering elements that cannot contribute a pixel to the page.
+const _initialTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const _initialNarrowViewport = window.innerWidth <= 768;
+const _initialMobileDevice =
+    (_initialTouchDevice && window.matchMedia('(pointer: coarse)').matches &&
+        window.matchMedia('(hover: none)').matches) ||
+    (_initialTouchDevice && _initialNarrowViewport);
+
+const RuntimeVisibility = {
+    // Match MobileHandler's existing device test synchronously so hidden work
+    // never starts during the handler's short initialization delay.
+    mobilePortrait: _initialMobileDevice && window.innerHeight > window.innerWidth,
+
+    setMobilePortrait: function(isMobilePortrait) {
+        const wasHidden = this.mobilePortrait;
+        this.mobilePortrait = isMobilePortrait;
+
+        // The circuit network is skipped during an initial mobile-portrait
+        // load. Create it lazily if an orientation change makes it visible.
+        if (wasHidden && !isMobilePortrait &&
+            radialPanelPhysics && radialPanelPhysics.initialized &&
+            !CircuitGridMatrix.initialized) {
+            TetherSystem.init();
+            TetherSystem.update();
+        }
+
+        if (wasHidden && !isMobilePortrait) startVisualRuntime();
+        if (!wasHidden && isMobilePortrait && !renderer) startMobileGearLoop();
+    }
+};
+
+// The mobile handler loads after this file and uses this narrow hook to keep
+// the render loop in sync with its already-existing layout decision.
+window.EELRuntime = RuntimeVisibility;
+
 // ============================================
 // THEME MANAGER
 // ============================================
@@ -116,7 +153,7 @@ const MedallionSystem = {
     },
     
     getCenter: function() {
-        return { x: this.position.x, y: this.position.y };
+        return this.position;
     }
 };
 
@@ -140,6 +177,7 @@ const CircuitGridMatrix = {
     
     // Connection data
     connections: new Map(),
+    connectionList: [],
     packets: [],
     junctionNodes: [],
     
@@ -184,7 +222,7 @@ const CircuitGridMatrix = {
         // Initialize connections for each panel
         const panels = ['projects', 'people', 'about', 'join'];
         panels.forEach((id, index) => {
-            this.connections.set('panel-' + id, {
+            const connection = {
                 panelId: 'panel-' + id,
                 path: null,
                 pathElement: null,
@@ -192,13 +230,17 @@ const CircuitGridMatrix = {
                 junctions: [],
                 packets: [],
                 pathPoints: [],
+                segmentLengths: [],
                 totalLength: 0
-            });
+            };
+            this.connections.set(connection.panelId, connection);
+            this.connectionList.push(connection);
             
             // Create multiple packets per connection for visual richness
             for (let p = 0; p < 2; p++) {
                 this.packets.push({
                     connectionId: 'panel-' + id,
+                    connection: connection,
                     progress: (p * 0.5) + (index * 0.1), // Stagger packet positions
                     element: null,
                     glowElement: null,
@@ -329,25 +371,37 @@ const CircuitGridMatrix = {
     },
     
     createPacketElements: function() {
-        this.packets.forEach((packet, index) => {
+        this.packets.forEach((packet) => {
+            // Move both packet layers as one compositor-friendly SVG group.
+            // The old implementation changed four geometry attributes for
+            // every packet, forcing repeated SVG layout on every update.
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.setAttribute('class', 'circuit-packet-group');
+            this.packetsGroup.appendChild(group);
+            packet.groupElement = group;
+
             // Create glow element (larger, behind)
             const glow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             glow.setAttribute('class', 'circuit-packet-glow');
+            glow.setAttribute('x', '-6');
+            glow.setAttribute('y', '-6');
             glow.setAttribute('width', '12');
             glow.setAttribute('height', '12');
             glow.setAttribute('rx', '2');
             glow.setAttribute('filter', 'url(#packetGlow)');
-            this.packetsGroup.appendChild(glow);
+            group.appendChild(glow);
             packet.glowElement = glow;
             
             // Create main packet element (diamond shape)
             const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             el.setAttribute('class', 'circuit-packet');
+            el.setAttribute('x', '-4');
+            el.setAttribute('y', '-4');
             el.setAttribute('width', '8');
             el.setAttribute('height', '8');
             el.setAttribute('rx', '1');
             el.style.transform = 'rotate(45deg)';
-            this.packetsGroup.appendChild(el);
+            group.appendChild(el);
             packet.element = el;
         });
     },
@@ -493,13 +547,15 @@ const CircuitGridMatrix = {
     },
     
     // Calculate total length of a path — optimized with local variable access
-    calculatePathLength: function(points) {
+    calculatePathLength: function(points, segmentLengths) {
         let length = 0;
         let prevX = points[0].x, prevY = points[0].y;
         for (let i = 1, len = points.length; i < len; i++) {
             const px = points[i].x, py = points[i].y;
             const dx = px - prevX, dy = py - prevY;
-            length += Math.sqrt(dx * dx + dy * dy);
+            const segmentLength = Math.sqrt(dx * dx + dy * dy);
+            if (segmentLengths) segmentLengths[i - 1] = segmentLength;
+            length += segmentLength;
             prevX = px;
             prevY = py;
         }
@@ -510,7 +566,7 @@ const CircuitGridMatrix = {
     _tempPoint: { x: 0, y: 0 },
     
     // Get point along path at given progress (0-1)
-    getPointAtProgress: function(points, progress, precomputedLength) {
+    getPointAtProgress: function(points, segmentLengths, progress, precomputedLength) {
         if (points.length < 2) {
             const p = points[0] || this._tempPoint;
             this._tempPoint.x = p.x;
@@ -525,7 +581,7 @@ const CircuitGridMatrix = {
         for (let i = 1; i < points.length; i++) {
             const dx = points[i].x - points[i-1].x;
             const dy = points[i].y - points[i-1].y;
-            const segmentLength = Math.sqrt(dx * dx + dy * dy);
+            const segmentLength = segmentLengths[i - 1];
             
             if (currentLength + segmentLength >= targetLength) {
                 const t = segmentLength > 0 ? (targetLength - currentLength) / segmentLength : 0;
@@ -562,10 +618,11 @@ const CircuitGridMatrix = {
         const medallionRadius = this.cachedMedallionRadius;
         const tempRect = this._tempRect;
         
-        // Update each connection
-        this.connections.forEach((conn, panelId) => {
-            const panelData = radialPanelPhysics.panels.get(panelId);
-            if (!panelData) return;
+        // Update each connection without allocating per-frame iterator callbacks.
+        for (let connectionIndex = 0; connectionIndex < this.connectionList.length; connectionIndex++) {
+            const conn = this.connectionList[connectionIndex];
+            const panelData = radialPanelPhysics.panels.get(conn.panelId);
+            if (!panelData) continue;
             
             // Reuse rect object instead of creating new one each frame
             tempRect.x = panelData.position.x;
@@ -590,7 +647,8 @@ const CircuitGridMatrix = {
                 // Calculate route
                 const points = this.calculateRoute(center, medallionRadius, tempRect, conn._cachedAngle);
                 conn.pathPoints = points;
-                conn.totalLength = this.calculatePathLength(points);
+                conn.segmentLengths.length = points.length - 1;
+                conn.totalLength = this.calculatePathLength(points, conn.segmentLengths);
                 
                 // Create/update path elements
                 const pathD = this.createPathFromPoints(points);
@@ -613,12 +671,13 @@ const CircuitGridMatrix = {
                 // Create/update junction nodes at turns
                 this.updateJunctionNodes(conn, points);
             }
-        });
+        }
         
         // Animate packets
-        this.packets.forEach(packet => {
-            const conn = this.connections.get(packet.connectionId);
-            if (!conn || conn.pathPoints.length < 2) return;
+        for (let packetIndex = 0; packetIndex < this.packets.length; packetIndex++) {
+            const packet = this.packets[packetIndex];
+            const conn = packet.connection;
+            if (!conn || conn.pathPoints.length < 2) continue;
             
             // Update packet progress
             packet.progress += packet.speed * deltaTime * packet.direction;
@@ -633,21 +692,20 @@ const CircuitGridMatrix = {
             }
             
             // Get packet position
-            const pos = this.getPointAtProgress(conn.pathPoints, packet.progress, conn.totalLength);
+            const pos = this.getPointAtProgress(
+                conn.pathPoints, conn.segmentLengths, packet.progress, conn.totalLength
+            );
             
-            // Update packet element positions
-            if (packet.element) {
-                packet.element.setAttribute('x', pos.x - 4);
-                packet.element.setAttribute('y', pos.y - 4);
-            }
-            if (packet.glowElement) {
-                packet.glowElement.setAttribute('x', pos.x - 6);
-                packet.glowElement.setAttribute('y', pos.y - 6);
+            // A single transform replaces four SVG geometry mutations. The
+            // root SVG has no viewBox, so one user unit remains one CSS pixel.
+            if (packet.groupElement) {
+                packet.groupElement.style.transform =
+                    'translate(' + pos.x + 'px, ' + pos.y + 'px)';
             }
             
             // Pulse nearby junction nodes
             this.pulseNearbyJunctions(pos, conn.junctions);
-        });
+        }
     },
     
     updateJunctionNodes: function(conn, points) {
@@ -1002,7 +1060,7 @@ class RadialPanelPhysics {
         this.initialized = true;
         
         MedallionSystem.init();
-        EngineeringNetwork.init();
+        if (!RuntimeVisibility.mobilePortrait) EngineeringNetwork.init();
         
         const center = MedallionSystem.getCenter();
         const distances = this.calculateDistances();
@@ -1059,8 +1117,10 @@ class RadialPanelPhysics {
             this.addPanelListeners(panel);
         });
         
-        TetherSystem.init();
-        TetherSystem.update();
+        if (!RuntimeVisibility.mobilePortrait) {
+            TetherSystem.init();
+            TetherSystem.update();
+        }
         this.revealPositionedElements();
     }
     
@@ -1169,11 +1229,25 @@ class RadialPanelPhysics {
         if (this.frameCounter % this.updateFrequency !== 0) return;
         
         deltaTime = Math.min(deltaTime * this.updateFrequency, 1 / 30);
-        
-        this.detectAndResolveCollisions();
-        
-        this.panels.forEach((panelData) => {
-            if (panelData.isDragging || panelData.physicsDisabled || !panelData.isMoving) return;
+
+        if (!this._panelArray || this._panelArray.length !== this.panels.size) {
+            this._panelArray = Array.from(this.panels.values());
+        }
+        const panelArray = this._panelArray;
+        let needsPhysics = false;
+        for (let i = 0; i < panelArray.length; i++) {
+            const panelData = panelArray[i];
+            if (!panelData.physicsDisabled && (panelData.isDragging || panelData.isMoving)) {
+                needsPhysics = true;
+                break;
+            }
+        }
+
+        if (needsPhysics) this.detectAndResolveCollisions();
+
+        for (let i = 0; needsPhysics && i < panelArray.length; i++) {
+            const panelData = panelArray[i];
+            if (panelData.isDragging || panelData.physicsDisabled || !panelData.isMoving) continue;
             
             // Use stored anchor positions (these are updated when user drags panels)
             let anchorX = panelData.anchorX;
@@ -1204,7 +1278,7 @@ class RadialPanelPhysics {
                 panelData.isMoving = false;
                 panelData.angularVelocity = 0;
                 panelData.angle = 0;
-                return;
+                continue;
             }
             
             panelData.position.x += panelData.velocity.x;
@@ -1214,7 +1288,7 @@ class RadialPanelPhysics {
             panelData.angle *= (1 + PHI_INV) / 2;
             
             panelData.element.style.transform = 'translate3d(' + panelData.position.x + 'px, ' + panelData.position.y + 'px, 0) rotateZ(' + panelData.angle + 'deg)';
-        });
+        }
         
         TetherSystem.update();
     }
@@ -1280,29 +1354,55 @@ let radialPanelPhysics;
 
 let scene, camera, renderer, clock;
 let structures = [];
-let mouseX = 0, mouseY = 0;
-let customShaderMaterials = [];
-
-const debug = document.getElementById('debug');
-function log(msg) {
-    if (debug && debug.style.display !== 'none') debug.innerHTML = msg + '<br>' + debug.innerHTML;
-    console.log(msg);
-}
+let _threeInitRequested = false;
+let _mobileGearLoopRunning = false;
 
 function checkThreeJS() {
+    if (_threeInitRequested || renderer || RuntimeVisibility.mobilePortrait) return;
+
     if (typeof THREE !== 'undefined') {
-        log('Three.js loaded successfully');
+        _threeInitRequested = true;
         requestAnimationFrame(() => initThreeJS());
     } else {
-        log('Waiting for Three.js...');
         setTimeout(checkThreeJS, 100);
     }
 }
 
+function startMobileGearLoop() {
+    if (_mobileGearLoopRunning || renderer || !RuntimeVisibility.mobilePortrait) return;
+    _mobileGearLoopRunning = true;
+
+    function animateVisibleMobileElements() {
+        if (!RuntimeVisibility.mobilePortrait || renderer) {
+            _mobileGearLoopRunning = false;
+            return;
+        }
+
+        requestAnimationFrame(animateVisibleMobileElements);
+        if (!document.hidden && !_bgSystemsPaused && _gearAnimRunning) updatePanelGears();
+    }
+
+    requestAnimationFrame(animateVisibleMobileElements);
+}
+
+function startVisualRuntime() {
+    if (RuntimeVisibility.mobilePortrait) startMobileGearLoop();
+    else {
+        if (typeof THREE === 'undefined' && window.EELLoadThree) {
+            window.EELLoadThree();
+        }
+        checkThreeJS();
+    }
+}
+
 function initThreeJS() {
+    if (renderer || RuntimeVisibility.mobilePortrait) {
+        _threeInitRequested = false;
+        if (RuntimeVisibility.mobilePortrait) startMobileGearLoop();
+        return;
+    }
+
     try {
-        log('Initializing Three.js...');
-        
         clock = new THREE.Clock();
         scene = new THREE.Scene();
         const isDark = document.body.getAttribute('data-theme') === 'dark';
@@ -1340,10 +1440,8 @@ function initThreeJS() {
         window.addEventListener('resize', onWindowResize, { passive: true });
         window.addEventListener('themechange', (e) => updateStructureMaterials(e.detail.theme === 'dark'));
         
-        log('Starting Animation...');
         animateThreeJS();
     } catch(error) {
-        log('Error: ' + error.message);
         console.error(error);
     }
 }
@@ -1376,12 +1474,9 @@ function createWireframeMaterial(color) {
 // ============================================
 
 function createEngineeringStructures() {
-    log('Creating Engineering Structures...');
-
     // Quadcopter Drone - only 3D element kept
     const quadcopter = createQuadcopter();
     quadcopter.position.set(-70, 0, -40);
-    quadcopter.userData.originalPosition = quadcopter.position.clone();
     // Slight diagonal tilt for better viewing angle
     quadcopter.rotation.x = 0.4;  // Tilt forward
     quadcopter.rotation.z = 0.15; // Slight roll
@@ -1425,7 +1520,6 @@ function createEngineeringStructures() {
     // Slower speed for smooth full-page traversal
     quadcopter.userData.waypointSpeed = 0.12;
 
-    log('Created ' + structures.length + ' engineering structures');
 }
 
 
@@ -1465,13 +1559,19 @@ function createQuadcopter() {
 
     const propellers = [];
     const armMat = createIridescentMaterial(0.6);
+    const armGeo = new THREE.BoxGeometry(5, 0.3, 0.5);
+    const motorGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 12);
+    const propMat = createWireframeMaterial(0x88ccff);
+    const blade1Geo = new THREE.BoxGeometry(3.5, 0.08, 0.4);
+    const blade2Geo = new THREE.BoxGeometry(0.4, 0.08, 3.5);
+    propMat.wireframe = false;
+    propMat.opacity = 0.7;
 
     // 4 arms + propellers at 45, 135, 225, 315 degrees (X pattern)
     for (let i = 0; i < 4; i++) {
         const angle = (i / 4) * Math.PI * 2 + Math.PI / 4; // Offset by 45 degrees
 
         // Arm - thin elongated box
-        const armGeo = new THREE.BoxGeometry(5, 0.3, 0.5);
         const arm = new THREE.Mesh(armGeo, armMat);
         arm.position.x = Math.cos(angle) * 2.5;
         arm.position.z = Math.sin(angle) * 2.5;
@@ -1480,7 +1580,6 @@ function createQuadcopter() {
         group.add(arm);
 
         // Motor housing at arm end
-        const motorGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 12);
         const motor = new THREE.Mesh(motorGeo, bodyMat);
         motor.position.x = Math.cos(angle) * 5;
         motor.position.z = Math.sin(angle) * 5;
@@ -1489,17 +1588,12 @@ function createQuadcopter() {
 
         // Propeller - 2-blade design using thin boxes
         const propGroup = new THREE.Group();
-        const propMat = createWireframeMaterial(0x88ccff);
-        propMat.wireframe = false;
-        propMat.opacity = 0.7;
 
         // Blade 1
-        const blade1Geo = new THREE.BoxGeometry(3.5, 0.08, 0.4);
         const blade1 = new THREE.Mesh(blade1Geo, propMat);
         propGroup.add(blade1);
 
         // Blade 2 (perpendicular)
-        const blade2Geo = new THREE.BoxGeometry(0.4, 0.08, 3.5);
         const blade2 = new THREE.Mesh(blade2Geo, propMat);
         propGroup.add(blade2);
 
@@ -1520,17 +1614,17 @@ function createQuadcopter() {
         metalness: 0.8,
         roughness: 0.3
     });
+    const skidGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 8);
+    const supportGeo = new THREE.CylinderGeometry(0.08, 0.08, 1, 6);
+    skidGeo.rotateZ(Math.PI / 2);
 
     for (let side = -1; side <= 1; side += 2) {
-        const skidGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 8);
-        skidGeo.rotateZ(Math.PI / 2);
         const skid = new THREE.Mesh(skidGeo, skidMat);
         skid.position.set(0, -1.5, side * 2);
         group.add(skid);
 
         // Skid supports
         for (let x = -1; x <= 1; x += 2) {
-            const supportGeo = new THREE.CylinderGeometry(0.08, 0.08, 1, 6);
             const support = new THREE.Mesh(supportGeo, skidMat);
             support.position.set(x * 1.5, -1, side * 2);
             group.add(support);
@@ -1543,22 +1637,22 @@ function createQuadcopter() {
     group.userData.currentWaypoint = 0;
     group.userData.waypointProgress = 0;
     group.userData.waypointSpeed = 0.3; // ~3.3 seconds per waypoint
-    group.userData.rotationSpeed = 0; // Disable default rotation (quadcopter has custom rotation)
 
     // Fade state for panel expansion hide/show
     group.userData.fadeOpacity = 1;
     group.userData.fadeTarget = 1;
 
     // Collect all materials and enable transparency for fade support
-    group.userData.allMaterials = [];
+    const uniqueMaterials = new Set();
     group.traverse(child => {
         if (child.isMesh && child.material) {
             child.material.transparent = true;
             // Preserve original opacity for materials that aren't fully opaque (e.g. propeller blades)
             child.material.userData.baseOpacity = child.material.opacity;
-            group.userData.allMaterials.push(child.material);
+            uniqueMaterials.add(child.material);
         }
     });
+    group.userData.allMaterials = Array.from(uniqueMaterials);
 
     return group;
 }
@@ -1571,116 +1665,21 @@ function createQuadcopter() {
 // ANIMATION AND UPDATES
 // ============================================
 
-// Reusable THREE.Color to avoid GC pressure during theme switches
-let _reusableColor = null;
-
 function updateStructureMaterials(isDark) {
-    if (!_reusableColor && typeof THREE !== 'undefined') _reusableColor = new THREE.Color();
-    structures.forEach((structure, i) => {
+    structures.forEach((structure) => {
         structure.traverse((child) => {
-            if (child.material) {
-                if (child.material.userData && child.material.userData.hueOffset !== undefined) {
-                    const hueShift = isDark ? 0.7 : 0;
-                    const hueOffset = (child.material.userData.hueOffset + hueShift) % 1;
-                    if (child.material.color) child.material.color.setHSL(hueOffset, 0.8, 0.6);
-                    if (child.material.emissive) {
-                        child.material.emissive.setHSL((hueOffset + 0.5) % 1, 1, 0.2);
-                        child.material.emissiveIntensity = isDark ? 0.4 : 0.3;
-                    }
-                    child.material.needsUpdate = true;
-                }
-            }
-        });
-        
-        // Update fluid particle colors — reuse single Color instance
-        if (structure.userData.type === 'fluid_dynamics' && structure.userData.particles) {
-            const colors = structure.userData.particles.geometry.attributes.color.array;
-            const _tmpColor = _reusableColor;
-            const baseHue = isDark ? 0.7 : 0.55;
-            for (let i = 0, len = colors.length / 3; i < len; i++) {
-                _tmpColor.setHSL(baseHue + Math.random() * 0.1, 0.8, 0.6);
-                colors[i * 3] = _tmpColor.r;
-                colors[i * 3 + 1] = _tmpColor.g;
-                colors[i * 3 + 2] = _tmpColor.b;
-            }
-            structure.userData.particles.geometry.attributes.color.needsUpdate = true;
-        }
-        
-        // Update swimmer hand colors
-        if (structure.userData.type === 'swimmer_hand') {
-            // Organic glowing wireframe colors
-            const mainColor = isDark ? 0x7ECCE8 : 0x5EB8D8;
-            const lightColor = isDark ? 0xA8E8FF : 0x88D8F8;
-            const dimColor = isDark ? 0x5AABB8 : 0x4A98A8;
-            const glowColor = isDark ? 0x6ECCE8 : 0x5EBBD8;
-            
-            // Update stored colors
-            if (structure.userData.colors) {
-                structure.userData.colors.primary = mainColor;
-                structure.userData.colors.wire = lightColor;
-                structure.userData.colors.accent = lightColor;
-                structure.userData.colors.glow = glowColor;
-            }
-            
-            // Update all meshes in the hand structure
-            structure.traverse(child => {
-                if (child.isMesh && child.material) {
-                    const mat = child.material;
-                    
-                    if (mat.wireframe === true) {
-                        // Wireframe materials
-                        if (mat.opacity > 0.80) {
-                            mat.color.setHex(mainColor);
-                            mat.opacity = isDark ? 0.92 : 0.90;
-                        } else if (mat.opacity > 0.60) {
-                            mat.color.setHex(lightColor);
-                            mat.opacity = isDark ? 0.75 : 0.72;
-                        } else {
-                            mat.color.setHex(dimColor);
-                            mat.opacity = isDark ? 0.52 : 0.48;
-                        }
-                    } else if (mat.blending === THREE.AdditiveBlending) {
-                        // Glow materials
-                        mat.color.setHex(glowColor);
-                    } else if (mat.emissive !== undefined) {
-                        // Physical materials (flesh)
-                        mat.color.setHex(mainColor);
-                        mat.emissive.setHex(glowColor);
-                        mat.emissiveIntensity = isDark ? 0.15 : 0.08;
-                    } else if (mat.transparent) {
-                        // Other transparent materials
-                        mat.color.setHex(dimColor);
-                    }
-                    mat.needsUpdate = true;
-                }
-            });
-            
-            // Update particles
-            if (structure.userData.particles) {
-                structure.userData.particles.forEach(particle => {
-                    if (particle.material) {
-                        particle.material.color.setHex(glowColor);
-                        particle.material.needsUpdate = true;
-                    }
-                });
-            }
-            
-            // Update rings
-            if (structure.userData.rings) {
-                structure.userData.rings.forEach(ring => {
-                    if (ring.material) {
-                        ring.material.color.setHex(glowColor);
-                        ring.material.needsUpdate = true;
-                    }
-                });
-            }
-        }
-    });
+            const material = child.material;
+            if (!material || !material.userData || material.userData.hueOffset === undefined) return;
 
-    // Update custom shader materials
-    customShaderMaterials.forEach(mat => {
-        mat.uniforms.isDark.value = isDark;
-        mat.uniforms.baseColor.value.set(isDark ? 0x9482ff : 0x7ec8e3);
+            const hueShift = isDark ? 0.7 : 0;
+            const hueOffset = (material.userData.hueOffset + hueShift) % 1;
+            if (material.color) material.color.setHSL(hueOffset, 0.8, 0.6);
+            if (material.emissive) {
+                material.emissive.setHSL((hueOffset + 0.5) % 1, 1, 0.2);
+                material.emissiveIntensity = isDark ? 0.4 : 0.3;
+            }
+            material.needsUpdate = true;
+        });
     });
     
     // Update fog
@@ -1692,8 +1691,6 @@ let _cursorRafPending = false;
 let _cursorX = 0, _cursorY = 0;
 
 function onMouseMove(event) {
-    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-    mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
     _cursorX = event.clientX;
     _cursorY = event.clientY;
 
@@ -1734,6 +1731,14 @@ function animateThreeJS() {
     }
 
     const deltaTime = clock.getDelta();
+
+    // On mobile portrait the canvas and SVG network are display:none. The
+    // panel gears remain visible, so keep only their existing animation alive.
+    if (RuntimeVisibility.mobilePortrait) {
+        if (!_bgSystemsPaused && _gearAnimRunning) updatePanelGears();
+        return;
+    }
+
     const time = clock.getElapsedTime();
 
     // Skip expensive updates when a panel is expanded or collapsing
@@ -1807,11 +1812,6 @@ function animateThreeJS() {
     }
 
     if (radialPanelPhysics) radialPanelPhysics.update(deltaTime);
-    
-    // Update custom shader uniforms
-    for (let _mi = 0; _mi < customShaderMaterials.length; _mi++) {
-        customShaderMaterials[_mi].uniforms.time.value = time;
-    }
     
     for (let _si = 0; _si < structures.length; _si++) {
         const structure = structures[_si];
@@ -2543,7 +2543,7 @@ function getProjectsContent() {
     for (let i = 0; i < projects.length; i++) {
         const p = projects[i];
         parts.push('<div class="project-card"><img class="project-image" src="', p.image,
-            '" alt="', p.title, '" loading="lazy"><h3 class="project-title">', p.title, '</h3></div>');
+            '" alt="', p.title, '" loading="lazy" decoding="async"><h3 class="project-title">', p.title, '</h3></div>');
     }
 
     parts.push('</div>');
@@ -2824,7 +2824,7 @@ function getPeopleContent() {
         '<h2 class="people-section-title">Lab Director</h2>',
         '<div class="people-grid director-grid">',
         '<div class="person-card director-card">',
-        '<img class="person-image person-headshot" src="headshots/Jim_Mahaney_Headshot.jpg" alt="Jim Mahaney" loading="lazy">',
+        '<img class="person-image person-headshot" src="headshots/Jim_Mahaney_Headshot.jpg" alt="Jim Mahaney" loading="lazy" decoding="async">',
         '<h3 class="person-name">', labDirector.name, '</h3>',
         '<p class="person-role">', labDirector.role, '</p>',
         '<p class="person-bio director-bio"><strong>Jim Mahaney is the Director of Engineering and Research for the Department of Computer Science at the University of North Carolina at Chapel Hill.</strong> Over the course of his career at Carolina, he has designed and fabricated experimental systems across areas including robotics and medical devices, immersive technologies such as augmented and virtual reality, sensing technologies and fluid dynamics, and large-scale 3D capture and reconstruction. Mahaney began working in the lab as a student assistant in 1997 and later returned to lead the facility, bringing his career at Carolina full circle. He is particularly interested in hands-on engineering education and works closely with undergraduate researchers, helping students develop practical skills in electronics, machining, welding, fabrication, and rapid prototyping while building experimental systems for real research projects.</p>',
@@ -2859,7 +2859,7 @@ function getPeopleContent() {
         const member = featuredMembers[i];
         parts.push('<div class="person-card featured-card">');
         if (member.headshot) {
-            parts.push('<img class="person-image person-headshot" src="', member.headshot, '" alt="', member.name, '" loading="lazy">');
+            parts.push('<img class="person-image person-headshot" src="', member.headshot, '" alt="', member.name, '" loading="lazy" decoding="async">');
         } else {
             var initials = member.name.split(' ').map(function(n) { return n[0]; }).join('');
             parts.push('<div class="person-image placeholder-image"><span>', initials, '</span></div>');
@@ -2885,7 +2885,7 @@ function getPeopleContent() {
         var headshot = typeof entry === 'object' ? entry.headshot : null;
         parts.push('<div class="person-card">');
         if (headshot) {
-            parts.push('<img class="person-image person-headshot" src="', headshot, '" alt="', name, '" loading="lazy">');
+            parts.push('<img class="person-image person-headshot" src="', headshot, '" alt="', name, '" loading="lazy" decoding="async">');
         } else {
             var initials = name.split(' ').map(function(n) { return n[0]; }).join('');
             parts.push('<div class="person-image placeholder-image"><span>', initials, '</span></div>');
@@ -2917,7 +2917,7 @@ function getJoinContent() {
         <h1 class="expanded-title">Join Our Lab</h1>
         <div class="content-section">
             <div class="join-poster">
-                <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img">
+                <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img" loading="lazy" decoding="async">
             </div>
             <p class="about-text">
                 The Experimental Engineering Lab is always looking for passionate individuals
@@ -3112,23 +3112,32 @@ function updatePanelGears() {
     if (!_cachedGearLg) _cachedGearLg = document.querySelectorAll('.gear-lg-rotate');
     if (!_cachedGearSm) _cachedGearSm = document.querySelectorAll('.gear-sm-rotate');
 
-    const lgStr = (lgAngle | 0).toString();
-    const smStr = (smAngle | 0).toString();
+    const lgRotation = lgAngle | 0;
+    const smRotation = smAngle | 0;
     for (let i = 0; i < _cachedGearLg.length; i++) {
         const el = _cachedGearLg[i];
-        el.setAttribute('transform',
-            'rotate(' + lgStr + ' ' + el.dataset.cx + ' ' + el.dataset.cy + ')');
+        el._rotationTransform.setRotate(lgRotation, el._gearCx, el._gearCy);
     }
     for (let i = 0; i < _cachedGearSm.length; i++) {
         const el = _cachedGearSm[i];
-        el.setAttribute('transform',
-            'rotate(' + smStr + ' ' + el.dataset.cx + ' ' + el.dataset.cy + ')');
+        el._rotationTransform.setRotate(smRotation, el._gearCx, el._gearCy);
     }
 }
 
 function initPanelGearIcons() {
     document.querySelectorAll('.panel-icon').forEach(function(el, idx) {
         el.innerHTML = createInterlockingGearsSVG(idx);
+    });
+
+    _cachedGearLg = document.querySelectorAll('.gear-lg-rotate');
+    _cachedGearSm = document.querySelectorAll('.gear-sm-rotate');
+    [_cachedGearLg, _cachedGearSm].forEach(function(elements) {
+        elements.forEach(function(el) {
+            el._gearCx = Number(el.dataset.cx);
+            el._gearCy = Number(el.dataset.cy);
+            el._rotationTransform = el.ownerSVGElement.createSVGTransform();
+            el.transform.baseVal.initialize(el._rotationTransform);
+        });
     });
     _gearAnimRunning = true;
 }
@@ -3142,7 +3151,7 @@ if (document.readyState === 'loading') {
         ThemeManager.init();
         initPanelGearIcons();
         radialPanelPhysics = new RadialPanelPhysics();
-        checkThreeJS();
+        startVisualRuntime();
 
         setTimeout(() => {
             document.querySelectorAll('.js-positioned:not(.ready)').forEach(el => el.classList.add('ready'));
@@ -3152,13 +3161,8 @@ if (document.readyState === 'loading') {
     ThemeManager.init();
     initPanelGearIcons();
     radialPanelPhysics = new RadialPanelPhysics();
-    checkThreeJS();
+    startVisualRuntime();
 }
-
-console.log('%c\u26A1 EEL - EXPERIMENTAL ENGINEERING LAB', 'color: #7ec8e3; font-size: 24px; font-weight: 100;');
-console.log('%c\u03C6 = ' + PHI.toFixed(3), 'color: #a8d5e8; font-size: 12px;');
-console.log('%c\u2726 13 Engineering Structures with Realistic Organic Human Hand', 'color: #a8d5e8; font-size: 12px;');
-console.log('%c\u25C8 Circuit Grid Matrix Connection System', 'color: #7ec8e3; font-size: 12px;');
 
 // Dispose Three.js resources on page unload to free GPU memory
 window.addEventListener('beforeunload', function() {

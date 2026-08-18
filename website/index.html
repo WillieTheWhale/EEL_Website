@@ -305,8 +305,40 @@
         </div>
     </div>
     
-    <!-- Load Three.js with defer for non-blocking -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- The 3D canvas is hidden in mobile portrait. Avoid downloading and
+         parsing Three.js until an orientation change can actually reveal it. -->
+    <script>
+        (function() {
+            var threeLoadPromise;
+
+            window.EELLoadThree = function() {
+                if (window.THREE) return Promise.resolve(window.THREE);
+                if (threeLoadPromise) return threeLoadPromise;
+
+                threeLoadPromise = new Promise(function(resolve, reject) {
+                    var script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+                    script.dataset.eelThree = '';
+                    script.onload = function() { resolve(window.THREE); };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+
+                return threeLoadPromise;
+            };
+
+            var touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            var narrowViewport = window.innerWidth <= 768;
+            var mobileDevice =
+                (touchDevice && window.matchMedia('(pointer: coarse)').matches &&
+                    window.matchMedia('(hover: none)').matches) ||
+                (touchDevice && narrowViewport);
+
+            if (!(mobileDevice && window.innerHeight > window.innerWidth)) {
+                window.EELLoadThree();
+            }
+        })();
+    </script>
     
     <!-- Load main script with defer -->
     <script defer src="script.js"></script>
