@@ -2593,7 +2593,7 @@ function getPeopleContent() {
         {
             name: 'Markandeya Yalamanchi',
             major: 'Computer Science',
-            status: 'Freshman',
+            status: 'Sophomore',
             graduation: 'May 2028',
             project: 'Developing redirected walking (RDW) techniques for Meta Quest 3 VR, enabling users to navigate large virtual environments within smaller physical spaces. Currently building predictive models to anticipate reset frequency based on virtual environment topology, moving beyond implementing existing algorithms to discovering novel relationships between environment design and RDW effectiveness.',
             headshot: 'headshots/markandeya-yalamanchi.jpg',
@@ -2602,7 +2602,7 @@ function getPeopleContent() {
         {
             name: 'Hengli Wang',
             major: 'Computer Science',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'December 2027',
             project: 'The Swimmer Hand Project.',
             headshot: 'headshots/hengli-wang.jpg',
@@ -2611,7 +2611,7 @@ function getPeopleContent() {
         {
             name: 'Tate Semone',
             major: 'Physics',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'May 2028',
             project: 'My project tests magnetic-field orientations to maximize flow efficiency in a magnetohydrodynamic drive. Model 1 uses a circularly oriented B-field with a radially outward electric field; Model 2 utilizes a Halbach array to concentrate flux in the channel. Efficiency is evaluated using Particle Image Velocimetry (PIV) flow measurements.',
             headshot: 'headshots/tate-semone.jpeg',
@@ -2620,7 +2620,7 @@ function getPeopleContent() {
         {
             name: 'Sofia Morais',
             major: 'Biomedical Engineering',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'Designing a glove to track finger position for sports and physical therapy applications by integrating flex sensors with Arduino microcontrollers to measure finger bending and separation, while showing real-time hand movement on a hand model in Unity. She also enjoys learning fabrication skills such as welding and milling.',
             headshot: 'headshots/sofia-morais.jpeg',
@@ -2629,7 +2629,7 @@ function getPeopleContent() {
         {
             name: 'Elyssa Snively',
             major: 'Biomedical Engineering',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'My project reprograms the Boston Dynamics Spot robot to operate as an autonomous guide dog, using AI-driven navigation, mapping, localization, obstacle detection, and voice-based destination commands. The system integrates perception, decision-making, and a custom physical handle interface to provide safe, timely guidance for visually impaired users on campus.',
             headshot: 'headshots/elyssa-snively.jpg',
@@ -2638,7 +2638,7 @@ function getPeopleContent() {
         {
             name: 'Ishi Varshney',
             major: 'Computer Science',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'May 2028',
             project: 'My current project reprograms the Boston Dynamics Spot robot to act as an autonomous guide dog, enabling safe, intuitive navigation for visually impaired users. Initially focused on the UNC campus, the system uses AI-driven perception and voice commands to support scalable, location-independent mobility beyond environments where traditional guide dogs can be trained.',
             headshot: 'headshots/ishi-varshney.jpeg',
@@ -2647,7 +2647,7 @@ function getPeopleContent() {
         {
             name: 'Alexa Tinajero',
             major: 'Computer Science',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'May 2028',
             project: 'This project involves developing the software that allows the Boston Dynamics Spot robot to navigate a campus environment independently as a guide for visually impaired users. I focus on how the robot interprets its surroundings through mapping, localization, and obstacle detection, makes navigation decisions using AI-based planning, and responds to voice-based destination commands. These components work together with a physical guidance handle to support safe, timely movement through real-world campus spaces.',
             headshot: 'headshots/alexa-tinajero.jpeg',
@@ -2656,7 +2656,7 @@ function getPeopleContent() {
         {
             name: 'Lily Foo',
             major: 'Physics',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'June 2028',
             project: 'Studying the dynamics of drag on hand position in fluids for swimmers.',
             headshot: 'headshots/lily-foo.png',
@@ -2665,7 +2665,7 @@ function getPeopleContent() {
         {
             name: 'Riley Goodwin',
             major: 'Biomedical Engineering',
-            status: 'Freshman',
+            status: 'Sophomore',
             graduation: 'May 2029',
             project: 'I\'m currently helping code a Fish operated vehicle that uses a camera to track the movement of a fish, allowing it to both accelerate and change directions. I\'m on a team working on creating a waterproof movement tracking glove that is used to find the optimal hand positioning for swimmers.',
             headshot: 'headshots/riley-goodwin.jpg',
@@ -2674,7 +2674,7 @@ function getPeopleContent() {
         {
             name: 'Ethan DeRosa',
             major: 'Biomedical Engineering',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'Assisting with the hardware components of the fish driving car.',
             headshot: 'headshots/ethan-derosa.jpg',
@@ -2683,7 +2683,7 @@ function getPeopleContent() {
         {
             name: 'Coleman Stephens',
             major: 'Biomedical Engineering',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'My project involves utilizing a Boston Dynamics Spot robot to act as a seeing eye dog. AI-driven navigation, mapping, localization, collision avoidance, and voice commands are all implemented to use Spot as a seeing eye dog. The system combines perception, decision-making, and a custom physical handle interface to deliver safe, timely guidance for visually impaired users navigating campus.',
             headshot: 'headshots/coleman-stephens.jfif',
@@ -2692,7 +2692,7 @@ function getPeopleContent() {
         {
             name: 'Mihika Tyagi',
             major: 'Data Science & Computer Science',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'My current focus is on the Nepal VR project, in which we are implementing Redirected Walking to create a better experience navigating the temple model.',
             headshot: 'headshots/mihika-tyagi.jpg',
@@ -2701,7 +2701,7 @@ function getPeopleContent() {
         {
             name: 'Siera Gashi',
             major: 'Biomedical Engineering',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'May 2028',
             project: 'I have assisted in analyzing swimmer hand models to study fluid dynamics and optimization, as well as supporting a Parkinson\'s disease project that utilizes motion-sensing data to analyze movement patterns and quantify motor symptoms.',
             headshot: 'headshots/siera-gashi.jpeg',
@@ -2710,7 +2710,7 @@ function getPeopleContent() {
         {
             name: 'William Keffer',
             major: 'Computer Science & Math',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'May 2028',
             project: 'Developed and deployed the EEL website frontend and backend.',
             headshot: 'headshots/william-keffer.jpg',
@@ -2728,7 +2728,7 @@ function getPeopleContent() {
         {
             name: 'Darwin Lemus',
             major: 'Computer Science & Physics',
-            status: 'Sophomore',
+            status: 'Junior',
             graduation: 'December 2027',
             project: 'Darwin is an Honors Carolina computer science and physics student at UNC and a Gates and Williamson Scholar.',
             headshot: 'headshots/darwin-lemus.jpeg',
@@ -2737,7 +2737,7 @@ function getPeopleContent() {
         {
             name: 'Toluwani Ilesanmi',
             major: 'Computer Science',
-            status: 'Freshman',
+            status: 'Sophomore',
             graduation: 'May 2029',
             project: 'Toluwani contributes to swarm robotics research through robot construction, testing, prototyping, schematic design, wiring, and hardware integration.',
             headshot: 'headshots/toluwani-ilesanmi.jpeg',
@@ -2746,7 +2746,7 @@ function getPeopleContent() {
         {
             name: 'David Majernik',
             major: 'Computer Science',
-            status: 'Junior',
+            status: 'Senior',
             graduation: 'May 2027',
             project: 'David is a computer science student at UNC and a software engineering intern at Wells Fargo.',
             headshot: 'headshots/david-majernik.png',
@@ -2755,7 +2755,7 @@ function getPeopleContent() {
         {
             name: 'Matthew Czar',
             major: 'Biochemistry & Statistics',
-            status: 'Freshman',
+            status: 'Sophomore',
             graduation: 'May 2029',
             project: 'Matthew researches swimming hydrodynamics in the Applied Engineering Lab and Joint Mathematics and Marine Science Fluid Laboratories to optimize body position for elite athletes.',
             headshot: 'headshots/matthew-czar.png',
