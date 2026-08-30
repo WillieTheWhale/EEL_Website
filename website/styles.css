@@ -1727,25 +1727,55 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 }
 
 .collaborators-section {
-    margin-bottom: 0;
+    margin-bottom: 40px;
 }
 
-.collaborator-list {
+.collaborator-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 0 30px;
-    margin: 0;
-    padding: 0;
-    border-top: 1px solid var(--glass-border);
-    list-style: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
 }
 
-.collaborator-list li {
-    padding: 15px 0;
-    border-bottom: 1px solid var(--glass-border);
-    color: var(--text-light);
-    font-size: 14px;
-    line-height: 1.5;
+.collaborator-card {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    color: inherit;
+    text-align: center;
+    text-decoration: none;
+}
+
+.collaborator-card .person-name {
+    margin: 0 0 10px;
+    font-size: 17px;
+    line-height: 1.4;
+}
+
+.collaborator-link-label {
+    color: var(--accent-cyan);
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.6px;
+}
+
+.collaborator-card:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+    .collaborator-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .collaborator-grid {
+        grid-template-columns: 1fr;
+    }
 }
 /* Responsive adjustments for featured cards */
 @media (max-width: 768px) {
