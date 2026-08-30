@@ -92,7 +92,7 @@ const ThemeManager = {
             });
         }
         
-        console.log('%cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ Theme initialized: ' + initialTheme + ' mode', 
+               console.log('%cTheme initialized: ' + initialTheme + ' mode',
             'color: ' + (initialTheme === 'dark' ? '#9482ff' : '#7ec8e3') + '; font-weight: bold;');
     },
     
@@ -263,7 +263,7 @@ const CircuitGridMatrix = {
             this.cachedMedallionRadius = this.cachedMedallionEl.offsetWidth / 2;
         }
         
-        console.log('%cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ Circuit Grid Matrix initialized', 'color: #7ec8e3; font-weight: bold;');
+                console.log('%cCircuit Grid Matrix initialized', 'color: #7ec8e3; font-weight: bold;');
     },
     
     createDefs: function() {
@@ -1116,7 +1116,7 @@ class RadialPanelPhysics {
             
             this.addPanelListeners(panel);
         });
-               if (!RuntimeVisibility.mobilePortrait) {
+                      if (!RuntimeVisibility.mobilePortrait) {
             TetherSystem.init();
             TetherSystem.update();
         }
@@ -1127,7 +1127,7 @@ class RadialPanelPhysics {
     
     revealPositionedElements() {
         document.querySelectorAll('.js-positioned').forEach(el => el.classList.add('ready'));
-        console.log('%cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Elements positioned and revealed', 'color: #7ec8e3; font-weight: bold;');
+               console.log('%cElements positioned and revealed', 'color: #7ec8e3; font-weight: bold;');
     }
     
     addPanelListeners(panel) {
@@ -2290,7 +2290,7 @@ const EELRouteManager = {
         'panel-join': 'join-our-lab'
     },
 
-       init: function() {
+           init: function() {
         if (this.initialized) return;
 
         this.initialized = true;
@@ -2415,31 +2415,32 @@ const EELRouteManager = {
         this.updateMetadata('home');
     },
 
-       scrollToCurrentHash: function() {
+         scrollToCurrentHash: function() {
         var hash = this.getHash();
-
-        if (!hash) return;
 
         requestAnimationFrame(function() {
             _getExpandedEls();
+
+            if (!_cachedExpandedContent) return;
+
+            // Main Research & Teaching route should return to the top.
+            if (!hash || hash === 'research-teaching' || hash === 'projects') {
+                _cachedExpandedContent.scrollTo({
+                    top: 0,
+                    behavior: 'auto'
+                });
+                return;
+            }
 
             var target = document.getElementById(hash);
 
             if (
                 target &&
-                _cachedExpandedContent &&
                 _cachedExpandedContent.contains(target)
             ) {
-                var contentRect = _cachedExpandedContent.getBoundingClientRect();
-                var targetRect = target.getBoundingClientRect();
-                var targetTop =
-                    _cachedExpandedContent.scrollTop +
-                    targetRect.top -
-                    contentRect.top;
-
-                _cachedExpandedContent.scrollTo({
-                    top: Math.max(0, targetTop - 16),
-                    behavior: 'auto'
+                target.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'start'
                 });
             }
         });
@@ -3627,15 +3628,15 @@ function getPeopleContent() {
         '<h3 class="person-name">', labDirector.name, '</h3>',
         '<p class="person-role">', labDirector.role, '</p>',
         '<p class="person-bio director-bio">',
-        '<strong>Jim Mahaney is the Director of Engineering and Research ',
+                '<strong>Jim Mahaney is the Director of Engineering and Research ',
         'for the Department of Computer Science at the University of ',
-        'North Carolina at Chapel Hill.</strong> Over more than 25 years ',
-        'at Carolina, he has designed and fabricated experimental systems ',
-        'across areas including robotics and medical devices, augmented ',
-        'and virtual reality, sensing technologies, fluid dynamics, and ',
-        'large-scale 3D capture and reconstruction. Mahaney first joined ',
-        'the lab as a student assistant in 1997 and later returned to ',
-        'lead the facility, bringing his career at Carolina full circle. ',
+        'North Carolina at Chapel Hill.</strong> Since first joining ',
+        'Carolina as a student assistant in 1997, he has designed and ',
+        'fabricated experimental systems across areas including robotics ',
+        'and medical devices, augmented and virtual reality, sensing ',
+        'technologies, fluid dynamics, and large-scale 3D capture and ',
+        'reconstruction. He later returned to lead the facility, bringing ',
+        'his career at Carolina full circle. ',
         'In Fall 2025, he launched the EEL’s undergraduate research ',
         'program, creating opportunities that combine faculty ',
         'collaborations, student-led research, specialized technical ',
@@ -3644,7 +3645,7 @@ function getPeopleContent() {
         'researchers develop practical skills in electronics, machining, ',
         'welding, fabrication, and rapid prototyping while building ',
         'systems for active research projects.',
-               '</p>',
+                    '</p>',
         '<a class="research-link" href="https://research.unc.edu/2025/09/03/rooted-jim-mahaney/" target="_blank" rel="noopener noreferrer">Read the UNC Research profile, “Rooted: Jim Mahaney”</a>',
         '</div>',
         '</div>',
@@ -3909,7 +3910,7 @@ function getJoinContent() {
                     <li>Curiosity and willingness to learn</li>
                     <li>Ability to work collaboratively on a research team</li>
                     <li>Minimum commitment of 5 hours per week</li>
-                    <li>Current UNC student with a valid UNC email address</li>
+                                       <li>Current UNC undergraduate with a valid UNC email address</li>
                 </ul>
             </div>
 
