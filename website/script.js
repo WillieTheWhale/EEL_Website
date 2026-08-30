@@ -2232,7 +2232,7 @@ const EELRouteManager = {
             contentType: 'join',
             route: 'join-our-lab',
             title: 'Join Our Lab | EEL',
-            description: 'Learn how UNC students can join the Experimental Engineering Lab and contribute to hands-on research and engineering projects.'
+           description: 'Learn how UNC undergraduates can join the Experimental Engineering Lab and contribute to hands-on research and engineering projects.'
         },
 
         currentProjects: {
