@@ -2290,13 +2290,38 @@ const EELRouteManager = {
         'panel-join': 'join-our-lab'
     },
 
-    init: function() {
+       init: function() {
         if (this.initialized) return;
 
         this.initialized = true;
 
+        // Handle Research & Teaching jump links through the EEL router.
+        // This prevents the browser from also performing a native anchor jump.
+        document.addEventListener('click', (event) => {
+            var link = event.target.closest('.research-jump-nav a[href^="#"]');
+
+            if (!link) return;
+
+            var hash = link.getAttribute('href').replace(/^#/, '').toLowerCase();
+            var pageKey = this.getPageKeyForHash(hash);
+
+            if (!pageKey) return;
+
+            event.preventDefault();
+
+            if (this.getHash() !== hash) {
+                history.pushState(
+                    { eelSection: hash },
+                    '',
+                    '#' + hash
+                );
+            }
+
+            this.handleLocation();
+        });
+
+        // Handle browser Back/Forward navigation.
         window.addEventListener('popstate', () => this.handleLocation());
-        window.addEventListener('hashchange', () => this.handleLocation());
 
         this.handleLocation();
     },
@@ -2390,7 +2415,7 @@ const EELRouteManager = {
         this.updateMetadata('home');
     },
 
-    scrollToCurrentHash: function() {
+       scrollToCurrentHash: function() {
         var hash = this.getHash();
 
         if (!hash) return;
@@ -2405,9 +2430,16 @@ const EELRouteManager = {
                 _cachedExpandedContent &&
                 _cachedExpandedContent.contains(target)
             ) {
-                target.scrollIntoView({
-                    behavior: 'auto',
-                    block: 'start'
+                var contentRect = _cachedExpandedContent.getBoundingClientRect();
+                var targetRect = target.getBoundingClientRect();
+                var targetTop =
+                    _cachedExpandedContent.scrollTop +
+                    targetRect.top -
+                    contentRect.top;
+
+                _cachedExpandedContent.scrollTo({
+                    top: Math.max(0, targetTop - 16),
+                    behavior: 'auto'
                 });
             }
         });
@@ -2633,9 +2665,15 @@ function expandPanel(panelId, contentType, routeOptions) {
     getCachedNavPanels().forEach(function(p) { p.style.pointerEvents = 'none'; });
 }
 
-function collapsePanel() {
+function collapsePanel(fromRoute) {
     if (!isExpanded || isCollapsing) return;
     isCollapsing = true;
+
+    // A user-initiated close returns the URL to the homepage.
+    // Router-initiated collapses keep the destination hash intact.
+    if (!fromRoute) {
+        EELRouteManager.clearRoute();
+    }
 
     _getExpandedEls();
     var expandedOverlay = _cachedExpandedOverlay;
