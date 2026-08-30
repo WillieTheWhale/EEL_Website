@@ -2466,7 +2466,7 @@ const EELRouteManager = {
             });
         });
     },
-    },
+
 
     handleLocation: function() {
         var hash = this.getHash();
