@@ -3379,13 +3379,24 @@ function getPeopleContent() {
 
     for (let i = 0; i < otherMembers.length; i++) {
         const member = otherMembers[i];
+        const initials = member.name
+            .split(' ')
+            .map(function(namePart) {
+                return namePart[0];
+            })
+            .join('');
 
         parts.push(
-            '<div class="person-card compact-member-card">',
-            '<h3 class="person-name">',
-            member.name,
-            '</h3>',
+            '<div class="person-card featured-card">',
+            '<div class="person-image placeholder-image" aria-hidden="true">',
+            '<span>', initials, '</span>',
+            '</div>',
+            '<div class="person-name-row">',
+            '<h3 class="person-name">', member.name, '</h3>',
             linkedinLink(member.linkedin),
+            '</div>',
+            '<p class="person-role">Research Team</p>',
+            foundingBadge(member.name),
             '</div>'
         );
     }
