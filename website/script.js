@@ -1116,12 +1116,13 @@ class RadialPanelPhysics {
             
             this.addPanelListeners(panel);
         });
-        
-        if (!RuntimeVisibility.mobilePortrait) {
+               if (!RuntimeVisibility.mobilePortrait) {
             TetherSystem.init();
             TetherSystem.update();
         }
+
         this.revealPositionedElements();
+        EELRouteManager.init();
     }
     
     revealPositionedElements() {
@@ -2189,6 +2190,282 @@ let isExpanded = false;
 let isCollapsing = false;
 let previousFocus = null;
 
+// ============================================
+// DIRECT URL + PAGE METADATA ROUTING
+// ============================================
+
+const EELRouteManager = {
+    initialized: false,
+
+    pages: {
+        home: {
+            title: 'EEL - Experimental Engineering Lab',
+            description: 'The Experimental Engineering Lab at UNC-Chapel Hill connects undergraduate research, applied engineering, fabrication, immersive technology, and cross-campus collaboration.'
+        },
+
+        projects: {
+            panelId: 'panel-projects',
+            contentType: 'projects',
+            route: 'research-teaching',
+            title: 'Research & Teaching | EEL',
+            description: 'Explore current EEL research projects, developing ideas, courses, and past work at UNC-Chapel Hill.'
+        },
+
+        people: {
+            panelId: 'panel-people',
+            contentType: 'people',
+            route: 'members-collaborators',
+            title: 'Members & Collaborators | EEL',
+            description: 'Meet the EEL undergraduate researchers, alumni, academic partners, and collaborators at UNC-Chapel Hill.'
+        },
+
+        about: {
+            panelId: 'panel-about',
+            contentType: 'about',
+            route: 'eel-at-a-glance',
+            title: 'EEL at a Glance | Experimental Engineering Lab',
+            description: 'See the Experimental Engineering Lab’s impact, capabilities, history, and campus-wide research-engineering role at UNC-Chapel Hill.'
+        },
+
+        join: {
+            panelId: 'panel-join',
+            contentType: 'join',
+            route: 'join-our-lab',
+            title: 'Join Our Lab | EEL',
+            description: 'Learn how UNC students can join the Experimental Engineering Lab and contribute to hands-on research and engineering projects.'
+        },
+
+        currentProjects: {
+            panelId: 'panel-projects',
+            contentType: 'projects',
+            title: 'Current Projects | EEL',
+            description: 'Explore current undergraduate research and engineering projects in the Experimental Engineering Lab at UNC-Chapel Hill.'
+        },
+
+        developingProjects: {
+            panelId: 'panel-projects',
+            contentType: 'projects',
+            title: 'Projects in Development | EEL',
+            description: 'Explore research and engineering projects currently being developed in the Experimental Engineering Lab at UNC-Chapel Hill.'
+        },
+
+        courses: {
+            panelId: 'panel-projects',
+            contentType: 'projects',
+            title: 'Courses & Academic Opportunities | EEL',
+            description: 'Explore EEL courses and academic opportunities connecting hands-on engineering, undergraduate research, and research leadership at UNC-Chapel Hill.'
+        },
+
+        pastWork: {
+            panelId: 'panel-projects',
+            contentType: 'projects',
+            title: 'Selected Past Work | EEL',
+            description: 'Explore selected past research, engineering, and teaching projects from the Experimental Engineering Lab at UNC-Chapel Hill.'
+        }
+    },
+
+    hashToPage: {
+        'research-teaching': 'projects',
+        'projects': 'projects',
+
+        'current-projects': 'currentProjects',
+        'projects-in-development': 'developingProjects',
+        'courses': 'courses',
+        'past-work': 'pastWork',
+
+        'members-collaborators': 'people',
+        'people': 'people',
+
+        'eel-at-a-glance': 'about',
+        'about': 'about',
+
+        'join-our-lab': 'join',
+        'join': 'join'
+    },
+
+    panelToHash: {
+        'panel-projects': 'research-teaching',
+        'panel-people': 'members-collaborators',
+        'panel-about': 'eel-at-a-glance',
+        'panel-join': 'join-our-lab'
+    },
+
+    init: function() {
+        if (this.initialized) return;
+
+        this.initialized = true;
+
+        window.addEventListener('popstate', () => this.handleLocation());
+        window.addEventListener('hashchange', () => this.handleLocation());
+
+        this.handleLocation();
+    },
+
+    getHash: function() {
+        return decodeURIComponent(
+            window.location.hash.replace(/^#/, '')
+        ).toLowerCase();
+    },
+
+    getPageKeyForHash: function(hash) {
+        return this.hashToPage[hash] || null;
+    },
+
+    setMetaContent: function(selector, value) {
+        var element = document.querySelector(selector);
+
+        if (element) {
+            element.setAttribute('content', value);
+        }
+    },
+
+    updateMetadata: function(pageKey) {
+        var page = this.pages[pageKey] || this.pages.home;
+
+        document.title = page.title;
+
+        this.setMetaContent(
+            'meta[name="description"]',
+            page.description
+        );
+
+        this.setMetaContent(
+            'meta[property="og:title"]',
+            page.title
+        );
+
+        this.setMetaContent(
+            'meta[property="og:description"]',
+            page.description
+        );
+
+        this.setMetaContent(
+            'meta[property="og:url"]',
+            window.location.href
+        );
+
+        this.setMetaContent(
+            'meta[name="twitter:title"]',
+            page.title
+        );
+
+        this.setMetaContent(
+            'meta[name="twitter:description"]',
+            page.description
+        );
+    },
+
+    updateMetadataForCurrentHash: function() {
+        var hash = this.getHash();
+        var pageKey = this.getPageKeyForHash(hash);
+
+        this.updateMetadata(pageKey || 'home');
+    },
+
+    setPanelRoute: function(panelId) {
+        var hash = this.panelToHash[panelId];
+
+        if (!hash) return;
+
+        if (this.getHash() !== hash) {
+            history.pushState(
+                { eelPanel: panelId },
+                '',
+                '#' + hash
+            );
+        }
+
+        this.updateMetadata(
+            this.getPageKeyForHash(hash)
+        );
+    },
+
+    clearRoute: function() {
+        history.replaceState(
+            { eelPanel: null },
+            '',
+            window.location.pathname + window.location.search
+        );
+
+        this.updateMetadata('home');
+    },
+
+    scrollToCurrentHash: function() {
+        var hash = this.getHash();
+
+        if (!hash) return;
+
+        requestAnimationFrame(function() {
+            _getExpandedEls();
+
+            var target = document.getElementById(hash);
+
+            if (
+                target &&
+                _cachedExpandedContent &&
+                _cachedExpandedContent.contains(target)
+            ) {
+                target.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'start'
+                });
+            }
+        });
+    },
+
+    handleLocation: function() {
+        var hash = this.getHash();
+        var pageKey = this.getPageKeyForHash(hash);
+
+        if (!pageKey) {
+            this.updateMetadata('home');
+
+            if (isExpanded && !isCollapsing) {
+                collapsePanel(true);
+            }
+
+            return;
+        }
+
+        var page = this.pages[pageKey];
+
+        this.updateMetadata(pageKey);
+
+        if (isCollapsing) {
+            setTimeout(
+                () => this.handleLocation(),
+                950
+            );
+
+            return;
+        }
+
+        if (!isExpanded) {
+            expandPanel(
+                page.panelId,
+                page.contentType,
+                { fromRoute: true }
+            );
+
+            this.scrollToCurrentHash();
+
+            return;
+        }
+
+        if (currentExpandedPanel === page.panelId) {
+            this.scrollToCurrentHash();
+            return;
+        }
+
+        collapsePanel(true);
+
+        setTimeout(
+            () => this.handleLocation(),
+            950
+        );
+    }
+};
+
 // Content cache — generate HTML once, reuse on subsequent opens
 const _contentCache = {};
 
@@ -2258,11 +2535,20 @@ function _getExpandedTargetRect() {
     };
 }
 
-function expandPanel(panelId, contentType) {
+function expandPanel(panelId, contentType, routeOptions) {
     if (isExpanded || isCollapsing) return;
+
+    routeOptions = routeOptions || {};
+
     isExpanded = true;
     currentExpandedPanel = panelId;
     previousFocus = document.activeElement;
+
+    if (!routeOptions.fromRoute) {
+        EELRouteManager.setPanelRoute(panelId);
+    } else {
+        EELRouteManager.updateMetadataForCurrentHash();
+    }
 
     _getExpandedEls();
     var panel = document.getElementById(panelId);
