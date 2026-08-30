@@ -1685,10 +1685,12 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 }
 
 .director-card .person-image {
-    width: 150px;
+    width: 120px;
     height: 150px;
-    border-radius: 50%;
+    min-width: 120px;
+    border-radius: 12px;
     object-fit: cover;
+    border: 2px solid var(--glass-border);
 }
 
 .director-card .placeholder-image span {
