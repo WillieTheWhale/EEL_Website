@@ -2902,14 +2902,68 @@ function getPeopleContent() {
 }
 
 function getAboutContent() {
-    return '<h1 class="expanded-title">About the Experimental Engineering Lab</h1>' +
-        '<div class="content-section">' +
-        '<p class="about-text">The Experimental Engineering Lab (EEL) at the University of North Carolina at Chapel Hill continues a four-decade tradition of building innovative research systems within the Department of Computer Science. The lab traces its origins to the Microelectronics Systems Laboratory, founded in the 1980s, where faculty and engineers at UNC developed groundbreaking hardware systems that pushed the boundaries of computer graphics and interactive computing. Among the most notable projects were the Pixel-Planes and PixelFlow graphics engines, which were among the fastest real-time rendering systems of their era and widely recognized in the graphics community for their innovative architecture. Their massively parallel designs explored ideas\u2014such as per-pixel processing and scalable rendering pipelines\u2014that later became central to modern GPU design.</p>' +
-        '<p class="about-text">From the beginning, the lab was built around a simple idea: important research often requires the ability to engineer and build new systems in-house. To support this vision, the lab was designed as a fully equipped engineering environment embedded within a computer science department. Today the facility includes specialized spaces such as an electronics laboratory, machine shop, rapid fabrication room, wet lab, and shielded room, allowing researchers to design, prototype, and build complex experimental systems entirely on site.</p>' +
-        '<p class="about-text">The lab\u2019s role has long been to support research across computer science by providing the engineering expertise and infrastructure needed to transform ideas into working systems. Because UNC does not have a traditional engineering school, this capability has been essential for enabling projects that require custom hardware, sensing systems, robotics platforms, and specialized instrumentation. The lab also collaborates with groups across campus, including Applied Mathematics, Religious Studies, Environment, Ecology and Marine Sciences (EMES), and Exercise and Sport Science (EXSS).</p>' +
-        '<p class="about-text">In recent years, the lab has expanded its mission beyond engineering support to include hands-on undergraduate research and engineering training. Undergraduate researchers work alongside Jim Mahaney, Director of Engineering and Research for Computer Science, designing and building experimental systems while learning practical skills such as electronics fabrication, machining, welding, and rapid prototyping\u2014hands-on engineering experiences rarely available within a computer science program.</p>' +
-        '<p class="about-text">Students in the lab work on a wide range of experimental systems that combine hardware, software, sensing, robotics, and immersive technologies. Many projects originate from ideas proposed by the students themselves, encouraging exploration, rapid prototyping, and creative problem solving. By combining a long tradition of building novel research systems with a student-driven research environment, the Experimental Engineering Lab provides a place where ambitious ideas move quickly from concept to working technology\u2014and where students gain the experience of building systems that have never existed before.</p>' +
-        '</div>';
+    return `
+        <h1 class="expanded-title">EEL at a Glance</h1>
+        <div class="content-section">
+            <div class="about-stats">
+                <div class="about-stat">
+                    <strong class="about-stat-number">35</strong>
+                    <span class="about-stat-label">Current Undergraduate Researchers</span>
+                </div>
+                <div class="about-stat">
+                    <strong class="about-stat-number">14</strong>
+                    <span class="about-stat-label">Active Research Projects</span>
+                </div>
+                <div class="about-stat">
+                    <strong class="about-stat-number">6</strong>
+                    <span class="about-stat-label">Collaborating Academic Areas</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Research Engineering for Carolina</h2>
+            <p class="about-text">The Experimental Engineering Lab provides the engineering expertise, facilities, and technical support needed to turn research ideas into working systems. Based in the Department of Computer Science at UNC-Chapel Hill, the EEL works with faculty and students across campus to design, fabricate, integrate, and test specialized equipment and experimental systems that often cannot be purchased off the shelf.</p>
+            <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
+
+            <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
+            <p class="about-text">Under the direction of Jim Mahaney, Director of Engineering and Research, the Experimental Engineering Lab was launched in the fall of 2025, expanding the mission of what had previously been known as the Applied Engineering Lab to include a structured undergraduate research and engineering-training program. In just two semesters, the program grew from an idea into a community of 35 undergraduate researchers working across 14 active projects.</p>
+            <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
+            <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
+            <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
+
+            <h2 class="section-title">Collaboration Across Carolina</h2>
+            <p class="about-text">The EEL currently supports work involving Computer Science, Applied Mathematics, Earth, Marine and Environmental Sciences, Exercise and Sport Science, Physical Therapy, and Religious Studies.</p>
+            <p class="about-text">These collaborations span robotics, accessibility, human movement, rehabilitation, fluid dynamics, environmental sensing, artificial intelligence, virtual and augmented reality, and the documentation and interpretation of cultural sites. By bringing students and researchers from different fields together around a shared problem, the EEL helps create connections that might not develop within the boundaries of a single department.</p>
+            <p class="about-text">The lab’s work with Religious Studies is a particularly strong example of this approach. Fieldwork in Nepal has produced detailed 3D records of Buddhist sites, while EEL students have helped develop the models, virtual environments, and redirected-walking technology needed to use that research in immersive educational settings. The collaboration brings together humanities scholarship, computer science, engineering, cultural documentation, and new approaches to teaching.</p>
+
+            <h2 class="section-title">Facilities and Technical Capabilities</h2>
+            <p class="about-text">The EEL continues a long tradition of maintaining the ability to design and build specialized research systems within Computer Science. Its facilities include an electronics laboratory, machine shop, rapid-fabrication space, wet lab, and shielded room.</p>
+            <p class="about-text">Current capabilities include:</p>
+            <ul class="requirements-list">
+                <li>Precision machining and metal fabrication</li>
+                <li>Welding</li>
+                <li>Electronics design and assembly</li>
+                <li>Rapid prototyping and 3D printing</li>
+                <li>Robotics and autonomous systems</li>
+                <li>Sensors and experimental instrumentation</li>
+                <li>Virtual and augmented reality</li>
+                <li>Redirected walking and immersive simulation</li>
+                <li>Large-scale 3D capture and reconstruction</li>
+                <li>Custom research-system design and integration</li>
+            </ul>
+            <p class="about-text">Bringing these capabilities together allows researchers and students to develop complete experimental systems on site rather than distributing the work among unrelated facilities or relying entirely on commercial equipment.</p>
+
+            <h2 class="section-title">Four Decades of Research Engineering</h2>
+            <p class="about-text">The EEL continues a four-decade tradition of building innovative research systems within UNC Computer Science. The facility traces its origins to the Microelectronics Systems Laboratory, established in the 1980s to support research requiring specialized computing hardware.</p>
+            <p class="about-text">Among the best-known systems developed through this tradition were the Pixel-Planes and PixelFlow graphics engines. These were among the fastest real-time rendering systems of their era and were widely recognized for their innovative, massively parallel architectures. Their designs explored concepts such as per-pixel processing and scalable rendering pipelines that later became central to modern graphics processors.</p>
+            <p class="about-text">More recently, the facility was known as the Applied Engineering Lab. In the fall of 2025, Mahaney renamed it the Experimental Engineering Lab to reflect its expanded mission in undergraduate research, hands-on engineering education, and collaboration across campus. The new name also recognizes the lab’s continuing role in designing and building the experimental systems needed to support research at Carolina.</p>
+            <p class="about-text">The technology has changed, but the underlying purpose of the lab remains the same: important research often requires the ability to engineer and build new systems in-house. Today, the EEL combines that research-engineering tradition with a growing undergraduate program, giving a new generation of students the opportunity to participate directly in creating the tools and technologies that make discovery possible.</p>
+
+            <h2 class="section-title">Building a Sustainable Campus Resource</h2>
+            <p class="about-text">The EEL’s growth demonstrates what can be accomplished by combining existing University facilities with experienced research-engineering leadership, undergraduate talent, faculty collaboration, and outside support.</p>
+            <p class="about-text">Fundraising has already provided additional resources for student research and lab development. As the program grows, the EEL will continue expanding collaborations across Carolina while maintaining the close technical mentoring, practical training, and project support that make its work effective.</p>
+            <p class="about-text">The goal is not simply to complete more projects. It is to create a sustainable research-engineering resource that helps faculty pursue ambitious ideas, gives students meaningful roles in discovery, and strengthens the connections among research, teaching, engineering, and the liberal arts at Carolina.</p>
+        </div>
+    `;
 }
 
 function getJoinContent() {
