@@ -3421,6 +3421,32 @@ function getPeopleContent() {
 
     parts.push('</div>', '</div>');
 
+       parts.push(
+        '<div class="people-section collaborators-section">',
+        '<h2 class="people-section-title">',
+        'Collaborating Academic Areas',
+        '</h2>',
+        '<div class="collaborator-grid">'
+    );
+
+    for (let i = 0; i < collaboratingAreas.length; i++) {
+        const area = collaboratingAreas[i];
+
+        parts.push(
+            '<a class="person-card collaborator-card" href="',
+            area.url,
+            '" target="_blank" rel="noopener noreferrer">',
+            '<h3 class="person-name">', area.name, '</h3>',
+            '<span class="collaborator-link-label">',
+            'Visit department website ',
+            '<span aria-hidden="true">↗</span>',
+            '</span>',
+            '</a>'
+        );
+    }
+
+    parts.push('</div>', '</div>');
+
     parts.push(
         '<div class="people-section">',
         '<h2 class="people-section-title">EEL Alumni</h2>',
@@ -3467,24 +3493,6 @@ function getPeopleContent() {
     }
 
     parts.push('</div>', '</div>');
-
-    parts.push(
-        '<div class="people-section collaborators-section">',
-        '<h2 class="people-section-title">',
-        'Collaborating Academic Areas',
-        '</h2>',
-        '<ul class="collaborator-list">'
-    );
-
-    for (let i = 0; i < collaboratingAreas.length; i++) {
-        parts.push(
-            '<li>',
-            collaboratingAreas[i],
-            '</li>'
-        );
-    }
-
-    parts.push('</ul>', '</div>');
 
     return parts.join('');
 }
