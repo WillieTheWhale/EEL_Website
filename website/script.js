@@ -3606,7 +3606,8 @@ function getPeopleContent() {
         'researchers develop practical skills in electronics, machining, ',
         'welding, fabrication, and rapid prototyping while building ',
         'systems for active research projects.',
-        '</p>',
+               '</p>',
+        '<a class="research-link" href="https://research.unc.edu/2025/09/03/rooted-jim-mahaney/" target="_blank" rel="noopener noreferrer">Read the UNC Research profile, “Rooted: Jim Mahaney”</a>',
         '</div>',
         '</div>',
         '</div>'
