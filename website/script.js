@@ -3264,7 +3264,7 @@ function getPeopleContent() {
     const specialAccolades = {
         'Lily Foo': {
             badge: 'Best Aluminum TIG Welder',
-            subtitle: 'Fall 2025'
+                        subtitle: 'Fall 2025 & Spring 2026'
         }
     };
 
@@ -3536,6 +3536,187 @@ function getPeopleContent() {
         }
     ];
 
+    const projectCatalog = {
+        redirectedWalking: 'Boundary-Aware Redirected Walking in Virtual Reality',
+        magnetohydrodynamic: 'Magnetohydrodynamic Drive',
+        handTracking: 'Hand-Position Tracking Glove',
+        spot: 'PAWS: SPOT Assistive Navigation Robot',
+        swimmerHand: 'Finger-Position Optimization for Swimming',
+        fishCar: 'Biologically Driven Autonomous Vehicle Research',
+        mantaRay: 'Acoustic Communication for an Underwater Manta Ray Robot Swarm',
+        modularWebAR: 'Modular WebAR Experiences',
+        motorcycleAR: 'Mixed-Reality Motorcycle Assembly Training',
+        brooksVR: 'Recreating Fred Brooks’s Office in Virtual Reality',
+        wavemaker: '30-Channel Wavemaker Control Interface',
+        icePIV: 'Remote PIV System for Measuring Iceberg Melt',
+        openCTD: 'Low-Cost CTD Sensors for Oceanography',
+        hologram: 'Floating Holographic Display',
+        immersive360AI: 'Generative AI for Immersive 360° Environments',
+        dorsiflexion: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
+        nepalModel: 'Scalable 3D Environment Optimization',
+        eelWebsite: 'EEL Website Development'
+    };
+
+    const projectPosters = {
+        redirectedWalking: 'images/NepalVR.pdf',
+        magnetohydrodynamic: 'images/Magnetohydrodynamic.pdf',
+        handTracking: 'images/HandTracking.pdf',
+        spot: 'images/SPOT.pdf',
+        swimmerHand: 'images/SwimmerHand.pdf',
+        fishCar: 'images/AutonomousVehicle.pdf',
+        mantaRay: 'images/MantaRay.pdf',
+        modularWebAR: 'images/ModularWebAR.pdf',
+        motorcycleAR: 'images/MotorcycleAR.pdf',
+        brooksVR: 'images/BrooksVR.pdf'
+    };
+
+    const memberProjects = {
+        'Markandeya Yalamanchi': [
+            { key: 'redirectedWalking', poster: true }
+        ],
+        'Tate Semone': [
+            { key: 'magnetohydrodynamic', poster: true }
+        ],
+        'Sofia Morais': [
+            { key: 'handTracking', poster: true },
+            { key: 'dorsiflexion' }
+        ],
+        'Elyssa Snively': [
+            { key: 'spot', poster: true }
+        ],
+        'Ishi Varshney': [
+            { key: 'spot', poster: true },
+            { key: 'immersive360AI' }
+        ],
+        'Alexa Tinajero': [
+            { key: 'spot', poster: true }
+        ],
+        'Lily Foo': [
+            { key: 'swimmerHand', poster: true }
+        ],
+        'Riley Goodwin': [
+            { key: 'fishCar', poster: true },
+            { key: 'handTracking', poster: true },
+            { key: 'dorsiflexion' }
+        ],
+        'Ethan DeRosa': [
+            { key: 'fishCar', poster: true }
+        ],
+        'Coleman Stephens': [
+            { key: 'spot', poster: true }
+        ],
+        'Mihika Tyagi': [
+            { key: 'redirectedWalking', poster: true },
+            { key: 'immersive360AI' }
+        ],
+        'Siera Gashi': [
+            { key: 'handTracking', poster: true },
+            { key: 'dorsiflexion' }
+        ],
+        'William Keffer': [
+            { key: 'eelWebsite' }
+        ],
+        'Alexander Yevchenko': [
+            { key: 'handTracking', poster: true },
+            { key: 'dorsiflexion' }
+        ],
+        'Darwin Lemus': [
+            { key: 'modularWebAR', poster: true }
+        ],
+        'Toluwani Ilesanmi': [
+            { key: 'mantaRay', poster: true }
+        ],
+        'David Majernik': [
+            { key: 'redirectedWalking', poster: true }
+        ],
+        'Matthew Czar': [
+            { key: 'swimmerHand', poster: true }
+        ],
+        'Noah Butler': [
+            { key: 'motorcycleAR', poster: true },
+            { key: 'redirectedWalking', poster: true }
+        ],
+        'Matias Magallanes': [
+            { key: 'fishCar', poster: true }
+        ],
+        'Sanskriti Negi': [
+            { key: 'mantaRay', poster: true },
+            { key: 'icePIV' }
+        ],
+        'Sidharth Yeramaddu': [
+            { key: 'brooksVR', poster: true }
+        ],
+        'Matthew Alexander': [
+            { key: 'fishCar' },
+            { key: 'openCTD' }
+        ],
+        'Adrian Hito': [
+            { key: 'wavemaker' }
+        ],
+        'Adam Qaimari': [
+            { key: 'fishCar' },
+            { key: 'dorsiflexion' }
+        ],
+        'Alex Salinas': [
+            { key: 'hologram' },
+            { key: 'brooksVR', poster: true }
+        ],
+        'Alexander Bryan': [
+            { key: 'wavemaker' }
+        ],
+        'Allen Solomon': [
+            { key: 'hologram' },
+            { key: 'brooksVR', poster: true }
+        ],
+        'Joseph Sabo': [
+            { key: 'fishCar', poster: true }
+        ],
+        'Lillian Gann': [
+            { key: 'icePIV' }
+        ],
+        'Luke Hyatt': [
+            { key: 'spot', poster: true },
+            { key: 'nepalModel' }
+        ]
+    };
+
+    function renderMemberProjects(name) {
+        const assignments = memberProjects[name];
+
+        if (!assignments || assignments.length === 0) return '';
+
+        const output = [
+            '<div class="member-projects">',
+            '<p class="person-role">Projects</p>'
+        ];
+
+        assignments.forEach(function(assignment) {
+            const title = projectCatalog[assignment.key];
+
+            if (!title) return;
+
+            output.push(
+                '<div class="member-project-entry">',
+                '<p class="person-bio">', title, '</p>'
+            );
+
+            if (assignment.poster && projectPosters[assignment.key]) {
+                output.push(
+                    '<a class="research-link" href="',
+                    projectPosters[assignment.key],
+                    '" target="_blank" rel="noopener noreferrer">',
+                    '2026 Celebration of Undergraduate Research Poster',
+                    '</a>'
+                );
+            }
+
+            output.push('</div>');
+        });
+
+        output.push('</div>');
+        return output.join('');
+    }
+
     const alumni = [
         {
             name: 'Andy Choe',
@@ -3733,12 +3914,10 @@ function getPeopleContent() {
             );
         }
 
-        parts.push(
+                parts.push(
             accoladeBadge(member.name),
             foundingBadge(member.name),
-            '<p class="person-bio">',
-            member.project,
-            '</p>',
+            renderMemberProjects(member.name),
             '</div>'
         );
     }
@@ -3763,6 +3942,7 @@ function getPeopleContent() {
             '</div>',
             '<p class="person-role">Research Team</p>',
             foundingBadge(member.name),
+            renderMemberProjects(member.name),
             '</div>'
         );
     }
