@@ -1590,7 +1590,7 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 25px 20px 20px;
+    padding: 22px 18px 18px;
     gap: 0;
 }
 
@@ -1598,7 +1598,7 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     width: 120px;
     height: 150px;
     min-width: 120px;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
     border-radius: 12px;
     overflow: hidden;
 }
@@ -1615,8 +1615,8 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 7px;
+    margin-bottom: 3px;
 }
 
 .featured-card .person-name {
@@ -1637,19 +1637,63 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     font-size: 12px;
     color: var(--accent-cyan);
     font-weight: 300;
+    line-height: 1.35;
 }
 
 .person-graduation {
     font-size: 11px;
     color: var(--text-light);
     opacity: 0.8;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    line-height: 1.35;
 }
 
 .featured-card .person-bio {
     font-size: 12px;
     line-height: 1.6;
     text-align: left;
+}
+
+/* Student project groups */
+.member-projects {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.member-projects > .person-role {
+    margin: 0 0 7px;
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 1.4px;
+}
+
+.member-project-entry {
+    width: 100%;
+}
+
+.member-project-entry + .member-project-entry {
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.member-project-entry .person-bio {
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 11.5px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: center;
+}
+
+.member-project-entry .research-link {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--accent-cyan);
+    font-size: 10px;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
 }
 
 .placeholder-image {
@@ -1673,7 +1717,8 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 }
 
 .director-card {
-    max-width: 500px;
+    width: 100%;
+    max-width: 680px;
 }
 
 .director-bio {
@@ -1779,12 +1824,28 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 }
 /* Responsive adjustments for featured cards */
 @media (max-width: 768px) {
+    .expanded-title {
+        padding: 0 44px;
+        margin-bottom: 28px;
+        font-size: 32px;
+        line-height: 1.15;
+        letter-spacing: 2px;
+    }
+
     .featured-grid {
         grid-template-columns: 1fr;
     }
 
-    .featured-card .person-bio {
-        text-align: center;
+    .member-project-entry .research-link {
+        font-size: 10.5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .expanded-title {
+        padding: 0 36px;
+        font-size: 28px;
+        letter-spacing: 1.5px;
     }
 }
 
@@ -2043,6 +2104,12 @@ body[data-theme="dark"] .accolade-badge::after {
 .join-poster {
     text-align: center;
     margin-bottom: 30px;
+}
+
+.join-poster ~ .about-text {
+    max-width: 1000px;
+    margin: 0 auto 18px;
+    text-align: left;
 }
 
 .join-poster-img {
