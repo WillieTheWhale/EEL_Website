@@ -2290,13 +2290,13 @@ const EELRouteManager = {
         'panel-join': 'join-our-lab'
     },
 
-           init: function() {
+             init: function() {
         if (this.initialized) return;
 
         this.initialized = true;
 
-        // Handle Research & Teaching jump links through the EEL router.
-        // This prevents the browser from also performing a native anchor jump.
+        // Research & Teaching jump links navigate only inside the already-open
+        // Projects panel. They should not go through the full panel router.
         document.addEventListener('click', (event) => {
             var link = event.target.closest('.research-jump-nav a[href^="#"]');
 
@@ -2317,7 +2317,8 @@ const EELRouteManager = {
                 );
             }
 
-            this.handleLocation();
+            this.updateMetadata(pageKey);
+            this.scrollToCurrentHash(hash);
         });
 
         // Handle browser Back/Forward navigation.
@@ -2325,7 +2326,6 @@ const EELRouteManager = {
 
         this.handleLocation();
     },
-
     getHash: function() {
         return decodeURIComponent(
             window.location.hash.replace(/^#/, '')
@@ -2415,35 +2415,57 @@ const EELRouteManager = {
         this.updateMetadata('home');
     },
 
-         scrollToCurrentHash: function() {
-        var hash = this.getHash();
+           scrollToCurrentHash: function(hash) {
+        hash = hash || this.getHash();
 
         requestAnimationFrame(function() {
             _getExpandedEls();
 
             if (!_cachedExpandedContent) return;
 
-            // Main Research & Teaching route should return to the top.
+            // Main Research & Teaching route returns to the top.
             if (!hash || hash === 'research-teaching' || hash === 'projects') {
-                _cachedExpandedContent.scrollTo({
-                    top: 0,
-                    behavior: 'auto'
-                });
+                _cachedExpandedContent.scrollTop = 0;
                 return;
             }
 
             var target = document.getElementById(hash);
 
-            if (
-                target &&
-                _cachedExpandedContent.contains(target)
-            ) {
-                target.scrollIntoView({
-                    behavior: 'auto',
-                    block: 'start'
-                });
+            if (!target || !_cachedExpandedContent.contains(target)) return;
+
+            // Calculate the target position inside #expandedContent without
+            // scrollIntoView(), which can also move outer ancestors/viewport.
+            var targetTop = 0;
+            var node = target;
+
+            while (node && node !== _cachedExpandedContent) {
+                targetTop += node.offsetTop || 0;
+                node = node.offsetParent;
             }
+
+            // Fallback if the offsetParent chain does not reach the scroll box.
+            if (node !== _cachedExpandedContent) {
+                var contentRect = _cachedExpandedContent.getBoundingClientRect();
+                var targetRect = target.getBoundingClientRect();
+
+                targetTop =
+                    _cachedExpandedContent.scrollTop +
+                    targetRect.top -
+                    contentRect.top;
+            }
+
+            var jumpNav =
+                _cachedExpandedContent.querySelector('.research-jump-nav');
+
+            var stickyOffset =
+                jumpNav ? jumpNav.offsetHeight + 16 : 16;
+
+            _cachedExpandedContent.scrollTo({
+                top: Math.max(0, targetTop - stickyOffset),
+                behavior: 'auto'
+            });
         });
+    },
     },
 
     handleLocation: function() {
