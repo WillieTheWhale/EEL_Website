@@ -1598,6 +1598,130 @@ body[data-theme="dark"] .accolade-badge::after {
     text-align: justify;
 }
 
+/* EEL at a Glance */
+.about-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 1200px;
+    margin: 0 auto 48px;
+    padding: 26px 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.about-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 96px;
+    padding: 0 24px;
+    text-align: center;
+    border-right: 1px solid var(--glass-border);
+}
+
+.about-stat:last-child {
+    border-right: none;
+}
+
+.about-stat-number {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent-cyan);
+    font-size: 42px;
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: 2px;
+}
+
+.about-stat-label {
+    display: block;
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.about-stats ~ .section-title {
+    max-width: 1200px;
+    margin: 46px auto 18px;
+    padding-top: 30px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.about-stats + .section-title {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.about-stats ~ .about-text {
+    max-width: 1200px;
+    margin: 0 auto 18px;
+    text-align: left;
+}
+
+.about-stats ~ .requirements-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 50px;
+    row-gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto 24px;
+}
+
+.about-stats ~ .requirements-list li {
+    margin-bottom: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .about-stats {
+        grid-template-columns: 1fr;
+        padding: 0;
+        margin-bottom: 36px;
+    }
+
+    .about-stat {
+        min-height: auto;
+        padding: 20px 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .about-stat:last-child {
+        border-bottom: none;
+    }
+
+    .about-stat-number {
+        font-size: 36px;
+    }
+
+    .about-stats ~ .section-title {
+        margin-top: 36px;
+        padding-top: 24px;
+        font-size: 20px;
+        line-height: 1.35;
+        letter-spacing: 1px;
+    }
+
+    .about-stats + .section-title {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .about-stats ~ .about-text {
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    .about-stats ~ .requirements-list {
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+    }
+}
+
 /* Join Us Panel Content */
 .join-poster {
     text-align: center;
