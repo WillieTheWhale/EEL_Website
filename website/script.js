@@ -2527,29 +2527,331 @@ function loadContent(contentType, container) {
 }
 
 function getProjectsContent() {
-    const projects = [
-        { title: 'Augmented Aurality', image: 'images/AugmentedAurality.JPG' },
-        { title: 'Autonomous Vehicles', image: 'images/AutonomousVehicles.JPG' },
-        { title: 'Magnetohydrodynamic Drive', image: 'images/MagnetohydrodynamicDrive.png' },
-        { title: 'Optimizing Hand Position For Swimming', image: 'images/OptimizingHandPostionForSwimming.jpg' },
-        { title: 'Real-World 3D Environments', image: 'images/Real-World3DEnvironments.png' },
-        { title: 'Smart Irrigation System', image: 'images/SmartIrrigationSystem.png' },
-        { title: 'Swarm Robots', image: 'images/SwarmRobots.JPG' },
-        { title: 'Virtual Reality', image: 'images/VirtualReality.png' }
+    const currentProjects = [
+        {
+            title: 'Boundary-Aware Redirected Walking in Virtual Reality',
+            image: 'images/VirtualReality.png',
+            imageAlt: 'Student using the EEL virtual reality system',
+            body: [
+                `Redirected walking allows someone to explore a virtual environment larger than the physical room around them. The EEL system uses translation, rotation, and curvature gains to subtly adjust a participant’s virtual path while boundary-aware software keeps the participant safely inside the laboratory.`,
+                `Students have implemented redirected-walking systems in Unity and Unreal Engine for the Meta Quest 3. Initial testing allowed participants to explore a roughly 50-meter virtual temple environment while remaining within a physical space approximately two meters wide. The next phase will improve path planning, obstacle avoidance, and the integration of multiple large-scale environments captured in Nepal.`
+            ],
+            collaboration: 'Religious Studies'
+        },
+        {
+            title: 'Scalable 3D Environment Optimization',
+            image: 'images/Real-World3DEnvironments.png',
+            imageAlt: 'Large-scale three-dimensional environment captured in Nepal',
+            body: [
+                `Fieldwork at Swayambhu in Nepal produced more than 500 gigabytes of photographs, laser-scanned point clouds, and aerial imagery. The resulting photogrammetry model contains approximately 2.7 billion triangles, making it far too large for conventional computers or VR headsets to display directly.`,
+                `Students are comparing photogrammetry, Neural Radiance Fields, and 3D Gaussian Splatting to determine how very large environments can be represented efficiently without losing their essential visual detail. Preliminary results suggest that a hybrid workflow may provide the best combination of image quality, real-time performance, and portability across VR and conventional computing platforms.`
+            ],
+            collaboration: 'Religious Studies',
+            link: 'https://research.unc.edu/story/blueprints-for-preservation/',
+            linkText: 'Read the UNC Research feature, “Blueprints for Preservation”'
+        },
+        {
+            title: 'Interactive 3D Heritage Explorer',
+            body: [
+                `This project is developing an Unreal Engine application that allows students, researchers, and the public to explore the EEL’s detailed 3D models of Swayambhu and other culturally significant locations in Nepal. The viewer will bring together optimized models, contextual information, photographs, and other field data in an accessible interactive environment.`,
+                `The goal is to make these extensive datasets useful beyond the VR laboratory while preserving the spatial relationships that are difficult to communicate through conventional photographs, maps, and videos.`
+            ],
+            collaboration: 'Religious Studies'
+        },
+        {
+            title: 'PAWS: SPOT Assistive Navigation Robot',
+            body: [
+                `PAWS, or Personal Autonomous Walking Support, explores how a Boston Dynamics SPOT robot could assist people who need additional support while walking. The current system combines spoken commands, GPS-independent GraphNav localization, LiDAR sensing, stored waypoints, and a specially designed support handle.`,
+                `The robot can guide a user to a selected location, monitor its surroundings, and stop automatically if the user releases the handle. Future work will explore capacitive sensing, improved user controls, and integration with more detailed building maps.`
+            ]
+        },
+        {
+            title: 'Recreating Fred Brooks’s Office in Virtual Reality',
+            body: [
+                `This project is preserving the office of pioneering computer scientist Frederick P. Brooks Jr. as an interactive virtual environment. Students created a detailed photogrammetry model from photographs, processed the resulting geometry through RealityScan, Instant Meshes, and Blender, and brought the optimized environment into Unity for VR.`,
+                `The work has reduced the geometric complexity of individual objects by approximately 89 to nearly 100 percent while maintaining the recognizable appearance of the original office. Continuing research will investigate automated model-processing tools, standardized photography methods, and level-of-detail systems that adjust model complexity according to the viewer’s location.`
+            ]
+        },
+        {
+            title: 'Finger-Position Optimization for Swimming',
+            image: 'images/OptimizingHandPostionForSwimming.jpg',
+            imageAlt: 'Experimental hand models used to study swimming performance',
+            body: [
+                `Small changes in finger spacing and hand position can affect the forces produced by a swimmer moving through the water. Students are using 3D-printed hand models, pressure measurements, pitot tubes, and flow visualization to study how finger spacing, wrist angle, and hand orientation influence useful propulsive force.`,
+                `The project combines experimental design, fabrication, instrumentation, and data analysis with the goal of producing findings that can be translated into practical guidance for competitive swimmers.`
+            ],
+            collaboration: 'Applied Mathematics, Exercise and Sport Science, and the U.S. Olympic Swim Team',
+            link: 'https://www.unc.edu/posts/2024/08/06/tar-heel-experts-unlock-science-behind-swimming/',
+            linkText: 'Read the Carolina story about the science behind swimming'
+        },
+        {
+            title: 'Hand-Position Tracking Glove',
+            body: [
+                `Originally developed as a second phase of the swimming project, this low-cost sensing glove measures the positions of a user’s fingers and displays a corresponding hand model in Unity. The system uses flex sensors, an Arduino Nano 33, a multiplexed circuit, and MATLAB-based calibration to translate physical hand movements into a live digital representation.`,
+                `The glove could eventually provide real-time feedback that helps swimmers maintain an optimal hand position. Its broader potential includes physical therapy, rehabilitation, and guided home-exercise applications. Current work is focused on improving calibration, reducing sensor drift, adding more complete thumb tracking, and developing a custom circuit board.`
+            ],
+            collaboration: 'Applied Mathematics, Exercise and Sport Science, and the U.S. Olympic Swim Team'
+        },
+        {
+            title: 'Biologically Driven Autonomous Vehicle Research',
+            image: 'images/AutonomousVehicles.JPG',
+            imageAlt: 'Biologically controlled autonomous vehicle developed in the EEL',
+            body: [
+                `This project investigates how biological movement and other human or animal signals can be used to control autonomous systems. In the initial prototype, a camera and computer-vision system track the movement of a goldfish within different regions of its tank. Those movements are translated into steering and throttle commands for a small robotic vehicle.`,
+                `LiDAR and infrared sensors provide independent safety overrides to prevent collisions. Although the prototype uses a fish, the underlying control architecture could be adapted to eye movement, muscle signals, gestures, or other biological inputs.`
+            ]
+        },
+        {
+            title: 'Acoustic Communication for an Underwater Manta Ray Robot Swarm',
+            image: 'images/SwarmRobots.JPG',
+            imageAlt: 'Underwater manta ray swarm robot prototype',
+            body: [
+                `Students are developing low-cost underwater robots inspired by manta rays that could eventually work together to map the seafloor or collect environmental measurements. The current research focuses on underwater acoustic communication using piezoelectric transducers and communication protocols designed for a swarm of robots.`,
+                `The project also includes the design and fabrication of PETG bodies, flexible TPU fins, servo-driven propulsion, adjustable buoyancy systems, and waterproof electronics. Future versions could carry cameras, water-quality sensors, or other scientific instruments.`
+            ]
+        },
+        {
+            title: 'Mixed-Reality Motorcycle Assembly Training',
+            body: [
+                `This project explores how mixed reality can guide someone through a complex mechanical assembly task. Built in Unity for the Meta Quest 3, the system uses reference markers, environmental depth sensing, and context-aware overlays to show users which tools and components are needed and where each part belongs.`,
+                `Users can confirm steps through hand gestures while the system provides instructions in the order required to complete the task. Initial testing demonstrated accurate alignment between virtual instructions and physical motorcycle components while reducing uncertainty during assembly.`
+            ]
+        },
+        {
+            title: 'Augmented Aurality',
+            image: 'images/AugmentedAurality.JPG',
+            imageAlt: 'Wearable augmented-hearing prototype developed in the EEL',
+            body: [
+                `Augmented Aurality explores whether wearable technology can help users focus on a particular speaker in a noisy environment. The prototype uses an array of eight microphones, a Teensy processor, beamforming, and a signal-processing method called imaginary boosting to isolate and amplify sound coming from a selected direction.`,
+                `Students designed custom glasses, electronics, and circuit boards to create a compact wearable prototype. The work addresses the familiar “cocktail party problem” and could contribute to future assistive-listening and augmented-hearing systems.`
+            ],
+            collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
+        },
+        {
+            title: '30-Channel Wavemaker Control Interface',
+            body: [
+                `The EEL previously designed and constructed a 30-channel wavemaker for fluid-dynamics research. The current student project is creating a new software interface that allows researchers to control the individual wave channels, construct repeatable wave patterns, and coordinate more complex experimental sequences.`,
+                `The interface will make the existing system easier to operate while allowing researchers to design experiments that would be difficult to conduct through manual control.`
+            ],
+            collaboration: 'Applied Mathematics'
+        }
     ];
 
-    const parts = ['<h1 class="expanded-title">Research Projects</h1><div class="projects-grid">'];
+    const developmentProjects = [
+        {
+            title: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
+            body: [
+                `This project will study the connection between brain activity and lower-extremity muscle activity during a dorsiflexion task. Neural oscillations will be measured through electroencephalography while electromyography records the corresponding muscle activity.`,
+                `Students will design and fabricate an adjustable device that safely secures a participant’s foot during a sustained dorsiflexion hold while supporting reliable EMG data collection.`
+            ],
+            collaboration: 'Physical Therapy'
+        },
+        {
+            title: 'Virtual Chemistry Lab',
+            body: [
+                `The Virtual Chemistry project will combine physical laboratory containers with virtual chemicals in augmented reality. Students could handle real beakers, test tubes, and other laboratory equipment while inexpensive and comparatively safe substances such as water stand in for dangerous, rare, or costly chemicals.`,
+                `Augmented reality would provide the expected colors, reactions, measurements, and other visual effects. The project could expand access to laboratory experiences while allowing students to repeat experiments that would otherwise be unsafe or impractical.`
+            ],
+            collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
+        },
+        {
+            title: 'Floating Holographic Display',
+            body: [
+                `This project will combine a mirascope with a spatial light modulator to create an interactive floating-image display. The work will require optical experimentation, mechanical design, fabrication, software development, and system calibration.`,
+                `Students will also investigate whether a machine-learning model can adjust the spatial light modulator’s output to compensate for warping, blur, and other distortions produced by the optical system.`
+            ],
+            collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
+        },
+        {
+            title: 'Generative AI for Immersive 360° Environments',
+            body: [
+                `This project will investigate generative AI systems capable of creating immersive environments from text prompts. Rather than producing a single flat image or conventional video, the long-term goal is to generate a three-dimensional experience through which a user can move, view the scene from different directions, and interact with objects.`,
+                `The first phase will focus on creating a large training dataset using synchronized 360-degree video, high-resolution narrow-field imagery, LiDAR, and other available sensors.`
+            ],
+            collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
+        },
+        {
+            title: 'Remote PIV System for Measuring Iceberg Melt',
+            body: [
+                `This project will develop a remotely operated system that can attach itself rigidly to an iceberg using remotely controlled ice drills. Once secured, the system will use particle-image velocimetry to measure fluid motion at the boundary between cold meltwater and the surrounding seawater.`,
+                `The research will require the integration of underwater robotics, mechanical design, fabrication, cameras, lighting, instrumentation, and remote-control systems capable of operating in a difficult environment.`
+            ],
+            collaboration: 'Earth, Marine and Environmental Sciences'
+        },
+        {
+            title: 'Low-Cost CTD Sensors for Oceanography',
+            body: [
+                `Conductivity, temperature, and depth sensors are essential tools in oceanographic research, but commercial CTD systems can be expensive. This project will use OpenCTD, a low-cost, open-source platform whose software, circuit boards, and 3D-printable components are publicly available under an MIT license.`,
+                `Students will fabricate, assemble, calibrate, and test OpenCTD instruments while exploring modifications for specific research applications.`
+            ],
+            collaboration: 'Earth, Marine and Environmental Sciences'
+        }
+    ];
 
-    for (let i = 0; i < projects.length; i++) {
-        const p = projects[i];
-        parts.push('<div class="project-card"><img class="project-image" src="', p.image,
-            '" alt="', p.title, '" loading="lazy" decoding="async"><h3 class="project-title">', p.title, '</h3></div>');
+    const courses = [
+        {
+            title: 'COMP 290: Introduction to Applied Engineering',
+            body: [
+                `Introduction to Applied Engineering is a hands-on course taught by Jim Mahaney in the Computer Science machine shop. Students personally operate metal lathes, milling machines, welding equipment, and related tools while learning traditional fabrication methods, shop safety, materials, tolerances, and mechanical design.`,
+                `One of the course’s central themes is the use of applied engineering to support research. Student projects are connected to research in Computer Science and in collaborating departments across campus. Based on a review of UNC’s published course offerings, this appears to be the University’s first undergraduate credit-bearing course centered on students operating this range of traditional machine-shop equipment.`
+            ]
+        },
+        {
+            title: 'COMP 293: Internship in Computer Science',
+            body: [
+                `In the EEL, COMP 293 is taught by Jim Mahaney and gives experienced undergraduate researchers the opportunity to lead a research team. Student leaders help define project goals, organize the team’s work, mentor newer researchers, guide technical decisions, and address problems as they arise.`,
+                `The course allows students to develop leadership, project-management, communication, and mentoring skills while continuing to contribute directly to active research.`
+            ]
+        },
+        {
+            title: 'COMP 495: Mentored Research in Computer Science',
+            body: [
+                `In the EEL, COMP 495 is taught by Jim Mahaney and allows students to pursue focused research projects using the lab’s facilities, equipment, and technical resources. Each section is tailored to the individual student and project, so the research topic, methods, and deliverables vary.`,
+                `Students take greater responsibility for defining the problem, selecting appropriate methods, designing and conducting experiments, documenting their work, and presenting their results.`
+            ]
+        },
+        {
+            title: 'RELI 283: The Buddhist Tradition: India, Nepal, and Tibet',
+            body: [
+                `RELI 283 is taught by Lauren Leve in Religious Studies. Working with Leve, Jim Mahaney and EEL undergraduate researchers have developed the 3D models, optimized datasets, VR environments, and redirected-walking system used in the course.`,
+                `During VR labs, students explore accurately scaled models of Swayambhu and other locations discussed in class. Redirected walking allows them to move naturally through a life-size virtual environment much larger than the physical laboratory, giving them a stronger understanding of scale, spatial relationships, and the embodied experience of a religious site.`,
+                `More than a dozen undergraduate researchers have contributed to the models and VR system. The course demonstrates a direct connection between field research and teaching while bringing together Computer Science and the humanities in a way that would not be possible through conventional two-dimensional classroom materials alone.`
+            ],
+            collaboration: 'Religious Studies',
+            link: 'https://www.unc.edu/discover/tar-heel-team-begins-preservation-of-ancient-nepal-temple/',
+            linkText: 'Read the Carolina story about the Nepal fieldwork'
+        }
+    ];
+
+    const pastProjects = [
+        {
+            title: 'Magnetohydrodynamic Drive',
+            image: 'images/MagnetohydrodynamicDrive.png',
+            imageAlt: 'Magnetohydrodynamic drive developed and tested in the EEL',
+            body: [
+                `This project investigated propulsion systems that use magnetic and electric fields to move electrically conductive seawater without conventional propellers. Students designed and fabricated both circular and Halbach-array magnetohydrodynamic drives and evaluated them using high-speed 4K video and particle-image velocimetry.`,
+                `Testing showed that the Halbach-array design produced a higher exhaust velocity and approximately 50 percent greater normalized efficiency than the circular configuration.`
+            ],
+            collaboration: 'Applied Mathematics'
+        },
+        {
+            title: 'Smart Irrigation System',
+            image: 'images/SmartIrrigationSystem.png',
+            imageAlt: 'Sensor-based smart irrigation system developed in the EEL',
+            body: [
+                `Students developed a sensor-based irrigation system designed to monitor environmental conditions and provide water only when needed. The project integrated sensors, control electronics, software, and a physical watering system into a working prototype.`,
+                `The project demonstrated how relatively inexpensive hardware and intelligent control could reduce unnecessary water use while giving students experience with a complete system spanning measurement, computation, and mechanical design.`
+            ]
+        },
+        {
+            title: 'Modular WebAR Experiences',
+            body: [
+                `This project developed a reusable toolkit for creating browser-based augmented-reality experiences without requiring users to install a specialized application. The system uses natural images as tracking targets rather than QR codes or AprilTags and was built with A-Frame and MindAR.`,
+                `An administrative dashboard and configuration files allow new experiences to be created and updated without rewriting the underlying software. The system was deployed through GitHub Pages for projects in the EEL and the SN020 makerspace, demonstrating a scalable approach to delivering accessible augmented-reality content.`
+            ]
+        }
+    ];
+
+    function renderBody(item) {
+        return item.body.map(paragraph => `<p>${paragraph}</p>`).join('');
     }
 
-    parts.push('</div>');
-    return parts.join('');
-}
+    function renderDetails(item) {
+        const parts = [];
 
+        if (item.collaboration) {
+            parts.push(`<p class="research-collaboration"><strong>Collaboration:</strong> ${item.collaboration}</p>`);
+        }
+
+        if (item.link) {
+            parts.push(`<a class="research-link" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.linkText}</a>`);
+        }
+
+        return parts.join('');
+    }
+
+    function renderFeatureEntry(item) {
+        const entryClass = item.image
+            ? 'research-entry research-entry--with-image'
+            : 'research-entry research-entry--text-only';
+
+        const parts = [`<article class="${entryClass}">`];
+
+        if (item.image) {
+            parts.push(
+                '<div class="research-entry-media">',
+                `<img src="${item.image}" alt="${item.imageAlt || item.title}" loading="lazy" decoding="async">`,
+                '</div>'
+            );
+        }
+
+        parts.push(
+            '<div class="research-entry-content">',
+            `<h3>${item.title}</h3>`,
+            '<div class="research-entry-copy">',
+            renderBody(item),
+            '</div>',
+            renderDetails(item),
+            '</div>',
+            '</article>'
+        );
+
+        return parts.join('');
+    }
+
+    function renderTextEntry(item) {
+        return [
+            '<article class="research-text-entry">',
+            `<h3>${item.title}</h3>`,
+            '<div class="research-text-entry-content">',
+            '<div class="research-entry-copy">',
+            renderBody(item),
+            '</div>',
+            renderDetails(item),
+            '</div>',
+            '</article>'
+        ].join('');
+    }
+
+    function renderSection(id, title, items, layout) {
+        const renderer = layout === 'feature'
+            ? renderFeatureEntry
+            : renderTextEntry;
+
+        const listClass = layout === 'feature'
+            ? 'research-feature-list'
+            : 'research-text-list';
+
+        return [
+            `<section class="research-section" id="${id}">`,
+            `<h2 class="research-section-title">${title}</h2>`,
+            `<div class="${listClass}">`,
+            items.map(renderer).join(''),
+            '</div>',
+            '</section>'
+        ].join('');
+    }
+
+    return [
+        '<div class="research-page">',
+        '<h1 class="expanded-title">Research &amp; Teaching</h1>',
+        '<p class="research-intro">The EEL gives undergraduate students opportunities to participate in research that crosses traditional departmental boundaries and connects computing, engineering, fabrication, immersive technology, and scientific inquiry. Projects range from student-generated ideas to collaborations with faculty across campus. The lab also brings this work into credit-bearing courses in which students learn specialized technical skills, conduct mentored research, and lead research teams.</p>',
+        '<nav class="research-jump-nav" aria-label="Research and teaching sections">',
+        '<a href="#current-projects">Current Projects</a>',
+        '<span aria-hidden="true">·</span>',
+        '<a href="#projects-in-development">In Development</a>',
+        '<span aria-hidden="true">·</span>',
+        '<a href="#courses">Courses</a>',
+        '<span aria-hidden="true">·</span>',
+        '<a href="#past-work">Past Work</a>',
+        '</nav>',
+        renderSection('current-projects', 'Current Projects', currentProjects, 'feature'),
+        renderSection('projects-in-development', 'Projects in Development', developmentProjects, 'text'),
+        renderSection('courses', 'Courses and Academic Opportunities', courses, 'text'),
+        renderSection('past-work', 'Selected Past Projects and Courses', pastProjects, 'feature'),
+        '</div>'
+    ].join('');
+}
 function getPeopleContent() {
     // LinkedIn SVG icon function - creates clickable link if URL provided
     function linkedinLink(url) {
