@@ -2852,355 +2852,55 @@ function getProjectsContent() {
         '</div>'
     ].join('');
 }
-function getPeopleContent() {
-    // LinkedIn SVG icon function - creates clickable link if URL provided
-    function linkedinLink(url) {
-        if (!url) return '';
-        return '<a href="' + url + '" class="linkedin-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Profile"><svg class="linkedin-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>';
-    }
+.people-section-intro {
+    max-width: 760px;
+    margin: -8px 0 22px;
+    color: var(--text-light);
+    font-size: 14px;
+    line-height: 1.6;
+}
 
-    // Lab Director
-    const labDirector = { name: 'Jim Mahaney', role: 'Director of Engineering and Research' };
+.compact-member-card {
+    min-height: 105px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px 50px 25px 25px;
+}
 
-    // Founding Engineers — members of the first undergraduate cohort of the EEL
-    const foundingEngineers = new Set([
-        'Ethan DeRosa', 'Siera Gashi', 'Darwin Lemus',
-        'Matias Magallanes', 'Sofia Morais', 'Sanskriti Negi',
-        'Tate Semone', 'Elyssa Snively', 'Alexander Yevchenko'
-    ]);
+.compact-member-card .person-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: center;
+}
 
-    // Inline bolt SVG path for the founding badge icon
-    var boltSVG = '<svg class="founding-bolt" viewBox="0 0 72 90" xmlns="http://www.w3.org/2000/svg"><path d="M 36.34375 45.226562 L 45.222656 41.386719 L 38.742188 80.746094 L 38.261719 80.390625 L 35.863281 51.945312 C 32.554688 52.140625 29.253906 55.304688 26.019531 55.664062 L 33.941406 21.824219 C 33.671875 21.53125 28.269531 24.589844 27.945312 24.707031 L 36.582031 8.746094 L 39.941406 27.464844 L 36.699219 24.347656 L 36.34375 25.1875 Z" fill="currentColor"/></svg>';
+.alumni-project {
+    margin-top: 10px;
+    text-align: center;
+}
 
-    function foundingBadge(name) {
-        if (!foundingEngineers.has(name)) return '';
-        return '<div class="founding-badge">' + boltSVG + '<span>Founding Engineer</span></div>' +
-               '<p class="founding-subtitle">Member of the first EEL Undergraduate Cohort</p>';
-    }
+.collaborators-section {
+    margin-bottom: 0;
+}
 
-    // Special accolades for individual team members
-    const specialAccolades = {
-        'Lily Foo': { badge: 'Best Aluminum TIG Welder', subtitle: 'Fall 2025' }
-    };
+.collaborator-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0 30px;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--glass-border);
+    list-style: none;
+}
 
-    function accoladeBadge(name) {
-        var accolade = specialAccolades[name];
-        if (!accolade) return '';
-        return '<div class="accolade-badge">' + boltSVG + '<span>' + accolade.badge + '</span></div>' +
-               '<p class="accolade-subtitle">' + accolade.subtitle + '</p>';
-    }
-
-    // Featured team members with full profiles
-    const featuredMembers = [
-        {
-            name: 'Markandeya Yalamanchi',
-            major: 'Computer Science',
-            status: 'Sophomore',
-            graduation: 'May 2028',
-            project: 'Developing redirected walking (RDW) techniques for Meta Quest 3 VR, enabling users to navigate large virtual environments within smaller physical spaces. Currently building predictive models to anticipate reset frequency based on virtual environment topology, moving beyond implementing existing algorithms to discovering novel relationships between environment design and RDW effectiveness.',
-            headshot: 'headshots/markandeya-yalamanchi.jpg',
-            linkedin: 'https://www.linkedin.com/in/markyala'
-        },
-        {
-            name: 'Hengli Wang',
-            major: 'Computer Science',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'The Swimmer Hand Project.',
-            headshot: 'headshots/hengli-wang.jpg',
-            linkedin: 'https://www.linkedin.com/in/hengliwang3300'
-        },
-        {
-            name: 'Tate Semone',
-            major: 'Physics',
-            status: 'Junior',
-            graduation: 'May 2028',
-            project: 'My project tests magnetic-field orientations to maximize flow efficiency in a magnetohydrodynamic drive. Model 1 uses a circularly oriented B-field with a radially outward electric field; Model 2 utilizes a Halbach array to concentrate flux in the channel. Efficiency is evaluated using Particle Image Velocimetry (PIV) flow measurements.',
-            headshot: 'headshots/tate-semone.jpeg',
-            linkedin: 'https://www.linkedin.com/in/tate-semone-105905268'
-        },
-        {
-            name: 'Sofia Morais',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'Designing a glove to track finger position for sports and physical therapy applications by integrating flex sensors with Arduino microcontrollers to measure finger bending and separation, while showing real-time hand movement on a hand model in Unity. She also enjoys learning fabrication skills such as welding and milling.',
-            headshot: 'headshots/sofia-morais.jpeg',
-            linkedin: 'https://www.linkedin.com/in/sofia-morais-486ba3277'
-        },
-        {
-            name: 'Elyssa Snively',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'My project reprograms the Boston Dynamics Spot robot to operate as an autonomous guide dog, using AI-driven navigation, mapping, localization, obstacle detection, and voice-based destination commands. The system integrates perception, decision-making, and a custom physical handle interface to provide safe, timely guidance for visually impaired users on campus.',
-            headshot: 'headshots/elyssa-snively.jpg',
-            linkedin: 'https://www.linkedin.com/in/elyssa-snively'
-        },
-        {
-            name: 'Ishi Varshney',
-            major: 'Computer Science',
-            status: 'Junior',
-            graduation: 'May 2028',
-            project: 'My current project reprograms the Boston Dynamics Spot robot to act as an autonomous guide dog, enabling safe, intuitive navigation for visually impaired users. Initially focused on the UNC campus, the system uses AI-driven perception and voice commands to support scalable, location-independent mobility beyond environments where traditional guide dogs can be trained.',
-            headshot: 'headshots/ishi-varshney.jpeg',
-            linkedin: 'https://www.linkedin.com/in/ishi-varshney'
-        },
-        {
-            name: 'Alexa Tinajero',
-            major: 'Computer Science',
-            status: 'Junior',
-            graduation: 'May 2028',
-            project: 'This project involves developing the software that allows the Boston Dynamics Spot robot to navigate a campus environment independently as a guide for visually impaired users. I focus on how the robot interprets its surroundings through mapping, localization, and obstacle detection, makes navigation decisions using AI-based planning, and responds to voice-based destination commands. These components work together with a physical guidance handle to support safe, timely movement through real-world campus spaces.',
-            headshot: 'headshots/alexa-tinajero.jpeg',
-            linkedin: 'https://www.linkedin.com/in/alexatinajero'
-        },
-        {
-            name: 'Lily Foo',
-            major: 'Physics',
-            status: 'Junior',
-            graduation: 'June 2028',
-            project: 'Studying the dynamics of drag on hand position in fluids for swimmers.',
-            headshot: 'headshots/lily-foo.png',
-            linkedin: null
-        },
-        {
-            name: 'Riley Goodwin',
-            major: 'Biomedical Engineering',
-            status: 'Sophomore',
-            graduation: 'May 2029',
-            project: 'I\'m currently helping code a Fish operated vehicle that uses a camera to track the movement of a fish, allowing it to both accelerate and change directions. I\'m on a team working on creating a waterproof movement tracking glove that is used to find the optimal hand positioning for swimmers.',
-            headshot: 'headshots/riley-goodwin.jpg',
-            linkedin: 'https://www.linkedin.com/in/riley-goodwinq'
-        },
-        {
-            name: 'Ethan DeRosa',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'Assisting with the hardware components of the fish driving car.',
-            headshot: 'headshots/ethan-derosa.jpg',
-            linkedin: 'https://www.linkedin.com/in/ethandre'
-        },
-        {
-            name: 'Coleman Stephens',
-            major: 'Biomedical Engineering',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'My project involves utilizing a Boston Dynamics Spot robot to act as a seeing eye dog. AI-driven navigation, mapping, localization, collision avoidance, and voice commands are all implemented to use Spot as a seeing eye dog. The system combines perception, decision-making, and a custom physical handle interface to deliver safe, timely guidance for visually impaired users navigating campus.',
-            headshot: 'headshots/coleman-stephens.jfif',
-            linkedin: 'https://www.linkedin.com/in/coleman-stephens'
-        },
-        {
-            name: 'Mihika Tyagi',
-            major: 'Data Science & Computer Science',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'My current focus is on the Nepal VR project, in which we are implementing Redirected Walking to create a better experience navigating the temple model.',
-            headshot: 'headshots/mihika-tyagi.jpg',
-            linkedin: 'https://www.linkedin.com/in/mihika-tyagi'
-        },
-        {
-            name: 'Siera Gashi',
-            major: 'Biomedical Engineering',
-            status: 'Junior',
-            graduation: 'May 2028',
-            project: 'I have assisted in analyzing swimmer hand models to study fluid dynamics and optimization, as well as supporting a Parkinson\'s disease project that utilizes motion-sensing data to analyze movement patterns and quantify motor symptoms.',
-            headshot: 'headshots/siera-gashi.jpeg',
-            linkedin: 'https://www.linkedin.com/in/siera-gashi-2a991422b'
-        },
-        {
-            name: 'William Keffer',
-            major: 'Computer Science & Math',
-            status: 'Junior',
-            graduation: 'May 2028',
-            project: 'Developed and deployed the EEL website frontend and backend.',
-            headshot: 'headshots/william-keffer.jpg',
-            linkedin: 'https://www.linkedin.com/in/williamkeffer'
-        },
-        {
-            name: 'Alexander Yevchenko',
-            major: 'Computer Science, Business & Physics',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Alexander co-developed a real-time flex-sensor glove with Sofia Morais to study swimmer hand positioning, with applications in sports, rehabilitation, and virtual reality.',
-            headshot: 'headshots/alexander-yevchenko.png',
-            linkedin: 'https://www.linkedin.com/in/alexanderyevchenko'
-        },
-        {
-            name: 'Darwin Lemus',
-            major: 'Computer Science & Physics',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Darwin is an Honors Carolina computer science and physics student at UNC and a Gates and Williamson Scholar.',
-            headshot: 'headshots/darwin-lemus.jpeg',
-            linkedin: 'https://www.linkedin.com/in/dlemus89'
-        },
-        {
-            name: 'Toluwani Ilesanmi',
-            major: 'Computer Science',
-            status: 'Sophomore',
-            graduation: 'May 2029',
-            project: 'Toluwani contributes to swarm robotics research through robot construction, testing, prototyping, schematic design, wiring, and hardware integration.',
-            headshot: 'headshots/toluwani-ilesanmi.jpeg',
-            linkedin: 'https://www.linkedin.com/in/toluwaniile'
-        },
-        {
-            name: 'David Majernik',
-            major: 'Computer Science',
-            status: 'Senior',
-            graduation: 'May 2027',
-            project: 'David is a computer science student at UNC and a software engineering intern at Wells Fargo.',
-            headshot: 'headshots/david-majernik.png',
-            linkedin: 'https://www.linkedin.com/in/davidmajernik'
-        },
-        {
-            name: 'Matthew Czar',
-            major: 'Biochemistry & Statistics',
-            status: 'Sophomore',
-            graduation: 'May 2029',
-            project: 'Matthew researches swimming hydrodynamics in the Applied Engineering Lab and Joint Mathematics and Marine Science Fluid Laboratories to optimize body position for elite athletes.',
-            headshot: 'headshots/matthew-czar.png',
-            linkedin: 'https://www.linkedin.com/in/meczar'
-        },
-        {
-            name: 'Noah Butler',
-            major: 'Computer Science',
-            status: 'Undergraduate',
-            graduation: null,
-            project: 'Noah is a computer science student at UNC working on XR, computer graphics, redirected walking, and mixed-reality simulation systems.',
-            headshot: 'headshots/noah-butler.png',
-            linkedin: 'https://www.linkedin.com/in/n-rock'
-        },
-        {
-            name: 'Cameron Johnson',
-            major: 'Mathematics & Economics',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Cameron is a Morehead-Cain Scholar studying Mathematics and Economics. His interdisciplinary work pairs data-driven problem solving with community leadership and educational equity.',
-            headshot: 'headshots/cameron-johnson.jpeg',
-            linkedin: 'https://www.linkedin.com/in/camjunc'
-        },
-        {
-            name: 'Matias Magallanes',
-            major: 'UNC Undergraduate',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Matias is a UNC undergraduate and a member of the EEL research team.',
-            headshot: 'headshots/matias-magallanes.jpeg',
-            linkedin: 'https://www.linkedin.com/in/matias-magallanes-8194872a9'
-        },
-        {
-            name: 'Eba Moreda',
-            major: 'Biomedical Engineering',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Eba is a biomedical engineering undergraduate at UNC and a member of the EEL research team.',
-            headshot: 'headshots/eba-moreda.jpeg',
-            linkedin: 'https://www.linkedin.com/in/ebamoreda'
-        },
-        {
-            name: 'Sanskriti Negi',
-            major: 'Biomedical Engineering & Computer Science',
-            status: 'Junior',
-            graduation: 'December 2027',
-            project: 'Sanskriti is a biomedical engineering and computer science student at UNC pursuing a career in robotics.',
-            headshot: 'headshots/sanskriti-negi.jpeg',
-            linkedin: 'https://www.linkedin.com/in/sanskriti-negi-unc'
-        },
-        {
-            name: 'Sidharth Yeramaddu',
-            major: 'Applied Mathematics & Computer Science',
-            status: 'Undergraduate',
-            graduation: null,
-            project: 'Sidharth is an applied mathematics and computer science student at UNC.',
-            headshot: 'headshots/sidharth-yeramaddu.jpeg',
-            linkedin: 'https://www.linkedin.com/in/sidharth-yeramaddu'
-        }
-    ];
-
-    // Build Lab Director section using array join for performance
-    const parts = [];
-    parts.push('<h1 class="expanded-title">Our Team</h1>',
-        '<div class="people-section">',
-        '<h2 class="people-section-title">Lab Director</h2>',
-        '<div class="people-grid director-grid">',
-        '<div class="person-card director-card">',
-        '<img class="person-image person-headshot" src="headshots/Jim_Mahaney_Headshot.jpg" alt="Jim Mahaney" loading="lazy" decoding="async">',
-        '<h3 class="person-name">', labDirector.name, '</h3>',
-        '<p class="person-role">', labDirector.role, '</p>',
-        '<p class="person-bio director-bio"><strong>Jim Mahaney is the Director of Engineering and Research for the Department of Computer Science at the University of North Carolina at Chapel Hill.</strong> Over the course of his career at Carolina, he has designed and fabricated experimental systems across areas including robotics and medical devices, immersive technologies such as augmented and virtual reality, sensing technologies and fluid dynamics, and large-scale 3D capture and reconstruction. Mahaney began working in the lab as a student assistant in 1997 and later returned to lead the facility, bringing his career at Carolina full circle. He is particularly interested in hands-on engineering education and works closely with undergraduate researchers, helping students develop practical skills in electronics, machining, welding, fabrication, and rapid prototyping while building experimental systems for real research projects.</p>',
-        linkedinLink(null),
-        '</div>',
-        '</div></div>');
-
-    // Build Featured Team Members section
-    parts.push('<div class="people-section">',
-        '<h2 class="people-section-title">Research Team</h2>',
-        '<div class="people-grid featured-grid">');
-
-    // Members without a verified public profile remain as simple team cards.
-    const otherMembers = [
-        'Matthew Alexander'
-    ];
-
-    // Sort all members by last name (A→Z)
-    featuredMembers.sort(function(a, b) {
-        return a.name.split(' ').pop().toLowerCase()
-            .localeCompare(b.name.split(' ').pop().toLowerCase());
-    });
-    otherMembers.sort(function(a, b) {
-        var aName = typeof a === 'string' ? a : a.name;
-        var bName = typeof b === 'string' ? b : b.name;
-        return aName.split(' ').pop().toLowerCase()
-            .localeCompare(bName.split(' ').pop().toLowerCase());
-    });
-
-    // Render featured members with full profiles
-    for (let i = 0; i < featuredMembers.length; i++) {
-        const member = featuredMembers[i];
-        parts.push('<div class="person-card featured-card">');
-        if (member.headshot) {
-            parts.push('<img class="person-image person-headshot" src="', member.headshot, '" alt="', member.name, '" loading="lazy" decoding="async">');
-        } else {
-            var initials = member.name.split(' ').map(function(n) { return n[0]; }).join('');
-            parts.push('<div class="person-image placeholder-image"><span>', initials, '</span></div>');
-        }
-        parts.push('<div class="person-name-row">',
-            '<h3 class="person-name">', member.name, '</h3>',
-            linkedinLink(member.linkedin),
-            '</div>',
-            '<p class="person-details">', member.major, ' \u00B7 ', member.status, '</p>');
-        if (member.graduation) {
-            parts.push('<p class="person-graduation">Expected Graduation: ', member.graduation, '</p>');
-        }
-        parts.push(accoladeBadge(member.name),
-            foundingBadge(member.name),
-            '<p class="person-bio">', member.project, '</p>',
-            '</div>');
-    }
-
-    // Render other members with placeholder cards
-    for (let i = 0; i < otherMembers.length; i++) {
-        var entry = otherMembers[i];
-        var name = typeof entry === 'string' ? entry : entry.name;
-        var headshot = typeof entry === 'object' ? entry.headshot : null;
-        parts.push('<div class="person-card">');
-        if (headshot) {
-            parts.push('<img class="person-image person-headshot" src="', headshot, '" alt="', name, '" loading="lazy" decoding="async">');
-        } else {
-            var initials = name.split(' ').map(function(n) { return n[0]; }).join('');
-            parts.push('<div class="person-image placeholder-image"><span>', initials, '</span></div>');
-        }
-        parts.push('<h3 class="person-name">', name, '</h3>',
-            '<p class="person-role">Research Team</p>',
-            foundingBadge(name),
-            '</div>');
-    }
-
-    parts.push('</div></div>');
-
-    return parts.join('');
+.collaborator-list li {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-light);
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 function getAboutContent() {
