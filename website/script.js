@@ -3232,13 +3232,31 @@ function getPeopleContent() {
         }
     ];
 
-    const collaboratingAreas = [
-        'Computer Science',
-        'Applied Mathematics',
-        'Exercise and Sport Science',
-        'Earth, Marine and Environmental Sciences',
-        'Physical Therapy',
-        'Religious Studies'
+       const collaboratingAreas = [
+        {
+            name: 'Computer Science',
+            url: 'https://cs.unc.edu/'
+        },
+        {
+            name: 'Applied Mathematics',
+            url: 'https://amath.unc.edu/'
+        },
+        {
+            name: 'Exercise and Sport Science',
+            url: 'https://exss.unc.edu/'
+        },
+        {
+            name: 'Earth, Marine and Environmental Sciences',
+            url: 'https://emes.unc.edu/'
+        },
+        {
+            name: 'Physical Therapy',
+            url: 'https://www.med.unc.edu/healthsciences/physical/'
+        },
+        {
+            name: 'Religious Studies',
+            url: 'https://religion.unc.edu/'
+        }
     ];
 
     featuredMembers.sort(function(a, b) {
