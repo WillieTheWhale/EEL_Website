@@ -3481,7 +3481,7 @@ function getAboutContent() {
                     <span class="about-stat-label">Current Undergraduate Researchers</span>
                 </div>
                 <div class="about-stat">
-                    <strong class="about-stat-number">14</strong>
+                   <strong class="about-stat-number">18</strong>
                     <span class="about-stat-label">Active Research Projects</span>
                 </div>
                 <div class="about-stat">
