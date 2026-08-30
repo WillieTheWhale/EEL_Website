@@ -3855,21 +3855,25 @@ function getJoinContent() {
             <div class="join-poster">
                 <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img" loading="lazy" decoding="async">
             </div>
+
             <p class="about-text">
-                The Experimental Engineering Lab is always looking for passionate individuals
-                who want to push the boundaries of what's possible. Whether you're a seasoned
-                engineer or just starting your journey, we welcome creative minds ready to
-                tackle challenging projects.
+                The Experimental Engineering Lab gives UNC undergraduates the opportunity to contribute directly to active research and engineering projects. Students work on real problems involving areas such as robotics, immersive technology, sensing, fabrication, 3D modeling, and experimental systems while developing practical technical and research skills.
             </p>
+
+            <p class="about-text">
+                Previous engineering or shop experience is not required. We are looking for students who are curious, reliable, willing to learn, and prepared to contribute consistently as part of a research team.
+            </p>
+
             <div class="join-requirements">
-                <h3 class="requirements-title">What We're Looking For</h3>
+                <h3 class="requirements-title">What We Ask of Students</h3>
                 <ul class="requirements-list">
                     <li>Curiosity and willingness to learn</li>
-                    <li>Collaborative mindset</li>
-                    <li>Minimum 5 hours/week commitment</li>
-                    <li>Valid UNC email address</li>
+                    <li>Ability to work collaboratively on a research team</li>
+                    <li>Minimum commitment of 5 hours per week</li>
+                    <li>Current UNC student with a valid UNC email address</li>
                 </ul>
             </div>
+
             <div class="join-cta">
                 <a href="application.html" class="apply-now-btn">
                     <span class="btn-text">APPLY NOW</span>
