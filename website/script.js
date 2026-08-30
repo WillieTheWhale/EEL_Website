@@ -3536,7 +3536,7 @@ function getPeopleContent() {
         }
     ];
 
-    const projectCatalog = {
+       const projectCatalog = {
         redirectedWalking: 'Boundary-Aware Redirected Walking in Virtual Reality',
         magnetohydrodynamic: 'Magnetohydrodynamic Drive',
         handTracking: 'Hand-Position Tracking Glove',
@@ -3554,7 +3554,10 @@ function getPeopleContent() {
         immersive360AI: 'Generative AI for Immersive 360° Environments',
         dorsiflexion: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
         nepalModel: 'Scalable 3D Environment Optimization',
-        eelWebsite: 'EEL Website Development'
+        eelWebsite: 'EEL Website Development',
+        augmentedAurality: 'Augmented Aurality',
+        heritageExplorer: 'Interactive 3D Heritage Explorer',
+        reliable3D: 'Reliable 3D Reconstruction with Radiance Fields'
     };
 
     const projectPosters = {
@@ -3567,7 +3570,9 @@ function getPeopleContent() {
         mantaRay: 'images/MantaRay.pdf',
         modularWebAR: 'images/ModularWebAR.pdf',
         motorcycleAR: 'images/MotorcycleAR.pdf',
-        brooksVR: 'images/BrooksVR.pdf'
+        brooksVR: 'images/BrooksVR.pdf',
+        augmentedAurality: 'images/AugmentedAurality.pdf',
+        reliable3D: 'images/NepalModels.pdf'
     };
 
     const memberProjects = {
@@ -3674,9 +3679,24 @@ function getPeopleContent() {
         'Lillian Gann': [
             { key: 'icePIV' }
         ],
-        'Luke Hyatt': [
+               'Luke Hyatt': [
             { key: 'spot', poster: true },
             { key: 'nepalModel' }
+        ],
+        'Andy Choe': [
+            { key: 'augmentedAurality', poster: true }
+        ],
+        'Meghan Parker': [
+            { key: 'augmentedAurality', poster: true }
+        ],
+        'Fletcher Stuart': [
+            { key: 'heritageExplorer' }
+        ],
+        'Ethan Hernandez': [
+            { key: 'brooksVR', poster: true }
+        ],
+        'Ansh Aryan': [
+            { key: 'reliable3D', poster: true }
         ]
     };
 
@@ -4006,18 +4026,10 @@ function getPeopleContent() {
             'Graduated: ',
             member.graduation,
             '</p>',
-            foundingBadge(member.name)
+                      foundingBadge(member.name),
+            renderMemberProjects(member.name),
+            '</div>'
         );
-
-        if (member.project) {
-            parts.push(
-                '<p class="person-bio alumni-project">',
-                member.project,
-                '</p>'
-            );
-        }
-
-        parts.push('</div>');
     }
 
     parts.push('</div>', '</div>');
