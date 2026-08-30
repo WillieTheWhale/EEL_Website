@@ -1620,8 +1620,9 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 }
 
 .featured-card .person-name {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 400;
+    color: var(--text-dark);
     margin-bottom: 0;
 }
 
@@ -1635,15 +1636,15 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 
 .person-details {
     font-size: 12px;
-    color: var(--accent-cyan);
+    color: var(--text-dark);
     font-weight: 300;
     line-height: 1.35;
 }
 
 .person-graduation {
     font-size: 11px;
-    color: var(--text-light);
-    opacity: 0.8;
+    color: var(--text-dark);
+    opacity: 1;
     margin-bottom: 6px;
     line-height: 1.35;
 }
@@ -1654,17 +1655,27 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     text-align: left;
 }
 
+.featured-card > .person-role {
+    color: var(--text-dark);
+    font-size: 12px;
+    opacity: 1;
+}
+
 /* Student project groups */
 .member-projects {
     width: 100%;
-    margin-top: 6px;
+    margin-top: 10px;
+    order: 1;
 }
 
 .member-projects > .person-role {
-    margin: 0 0 7px;
-    font-size: 11px;
+    margin: 0 0 8px;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 400;
     line-height: 1.2;
     letter-spacing: 1.4px;
+    text-transform: uppercase;
 }
 
 .member-project-entry {
@@ -1680,7 +1691,7 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
 .member-project-entry .person-bio {
     margin: 0;
     color: var(--text-dark);
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 400;
     line-height: 1.35;
     text-align: center;
@@ -1690,12 +1701,11 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     display: inline-block;
     margin-top: 4px;
     color: var(--accent-cyan);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.3;
     text-align: center;
     text-decoration: none;
 }
-
 .placeholder-image {
     background: linear-gradient(135deg,
         var(--accent-cyan),
@@ -1836,9 +1846,7 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
         grid-template-columns: 1fr;
     }
 
-    .member-project-entry .research-link {
-        font-size: 10.5px;
-    }
+    
 }
 
 @media (max-width: 480px) {
@@ -1849,24 +1857,79 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
     }
 }
 
-/* Founding Engineer — Circuit Trace inline label */
-.founding-badge {
+/* Distinctions — card section */
+.featured-card:has(> .founding-badge, > .accolade-badge)::after {
+    content: 'Distinctions';
+    order: 2;
+    width: 100%;
+    margin: 12px 0 8px;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.featured-card > .founding-badge,
+.featured-card > .founding-subtitle,
+.featured-card > .accolade-badge,
+.featured-card > .accolade-subtitle {
+    order: 3;
+}
+
+.founding-badge,
+.accolade-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin: 4px auto 6px;
-    padding: 0 0 4px 0;
+    margin: 2px auto;
+    padding: 0 0 3px;
     background: none;
     border: none;
     border-radius: 0;
-    color: var(--chrome-text-3);
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    color: var(--text-dark);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.4px;
+    text-transform: none;
     white-space: nowrap;
-    line-height: 1;
+    line-height: 1.25;
     position: relative;
+}
+
+.founding-badge::after,
+.accolade-badge::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        var(--glass-border) 20%,
+        var(--glass-border) 80%,
+        transparent);
+}
+
+.founding-bolt {
+    width: 10px;
+    height: 13px;
+    flex-shrink: 0;
+    fill: currentColor;
+}
+
+.founding-subtitle,
+.accolade-subtitle {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-dark);
+    letter-spacing: 0.2px;
+    margin: 0 0 6px;
+    line-height: 1.3;
+    opacity: 1;
 }
 
 /* Gradient underline — mimics a circuit trace */
