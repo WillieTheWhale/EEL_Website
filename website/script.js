@@ -3507,8 +3507,8 @@ function getAboutContent() {
                     <span class="about-stat-label">Current Undergraduate Researchers</span>
                 </div>
                 <div class="about-stat">
-                   <strong class="about-stat-number">18</strong>
-                    <span class="about-stat-label">Active Research Projects</span>
+                                      <strong class="about-stat-number">18</strong>
+                    <span class="about-stat-label">Current and Developing Projects</span>
                 </div>
                 <div class="about-stat">
                     <strong class="about-stat-number">6</strong>
@@ -3521,7 +3521,7 @@ function getAboutContent() {
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
 
             <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
-            <p class="about-text">Under the direction of Jim Mahaney, Director of Engineering and Research, the Experimental Engineering Lab was launched in the fall of 2025, expanding the mission of what had previously been known as the Applied Engineering Lab to include a structured undergraduate research and engineering-training program. In just two semesters, the program grew from an idea into a community of 35 undergraduate researchers working across 14 active projects.</p>
+                      <p class="about-text">Under the direction of Jim Mahaney, Director of Engineering and Research, the Experimental Engineering Lab was launched in the fall of 2025, expanding the mission of what had previously been known as the Applied Engineering Lab to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 18 current and developing research projects.</p>
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
