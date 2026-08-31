@@ -3074,3 +3074,149 @@ body[data-theme="dark"] .trace-gradient-end {
     stop-color: var(--accent-cyan);
     stop-opacity: 0.6;
 }
+/* ============================================
+   MOBILE EXPANDED CONTENT FIX
+   ============================================ */
+
+@media screen and (max-width: 768px) {
+
+    /* Prevent the document itself from panning horizontally */
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden !important;
+    }
+
+    /* Keep the expanded panel and everything inside it constrained
+       to the mobile viewport */
+    body.mobile-portrait .expanded-container,
+    body.mobile-portrait .expanded-glass-container,
+    body.mobile-portrait .expanded-content {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    body.mobile-portrait .expanded-content {
+        width: 100%;
+        padding: 68px 18px 28px;
+        overflow-x: hidden !important;
+        overflow-y: auto;
+    }
+
+    /* Mobile page headings */
+    body.mobile-portrait .expanded-title {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 28px;
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: 2px;
+        overflow-wrap: anywhere;
+    }
+
+    /* General content boxes */
+    body.mobile-portrait .content-section {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 18px;
+        margin-bottom: 28px;
+    }
+
+    /* Research page must never establish a width larger
+       than the available mobile content area */
+    body.mobile-portrait .research-page,
+    body.mobile-portrait .research-section,
+    body.mobile-portrait .research-feature-list,
+    body.mobile-portrait .research-text-list,
+    body.mobile-portrait .research-entry,
+    body.mobile-portrait .research-entry-content,
+    body.mobile-portrait .research-entry-copy,
+    body.mobile-portrait .research-text-entry,
+    body.mobile-portrait .research-text-entry-content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* Force all research layouts to one true mobile column */
+    body.mobile-portrait .research-entry--with-image,
+    body.mobile-portrait .research-entry--text-only,
+    body.mobile-portrait .research-text-entry {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    /* Keep headings and paragraphs wrapping inside the panel */
+    body.mobile-portrait .research-entry h3,
+    body.mobile-portrait .research-text-entry h3,
+    body.mobile-portrait .research-entry-copy,
+    body.mobile-portrait .research-collaboration {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    body.mobile-portrait .research-entry h3,
+    body.mobile-portrait .research-text-entry h3 {
+        font-size: 20px;
+        line-height: 1.35;
+    }
+
+    body.mobile-portrait .research-entry-copy {
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    /* Navigation wraps evenly instead of extending sideways */
+    body.mobile-portrait .research-jump-nav {
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        gap: 8px 10px;
+        padding: 12px 0;
+        overflow: hidden;
+    }
+
+    body.mobile-portrait .research-jump-nav a {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    /* Research/project photos stay inside the text column */
+    body.mobile-portrait .research-entry-media {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body.mobile-portrait .research-entry-media img,
+    body.mobile-portrait .project-image {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Any card grids also become a single mobile column */
+    body.mobile-portrait .projects-grid,
+    body.mobile-portrait .people-grid,
+    body.mobile-portrait .featured-grid,
+    body.mobile-portrait .collaborator-grid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.mobile-portrait .project-card,
+    body.mobile-portrait .person-card,
+    body.mobile-portrait .featured-card,
+    body.mobile-portrait .collaborator-card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+}
