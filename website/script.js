@@ -4088,58 +4088,7 @@ function getPeopleContent() {
 
     return parts.join('');
 }
-            '<h3 class="person-name">', area.name, '</h3>',
-            '<span class="collaborator-link-label">',
-            'Visit department website ',
-            '<span aria-hidden="true">↗</span>',
-            '</span>',
-            '</a>'
-        );
-    }
-
-    parts.push('</div>', '</div>');
-
-    parts.push(
-        '<div class="people-section">',
-        '<h2 class="people-section-title">EEL Alumni</h2>',
-        '<p class="people-section-intro">',
-        'Recognizing undergraduate researchers who contributed to the ',
-        'EEL and graduated from UNC-Chapel Hill.',
-        '</p>',
-        '<div class="people-grid featured-grid alumni-grid">'
-    );
-
-    for (let i = 0; i < alumni.length; i++) {
-        const member = alumni[i];
-
-        parts.push(
-            '<div class="person-card featured-card alumni-card">',
-            '<img class="person-image person-headshot" src="',
-            member.headshot,
-            '" alt="',
-            member.name,
-            '" loading="lazy" decoding="async">',
-            '<div class="person-name-row">',
-            '<h3 class="person-name">', member.name, '</h3>',
-            linkedinLink(member.linkedin),
-            '</div>',
-            '<p class="person-details">',
-            member.major,
-            '</p>',
-            '<p class="person-graduation">',
-            'Graduated: ',
-            member.graduation,
-            '</p>',
-            foundingBadge(member.name),
-            renderMemberProjects(member.name),
-            '</div>'
-        );
-    }
-
-    parts.push('</div>', '</div>');
-
-    return parts.join('');
-}
+           
 
 function getAboutContent() {
     return `
