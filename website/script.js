@@ -2898,8 +2898,13 @@ function getProjectsContent() {
             linkText: 'Read the UNC Research feature, “Blueprints for Preservation”'
         },
         {
+          
+                    {
             title: 'Interactive 3D Heritage Explorer',
+            image: 'images/HeritageExplorer.webp',
+            imageAlt: 'Interactive 3D Heritage Explorer environment based on the Swayambhu heritage site in Nepal',
             body: [
+        
                 `This project is developing an Unreal Engine application that allows students, researchers, and the public to explore the EEL’s detailed 3D models of Swayambhu and other culturally significant locations in Nepal. The viewer will bring together optimized models, contextual information, photographs, and other field data in an accessible interactive environment.`,
                 `The goal is to make these extensive datasets useful beyond the VR laboratory while preserving the spatial relationships that are difficult to communicate through conventional photographs, maps, and videos.`
             ],
