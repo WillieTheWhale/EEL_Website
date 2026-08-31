@@ -3520,10 +3520,11 @@ function getPeopleContent() {
             name: 'Adrian Hito',
             linkedin: 'https://www.linkedin.com/in/adrian-hito'
         },
-                {
+                       {
             name: 'Adam Qaimari',
             major: 'Biomedical Engineering',
             graduation: 'May 2029',
+            headshot: 'headshots/adam-qaimari.png',
             linkedin: 'https://www.linkedin.com/in/adamqaimari'
         },
                {
@@ -3558,10 +3559,11 @@ function getPeopleContent() {
             name: 'Karthik Dundigalla',
             linkedin: 'https://www.linkedin.com/in/karthik-dundigalla-a92332251'
         },
-              {
+                     {
             name: 'Lillian Gann',
             major: 'Applied Sciences with Track in Materials Engineering',
             graduation: 'May 2028',
+            headshot: 'headshots/lillian-gann.png',
             linkedin: 'https://www.linkedin.com/in/lillian-gann-unc'
         },
         {
@@ -3980,20 +3982,35 @@ function getPeopleContent() {
         );
     }
 
-          for (let i = 0; i < otherMembers.length; i++) {
+     for (let i = 0; i < otherMembers.length; i++) {
         const member = otherMembers[i];
-        const initials = member.name
-            .split(' ')
-            .map(function(namePart) {
-                return namePart[0];
-            })
-            .join('');
+
+        parts.push('<div class="person-card featured-card">');
+
+        if (member.headshot) {
+            parts.push(
+                '<img class="person-image person-headshot" src="',
+                member.headshot,
+                '" alt="',
+                member.name,
+                '" loading="lazy" decoding="async">'
+            );
+        } else {
+            const initials = member.name
+                .split(' ')
+                .map(function(namePart) {
+                    return namePart[0];
+                })
+                .join('');
+
+            parts.push(
+                '<div class="person-image placeholder-image" aria-hidden="true">',
+                '<span>', initials, '</span>',
+                '</div>'
+            );
+        }
 
         parts.push(
-            '<div class="person-card featured-card">',
-            '<div class="person-image placeholder-image" aria-hidden="true">',
-            '<span>', initials, '</span>',
-            '</div>',
             '<div class="person-name-row">',
             '<h3 class="person-name">', member.name, '</h3>',
             linkedinLink(member.linkedin),
