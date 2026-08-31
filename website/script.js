@@ -3195,7 +3195,7 @@ function getProjectsContent() {
         renderSection('current-projects', 'Current Projects', currentProjects, 'feature'),
         renderSection('projects-in-development', 'Projects in Development', developmentProjects, 'text'),
         renderSection('courses', 'Courses and Academic Opportunities', courses, 'text'),
-        renderSection('past-work', 'Selected Past Projects and Courses', pastProjects, 'feature'),
+               renderSection('past-work', 'Selected Past Projects', pastProjects, 'feature'),
         '</div>'
     ].join('');
 }
@@ -3447,14 +3447,14 @@ function getPeopleContent() {
             name: 'Noah Butler',
             major: 'Computer Science',
             status: 'Undergraduate',
-            graduation: null,
+                       graduation: 'Spring 2028',
             project: 'Noah is a computer science student at UNC working on XR, computer graphics, redirected walking, and mixed-reality simulation systems.',
             headshot: 'headshots/noah-butler.png',
             linkedin: 'https://www.linkedin.com/in/n-rock'
         },
         {
             name: 'Matias Magallanes',
-            major: 'UNC Undergraduate',
+                        major: 'Biomedical Engineering',
             status: 'Junior',
             graduation: 'December 2027',
             project: 'Matias is a UNC undergraduate and a member of the EEL research team.',
@@ -3474,7 +3474,7 @@ function getPeopleContent() {
             name: 'Sidharth Yeramaddu',
             major: 'Applied Mathematics & Computer Science',
             status: 'Undergraduate',
-            graduation: null,
+                       graduation: 'May 2029',
             project: 'Sidharth is an applied mathematics and computer science student at UNC.',
             headshot: 'headshots/sidharth-yeramaddu.jpeg',
             linkedin: 'https://www.linkedin.com/in/sidharth-yeramaddu'
@@ -3490,20 +3490,26 @@ function getPeopleContent() {
             name: 'Adrian Hito',
             linkedin: 'https://www.linkedin.com/in/adrian-hito'
         },
-        {
+                {
             name: 'Adam Qaimari',
+            major: 'Biomedical Engineering',
+            graduation: 'May 2029',
             linkedin: 'https://www.linkedin.com/in/adamqaimari'
         },
-        {
+               {
             name: 'Alex Salinas',
+            major: 'Computer Science',
+            graduation: 'December 2026',
             linkedin: 'https://www.linkedin.com/in/alex-a-salinas'
         },
         {
             name: 'Alexander Bryan',
             linkedin: null
         },
-        {
+               {
             name: 'Allen Solomon',
+            major: 'Computer Science',
+            graduation: 'December 2026',
             linkedin: null
         },
         {
@@ -3522,8 +3528,10 @@ function getPeopleContent() {
             name: 'Karthik Dundigalla',
             linkedin: 'https://www.linkedin.com/in/karthik-dundigalla-a92332251'
         },
-        {
+              {
             name: 'Lillian Gann',
+            major: 'Applied Sciences with Track in Materials Engineering',
+            graduation: 'May 2028',
             linkedin: 'https://www.linkedin.com/in/lillian-gann-unc'
         },
         {
@@ -3942,7 +3950,7 @@ function getPeopleContent() {
         );
     }
 
-    for (let i = 0; i < otherMembers.length; i++) {
+       for (let i = 0; i < otherMembers.length; i++) {
         const member = otherMembers[i];
         const initials = member.name
             .split(' ')
@@ -3959,14 +3967,34 @@ function getPeopleContent() {
             '<div class="person-name-row">',
             '<h3 class="person-name">', member.name, '</h3>',
             linkedinLink(member.linkedin),
-            '</div>',
-            '<p class="person-role">Research Team</p>',
+            '</div>'
+        );
+
+        if (member.major) {
+            parts.push(
+                '<p class="person-details">',
+                member.major,
+                '</p>'
+            );
+        } else {
+            parts.push('<p class="person-role">Research Team</p>');
+        }
+
+        if (member.graduation) {
+            parts.push(
+                '<p class="person-graduation">',
+                'Expected Graduation: ',
+                member.graduation,
+                '</p>'
+            );
+        }
+
+        parts.push(
             foundingBadge(member.name),
             renderMemberProjects(member.name),
             '</div>'
         );
     }
-
     parts.push('</div>', '</div>');
 
        parts.push(
@@ -4061,7 +4089,7 @@ function getAboutContent() {
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
 
             <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
-                      <p class="about-text">Under the direction of Jim Mahaney, Director of Engineering and Research, the Experimental Engineering Lab was launched in the fall of 2025, expanding the mission of what had previously been known as the Applied Engineering Lab to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 18 current and developing research projects.</p>
+                               <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 18 current and developing research projects.</p>
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
