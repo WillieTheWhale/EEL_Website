@@ -3512,8 +3512,9 @@ function getPeopleContent() {
     ];
 
     const otherMembers = [
-        {
+              {
             name: 'Matthew Alexander',
+            headshot: 'headshots/matthew-alexander.png',
             linkedin: null
         },
         {
@@ -3527,20 +3528,22 @@ function getPeopleContent() {
             headshot: 'headshots/adam-qaimari.png',
             linkedin: 'https://www.linkedin.com/in/adamqaimari'
         },
-               {
+                     {
             name: 'Alex Salinas',
             major: 'Computer Science',
             graduation: 'December 2026',
+            headshot: 'headshots/alex-salinas.png',
             linkedin: 'https://www.linkedin.com/in/alex-a-salinas'
         },
         {
             name: 'Alexander Bryan',
             linkedin: null
         },
-               {
+                      {
             name: 'Allen Solomon',
             major: 'Computer Science',
             graduation: 'December 2026',
+            headshot: 'headshots/allen-solomon.png',
             linkedin: null
         },
         {
@@ -3551,8 +3554,9 @@ function getPeopleContent() {
             name: 'Joaquim D\'Silva',
             linkedin: 'https://www.linkedin.com/in/joaquimdsilva'
         },
-        {
+               {
             name: 'Joseph Sabo',
+            headshot: 'headshots/joseph-sabo.png',
             linkedin: 'https://www.linkedin.com/in/josephsabo29'
         },
         {
