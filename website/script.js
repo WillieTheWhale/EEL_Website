@@ -3779,7 +3779,7 @@ function getPeopleContent() {
         {
             name: 'Andy Choe',
             major: 'Biomedical Engineering',
-            graduation: 'Spring 2026',
+            graduation: 'May 2026',
             project: 'Augmented Aurality',
             headshot: 'headshots/andy-choe.jpg',
             linkedin: 'https://www.linkedin.com/in/seungchoe'
@@ -3787,7 +3787,7 @@ function getPeopleContent() {
         {
             name: 'Meghan Parker',
             major: 'Biomedical Engineering',
-            graduation: 'Spring 2026',
+            graduation: 'May 2026',
             project: 'Augmented Aurality',
             headshot: 'headshots/meghan-parker.jpg',
             linkedin: 'https://www.linkedin.com/in/meghan-parker-2746ba303'
@@ -3795,7 +3795,7 @@ function getPeopleContent() {
         {
             name: 'Fletcher Stuart',
             major: 'Computer Science',
-            graduation: 'Spring 2026',
+            graduation: 'May 2026',
             project: '',
             headshot: 'headshots/fletcher-stuart.jpg',
             linkedin: 'https://www.linkedin.com/in/fletcher-stuart-931695126'
@@ -3803,7 +3803,7 @@ function getPeopleContent() {
         {
             name: 'Ethan Hernandez',
             major: 'Computer Science',
-            graduation: 'Spring 2026',
+            graduation: 'May 2026',
             project: 'Recreating Fred Brooks’s Office in Virtual Reality',
             headshot: 'headshots/ethan-hernandez.jpg',
             linkedin: 'https://www.linkedin.com/in/ethan-hernandez-3aa509236'
@@ -3811,7 +3811,7 @@ function getPeopleContent() {
         {
             name: 'Ansh Aryan',
             major: 'Computer Science',
-            graduation: 'Spring 2026',
+            graduation: 'May 2026',
             project: 'Reliable 3D Reconstruction with Radiance Fields',
             headshot: 'headshots/ansh-aryan.jpeg',
             linkedin: 'https://www.linkedin.com/in/ansh-aryan03'
