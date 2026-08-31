@@ -3218,7 +3218,37 @@ function getPeopleContent() {
             '24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>' +
             '</svg></a>';
     }
+    function getStudentStatus(graduation, fallbackStatus) {
+        if (!graduation) return fallbackStatus || 'Undergraduate';
 
+        const yearMatch = graduation.match(/\b(20\d{2})\b/);
+        if (!yearMatch) return fallbackStatus || 'Undergraduate';
+
+        let graduationYear = parseInt(yearMatch[1], 10);
+
+        // December/Fall graduates belong to the same academic cohort
+        // as students graduating the following spring.
+        if (/December|Fall/i.test(graduation)) {
+            graduationYear += 1;
+        }
+
+        const now = new Date();
+
+        // Academic year rolls over in July.
+        const currentGraduationYear =
+            now.getMonth() >= 6
+                ? now.getFullYear() + 1
+                : now.getFullYear();
+
+        const yearsRemaining = graduationYear - currentGraduationYear;
+
+        if (yearsRemaining <= 0) return 'Senior';
+        if (yearsRemaining === 1) return 'Junior';
+        if (yearsRemaining === 2) return 'Sophomore';
+        if (yearsRemaining === 3) return 'Freshman';
+
+        return fallbackStatus || 'Undergraduate';
+    }
     const labDirector = {
         name: 'Jim Mahaney',
         role: 'Director of Engineering and Research'
@@ -3929,7 +3959,7 @@ function getPeopleContent() {
             '<p class="person-details">',
             member.major,
             ' · ',
-            member.status,
+                       getStudentStatus(member.graduation, member.status),
             '</p>'
         );
 
@@ -3950,7 +3980,7 @@ function getPeopleContent() {
         );
     }
 
-       for (let i = 0; i < otherMembers.length; i++) {
+          for (let i = 0; i < otherMembers.length; i++) {
         const member = otherMembers[i];
         const initials = member.name
             .split(' ')
@@ -3973,9 +4003,17 @@ function getPeopleContent() {
         if (member.major) {
             parts.push(
                 '<p class="person-details">',
-                member.major,
-                '</p>'
+                member.major
             );
+
+            if (member.graduation) {
+                parts.push(
+                    ' · ',
+                    getStudentStatus(member.graduation, member.status)
+                );
+            }
+
+            parts.push('</p>');
         } else {
             parts.push('<p class="person-role">Research Team</p>');
         }
