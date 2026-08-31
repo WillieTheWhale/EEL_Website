@@ -3923,67 +3923,14 @@ function getPeopleContent() {
         '<div class="people-grid featured-grid current-researchers-grid">'
     );
 
-    for (let i = 0; i < featuredMembers.length; i++) {
-        const member = featuredMembers[i];
+       const currentMembers = featuredMembers
+        .concat(otherMembers)
+        .sort(function(a, b) {
+            return a.name.localeCompare(b.name);
+        });
 
-        parts.push('<div class="person-card featured-card">');
-
-        if (member.headshot) {
-            parts.push(
-                '<img class="person-image person-headshot" src="',
-                member.headshot,
-                '" alt="',
-                member.name,
-                '" loading="lazy" decoding="async">'
-            );
-        } else {
-            var initials = member.name
-                .split(' ')
-                .map(function(namePart) {
-                    return namePart[0];
-                })
-                .join('');
-
-            parts.push(
-                '<div class="person-image placeholder-image">',
-                '<span>',
-                initials,
-                '</span>',
-                '</div>'
-            );
-        }
-
-        parts.push(
-            '<div class="person-name-row">',
-            '<h3 class="person-name">', member.name, '</h3>',
-            linkedinLink(member.linkedin),
-            '</div>',
-            '<p class="person-details">',
-            member.major,
-            ' · ',
-                       getStudentStatus(member.graduation, member.status),
-            '</p>'
-        );
-
-        if (member.graduation) {
-            parts.push(
-                '<p class="person-graduation">',
-                'Expected Graduation: ',
-                member.graduation,
-                '</p>'
-            );
-        }
-
-                parts.push(
-            accoladeBadge(member.name),
-            foundingBadge(member.name),
-            renderMemberProjects(member.name),
-            '</div>'
-        );
-    }
-
-     for (let i = 0; i < otherMembers.length; i++) {
-        const member = otherMembers[i];
+    for (let i = 0; i < currentMembers.length; i++) {
+        const member = currentMembers[i];
 
         parts.push('<div class="person-card featured-card">');
 
@@ -4045,6 +3992,7 @@ function getPeopleContent() {
         }
 
         parts.push(
+            accoladeBadge(member.name),
             foundingBadge(member.name),
             renderMemberProjects(member.name),
             '</div>'
