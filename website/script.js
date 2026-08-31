@@ -3369,7 +3369,7 @@ function getPeopleContent() {
             name: 'Lily Foo',
             major: 'Physics',
             status: 'Junior',
-            graduation: 'June 2028',
+            graduation: 'May 2028',
             project: 'Studying the dynamics of drag on hand position in fluids for swimmers.',
             headshot: 'headshots/lily-foo.png',
             linkedin: null
@@ -3477,7 +3477,7 @@ function getPeopleContent() {
             name: 'Noah Butler',
             major: 'Computer Science',
             status: 'Undergraduate',
-                       graduation: 'Spring 2028',
+                       graduation: 'May 2028',
             project: 'Noah is a computer science student at UNC working on XR, computer graphics, redirected walking, and mixed-reality simulation systems.',
             headshot: 'headshots/noah-butler.png',
             linkedin: 'https://www.linkedin.com/in/n-rock'
