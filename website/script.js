@@ -4009,6 +4009,58 @@ function getPeopleContent() {
             '</div>'
         );
     }
+                parts.push('</div>', '</div>');
+
+    parts.push(
+        '<div class="people-section collaborators-section">',
+        '<h2 class="people-section-title">',
+        'Collaborating Academic Areas',
+        '</h2>',
+        '<div class="collaborator-grid">'
+    );
+
+    for (let i = 0; i < collaboratingAreas.length; i++) {
+        const area = collaboratingAreas[i];
+
+        parts.push(
+            '<a class="person-card collaborator-card" href="',
+            area.url,
+            '" target="_blank" rel="noopener noreferrer">',
+            '<h3 class="person-name">', area.name, '</h3>',
+            '<span class="collaborator-link-label">',
+            'Visit department website ',
+            '<span aria-hidden="true">↗</span>',
+            '</span>',
+            '</a>'
+        );
+    }
+
+    parts.push('</div>', '</div>');
+
+    parts.push(
+        '<div class="people-section">',
+        '<h2 class="people-section-title">EEL Alumni</h2>',
+        '<p class="people-section-intro">',
+        'Recognizing undergraduate researchers who contributed to the ',
+        'EEL and graduated from UNC-Chapel Hill.',
+        '</p>',
+        '<div class="people-grid featured-grid alumni-grid">'
+    );
+
+    for (let i = 0; i < alumni.length; i++) {
+        const member = alumni[i];
+
+        parts.push(
+            '<div class="person-card featured-card alumni-card">',
+            '<img class="person-image person-headshot" src="',
+            member.headshot,
+            '" alt="',
+            member.name,
+            '" loading="lazy" decoding="async">',
+            '<div class="person-name-row">',
+            '<h3 class="person-name">', member.name, '</h3>',
+            linkedinLink(member.linkedin),
+            '</div>',
             '<p class="person-details">',
             member.major,
             '</p>',
@@ -4016,7 +4068,7 @@ function getPeopleContent() {
             'Graduated: ',
             member.graduation,
             '</p>',
-                      foundingBadge(member.name),
+            foundingBadge(member.name),
             renderMemberProjects(member.name),
             '</div>'
         );
