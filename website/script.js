@@ -3923,9 +3923,18 @@ function getPeopleContent() {
         '<div class="people-grid featured-grid current-researchers-grid">'
     );
 
-      const currentMembers = featuredMembers
+          const currentMembers = featuredMembers
         .concat(otherMembers)
         .sort(function(a, b) {
+            const aHasHeadshot = Boolean(a.headshot);
+            const bHasHeadshot = Boolean(b.headshot);
+
+            // Students with headshots always come first.
+            if (aHasHeadshot !== bHasHeadshot) {
+                return aHasHeadshot ? -1 : 1;
+            }
+
+            // Within each group, alphabetize by last name.
             const aParts = a.name.trim().split(/\s+/);
             const bParts = b.name.trim().split(/\s+/);
             const aLast = aParts[aParts.length - 1];
@@ -3937,6 +3946,7 @@ function getPeopleContent() {
                 return lastNameComparison;
             }
 
+            // Tie-breaker if two people have the same last name.
             return a.name.localeCompare(b.name);
         });
 
@@ -4009,7 +4019,7 @@ function getPeopleContent() {
             '</div>'
         );
     }
-                parts.push('</div>', '</div>');
+                   parts.push('</div>', '</div>');
 
     parts.push(
         '<div class="people-section collaborators-section">',
@@ -4026,6 +4036,58 @@ function getPeopleContent() {
             '<a class="person-card collaborator-card" href="',
             area.url,
             '" target="_blank" rel="noopener noreferrer">',
+            '<h3 class="person-name">', area.name, '</h3>',
+            '<span class="collaborator-link-label">',
+            'Visit department website ',
+            '<span aria-hidden="true">↗</span>',
+            '</span>',
+            '</a>'
+        );
+    }
+
+    parts.push('</div>', '</div>');
+
+    parts.push(
+        '<div class="people-section">',
+        '<h2 class="people-section-title">EEL Alumni</h2>',
+        '<p class="people-section-intro">',
+        'Recognizing undergraduate researchers who contributed to the ',
+        'EEL and graduated from UNC-Chapel Hill.',
+        '</p>',
+        '<div class="people-grid featured-grid alumni-grid">'
+    );
+
+    for (let i = 0; i < alumni.length; i++) {
+        const member = alumni[i];
+
+        parts.push(
+            '<div class="person-card featured-card alumni-card">',
+            '<img class="person-image person-headshot" src="',
+            member.headshot,
+            '" alt="',
+            member.name,
+            '" loading="lazy" decoding="async">',
+            '<div class="person-name-row">',
+            '<h3 class="person-name">', member.name, '</h3>',
+            linkedinLink(member.linkedin),
+            '</div>',
+            '<p class="person-details">',
+            member.major,
+            '</p>',
+            '<p class="person-graduation">',
+            'Graduated: ',
+            member.graduation,
+            '</p>',
+            foundingBadge(member.name),
+            renderMemberProjects(member.name),
+            '</div>'
+        );
+    }
+
+    parts.push('</div>', '</div>');
+
+    return parts.join('');
+}
             '<h3 class="person-name">', area.name, '</h3>',
             '<span class="collaborator-link-label">',
             'Visit department website ',
