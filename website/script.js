@@ -2626,14 +2626,29 @@ function expandPanel(panelId, contentType, routeOptions) {
     expandedContainer.style.height = target.height + 'px';
     expandedContainer.style.opacity = '1';
 
-    // Compute the FLIP inversion: transform from target back to panel origin
-    var scaleX = panelRect.width / target.width;
-    var scaleY = panelRect.height / target.height;
-    var translateX = panelRect.left - target.left;
-    var translateY = panelRect.top - target.top;
+        var isMobileExpand =
+        document.body.classList.contains('mobile-portrait') ||
+        window.innerWidth <= 768;
 
-    // Apply the inversion (container visually appears at the panel's position)
-    expandedContainer.style.transform = 'translate3d(' + translateX + 'px, ' + translateY + 'px, 0) scale(' + scaleX + ', ' + scaleY + ')';
+    if (isMobileExpand) {
+        // On mobile, open directly at the final expanded size.
+        // Avoid displaying page content inside the small navigation-card
+        // dimensions during the desktop FLIP animation.
+        expandedContainer.style.transform =
+            'translate3d(0, 0, 0) scale(1, 1)';
+    } else {
+        // Desktop FLIP animation: transform from the final target
+        // back to the originating navigation panel.
+        var scaleX = panelRect.width / target.width;
+        var scaleY = panelRect.height / target.height;
+        var translateX = panelRect.left - target.left;
+        var translateY = panelRect.top - target.top;
+
+        expandedContainer.style.transform =
+            'translate3d(' + translateX + 'px, ' +
+            translateY + 'px, 0) scale(' +
+            scaleX + ', ' + scaleY + ')';
+    }
 
     // Load content (hidden via .expanded-content opacity:0)
     loadContent(contentType, expandedContent);
