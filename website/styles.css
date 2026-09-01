@@ -155,15 +155,26 @@ body.no-transitions * {
                 box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(180deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 50%, var(--bg-gradient-3) 100%);
+    background: linear-gradient(
+        180deg,
+        var(--bg-gradient-1) 0%,
+        var(--bg-gradient-2) 50%,
+        var(--bg-gradient-3) 100%
+    );
     color: var(--text-dark);
     overflow: hidden;
-    height: 100vh;
     position: relative;
-    perspective: 3000px;
-    perspective-origin: 50% 50%;
 }
 
 /* Chrome Grid Floor */
@@ -352,6 +363,8 @@ body[data-theme="dark"] .blob-accent-2 {
     position: fixed;
     width: 100vw;
     height: 100vh;
+    perspective: 3000px;
+    perspective-origin: 50% 50%;
     transform-style: preserve-3d;
     z-index: 100;
     pointer-events: none;
@@ -892,12 +905,13 @@ body[data-theme="dark"] .nav-panel:hover .panel-hologram {
 
 .expanded-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     z-index: 5000;
     pointer-events: none;
+    overflow: hidden;
     background-color: transparent;
     transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     contain: layout style;
@@ -2820,6 +2834,8 @@ body.mobile-portrait .cyberspace {
     position: relative !important;
     width: 100%;
     height: auto;
+    perspective: none !important;
+    perspective-origin: initial !important;
     transform: none !important;
     animation: none !important;
     padding: 20px 16px 100px 16px;
@@ -3108,14 +3124,46 @@ body[data-theme="dark"] .trace-gradient-end {
         max-width: 100%;
         min-width: 0;
     }
-
-    body.mobile-portrait .expanded-content {
-        width: 100%;
-        padding: 68px 18px 28px;
-        overflow-x: hidden !important;
-        overflow-y: auto;
+    /*
+       Mobile expanded panels always open at the same viewport position.
+       The !important rules override the inline dimensions added by script.js.
+    */
+    body.mobile-portrait .expanded-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
     }
 
+    body.mobile-portrait .expanded-container {
+        position: fixed !important;
+        top: 8px !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        left: 8px !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: none !important;
+        transform: none !important;
+        transform-origin: center !important;
+    }
+
+    body.mobile-portrait .expanded-glass-container {
+        width: 100% !important;
+        height: 100% !important;
+    }
+       body.mobile-portrait .expanded-content {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        padding: 68px 18px 28px;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
     /* Mobile page headings */
     body.mobile-portrait .expanded-title {
         width: 100%;
