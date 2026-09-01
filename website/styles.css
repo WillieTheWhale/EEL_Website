@@ -2788,6 +2788,10 @@ body.mobile-portrait {
     overflow-x: hidden !important;
     height: auto !important;
     min-height: 100vh;
+
+    /* Body perspective makes fixed expanded panels move with page scrolling. */
+    perspective: none !important;
+    perspective-origin: initial !important;
 }
 
 body.mobile-portrait * {
