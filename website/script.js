@@ -1457,8 +1457,18 @@ function initThreeJS() {
         window.addEventListener('themechange', (e) => updateStructureMaterials(e.detail.theme === 'dark'));
         
         animateThreeJS();
-    } catch(error) {
-        console.error(error);
+        } catch (error) {
+        renderer = null;
+        scene = null;
+        camera = null;
+        clock = null;
+        _threeInitRequested = false;
+
+        document.documentElement.classList.add('no-webgl');
+
+        console.warn(
+            'WebGL background unavailable; continuing with the static background.'
+        );
     }
 }
 
@@ -2591,21 +2601,30 @@ function _resumeBackgroundSystems() {
     for (var i = 0; i < bgEls.length; i++) bgEls[i].style.animationPlayState = '';
 }
 
-// Compute the target expanded rect based on viewport and device
+// Compute the final expanded rectangle in viewport coordinates.
 function _getExpandedTargetRect() {
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    // Mobile portrait or small viewport: use larger area
-    var isMobile = document.body.classList.contains('mobile-portrait') || vw <= 768;
-    var pctW = isMobile ? 0.95 : 0.89;
-    var pctH = isMobile ? 0.92 : 0.89;
-    var marginL = isMobile ? 0.025 : 0.055;
-    var marginT = isMobile ? 0.04 : 0.055;
+    var viewport = window.visualViewport;
+    var vw = viewport ? viewport.width : window.innerWidth;
+    var vh = viewport ? viewport.height : window.innerHeight;
+
+    var isMobile =
+        document.body.classList.contains('mobile-portrait') ||
+        vw <= 768;
+
+    if (isMobile) {
+        return {
+            left: 8,
+            top: 8,
+            width: Math.max(0, vw - 16),
+            height: Math.max(0, vh - 16)
+        };
+    }
+
     return {
-        left: vw * marginL,
-        top: vh * marginT,
-        width: vw * pctW,
-        height: vh * pctH
+        left: vw * 0.055,
+        top: vh * 0.055,
+        width: vw * 0.89,
+        height: vh * 0.89
     };
 }
 
@@ -2669,13 +2688,17 @@ function expandPanel(panelId, contentType, routeOptions) {
             scaleX + ', ' + scaleY + ')';
     }
 
-   // Load content (hidden via .expanded-content opacity:0)
-loadContent(contentType, expandedContent);
-// A newly opened panel must always begin at its first line.
-expandedContent.scrollTop = 0;
-// Every newly opened main panel must begin at the top.
-// Section routes can reposition it afterward.
-expandedContent.scrollTop = 0;
+     // Load the selected panel content.
+    loadContent(contentType, expandedContent);
+
+    // Every newly opened main panel must begin at its first line.
+    expandedContent.scrollTop = 0;
+
+    // Reset it again after the newly inserted content has been laid out.
+    // Section routes may deliberately reposition it afterward.
+    requestAnimationFrame(function() {
+        expandedContent.scrollTop = 0;
+    });
     TetherSystem.fadeOut();
     fadeDrone(0);
 
