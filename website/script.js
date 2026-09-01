@@ -2671,7 +2671,8 @@ function expandPanel(panelId, contentType, routeOptions) {
 
    // Load content (hidden via .expanded-content opacity:0)
 loadContent(contentType, expandedContent);
-
+// A newly opened panel must always begin at its first line.
+expandedContent.scrollTop = 0;
 // Every newly opened main panel must begin at the top.
 // Section routes can reposition it afterward.
 expandedContent.scrollTop = 0;
