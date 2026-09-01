@@ -2669,9 +2669,12 @@ function expandPanel(panelId, contentType, routeOptions) {
             scaleX + ', ' + scaleY + ')';
     }
 
-    // Load content (hidden via .expanded-content opacity:0)
-    loadContent(contentType, expandedContent);
+   // Load content (hidden via .expanded-content opacity:0)
+loadContent(contentType, expandedContent);
 
+// Every newly opened main panel must begin at the top.
+// Section routes can reposition it afterward.
+expandedContent.scrollTop = 0;
     TetherSystem.fadeOut();
     fadeDrone(0);
 
