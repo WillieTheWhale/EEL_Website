@@ -2767,19 +2767,19 @@ body[data-theme="dark"] .moon-stars {
         margin-bottom: 20px;
     }
     
-    .nav-panel {
-        position: relative !important;
-        width: 100% !important;
-        height: 30vh !important;
-        min-height: 240px !important;
-        transform: none !important;
-        left: auto !important;
-        top: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        margin: 0 0 20px 0 !important;
-        z-index: 30;
-    }
+   .nav-panel {
+    position: relative !important;
+    width: 100% !important;
+    height: 300px !important;
+    min-height: 300px !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 0 20px 0 !important;
+    z-index: 30;
+}
     
 }
 
@@ -2820,8 +2820,8 @@ body.mobile-portrait .cyberspace {
 body.mobile-portrait .nav-panel {
     position: relative !important;
     width: 100% !important;
-    height: 30vh !important;
-    min-height: 240px !important;
+    height: 300px !important;
+    min-height: 300px !important;
     transform: none !important;
     left: auto !important;
     top: auto !important;
