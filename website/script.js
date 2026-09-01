@@ -2877,8 +2877,8 @@ function getProjectsContent() {
     const currentProjects = [
         {
             title: 'Boundary-Aware Redirected Walking in Virtual Reality',
-            image: 'images/VirtualReality.png',
-            imageAlt: 'Student using the EEL virtual reality system',
+                        image: 'images/RedirectedWalking.webp',
+            imageAlt: 'Student testing the EEL redirected-walking virtual reality system',
             body: [
                 `Redirected walking allows someone to explore a virtual environment larger than the physical room around them. The EEL system uses translation, rotation, and curvature gains to subtly adjust a participant’s virtual path while boundary-aware software keeps the participant safely inside the laboratory.`,
                 `Students have implemented redirected-walking systems in Unity and Unreal Engine for the Meta Quest 3. Initial testing allowed participants to explore a roughly 50-meter virtual temple environment while remaining within a physical space approximately two meters wide. The next phase will improve path planning, obstacle avoidance, and the integration of multiple large-scale environments captured in Nepal.`
@@ -2909,6 +2909,8 @@ function getProjectsContent() {
         },
         {
             title: 'PAWS: SPOT Assistive Navigation Robot',
+                        image: 'images/SPOT.webp',
+            imageAlt: 'Boston Dynamics SPOT robot used for the PAWS assistive navigation project',
             body: [
                 `PAWS, or Personal Autonomous Walking Support, explores how a Boston Dynamics SPOT robot could assist people who need additional support while walking. The current system combines spoken commands, GPS-independent GraphNav localization, LiDAR sensing, stored waypoints, and a specially designed support handle.`,
                 `The robot can guide a user to a selected location, monitor its surroundings, and stop automatically if the user releases the handle. Future work will explore capacitive sensing, improved user controls, and integration with more detailed building maps.`
@@ -2916,6 +2918,8 @@ function getProjectsContent() {
         },
         {
             title: 'Recreating Fred Brooks’s Office in Virtual Reality',
+                        image: 'images/BrooksVR.webp',
+            imageAlt: 'Photogrammetry reconstruction of Frederick P. Brooks Jr.’s office',
             body: [
                 `This project is preserving the office of pioneering computer scientist Frederick P. Brooks Jr. as an interactive virtual environment. Students created a detailed photogrammetry model from photographs, processed the resulting geometry through RealityScan, Instant Meshes, and Blender, and brought the optimized environment into Unity for VR.`,
                 `The work has reduced the geometric complexity of individual objects by approximately 89 to nearly 100 percent while maintaining the recognizable appearance of the original office. Continuing research will investigate automated model-processing tools, standardized photography methods, and level-of-detail systems that adjust model complexity according to the viewer’s location.`
