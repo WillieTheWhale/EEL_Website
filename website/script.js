@@ -3746,7 +3746,11 @@ function getPeopleContent() {
             { key: 'augmentedAurality', poster: true }
         ],
         'Fletcher Stuart': [
-            { key: 'heritageExplorer' }
+                       {
+                key: 'heritageExplorer',
+                resourceUrl: 'https://swayambhu-stories.vercel.app/',
+                resourceText: 'View Online Presentation'
+            }
         ],
         'Ethan Hernandez': [
             { key: 'brooksVR', poster: true }
@@ -3785,7 +3789,15 @@ function getPeopleContent() {
                     '</a>'
                 );
             }
-
+            if (assignment.resourceUrl) {
+                output.push(
+                    '<a class="research-link" href="',
+                    assignment.resourceUrl,
+                    '" target="_blank" rel="noopener noreferrer">',
+                    assignment.resourceText || 'View Project Resource',
+                    '</a>'
+                );
+            }
             output.push('</div>');
         });
 
