@@ -3018,8 +3018,10 @@ function getProjectsContent() {
             ],
             collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
         },
-        {
+               {
             title: '30-Channel Wavemaker Control Interface',
+            image: 'images/Wavemaker.webp',
+            imageAlt: 'Thirty-channel wavemaker used for fluid-dynamics research in the EEL',
             body: [
                 `The EEL previously designed and constructed a 30-channel wavemaker for fluid-dynamics research. The current student project is creating a new software interface that allows researchers to control the individual wave channels, construct repeatable wave patterns, and coordinate more complex experimental sequences.`,
                 `The interface will make the existing system easier to operate while allowing researchers to design experiments that would be difficult to conduct through manual control.`
@@ -3583,10 +3585,11 @@ function getPeopleContent() {
             headshot: 'headshots/alex-salinas.png',
             linkedin: 'https://www.linkedin.com/in/alex-a-salinas'
         },
-               {
+                       {
             name: 'Alexander Caza',
             major: 'Computer Science',
             graduation: 'May 2030',
+            headshot: 'headshots/alexander-caza.png',
             linkedin: 'https://www.linkedin.com/in/alex-caza-3464b821b/'
         },
                             {
@@ -3762,7 +3765,7 @@ function getPeopleContent() {
             { key: 'hologram' },
             { key: 'brooksVR', poster: true }
         ],
-        'Alexander Bryan': [
+        'Alexander Caza': [
             { key: 'wavemaker' }
         ],
         'Allen Solomon': [
