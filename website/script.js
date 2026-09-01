@@ -3625,9 +3625,12 @@ function getPeopleContent() {
             headshot: 'headshots/lillian-gann.png',
             linkedin: 'https://www.linkedin.com/in/lillian-gann-unc'
         },
-        {
+               {
             name: 'Luke Hyatt',
-            linkedin: 'https://www.linkedin.com/in/luke-hyatt-49a168288'
+            major: 'Computer Science',
+            graduation: 'May 2028',
+            headshot: 'headshots/luke-hyatt.png',
+            linkedin: 'https://www.linkedin.com/in/luke-hyatt-49a168288/'
         },
         {
             name: 'Nichola Wells',
