@@ -2078,6 +2078,14 @@ body[data-theme="dark"] .linkedin-link:hover .linkedin-icon {
         grid-template-columns: 1fr;
         row-gap: 10px;
     }
+        /* Show complete About photographs on mobile. */
+    .about-stats ~ .research-entry-media img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        aspect-ratio: auto;
+        object-fit: contain;
+    }
 }
 
 /* Join Us Panel Content */
