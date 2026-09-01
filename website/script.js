@@ -2877,8 +2877,8 @@ function getProjectsContent() {
     const currentProjects = [
         {
             title: 'Boundary-Aware Redirected Walking in Virtual Reality',
-                        image: 'images/RedirectedWalking.webp',
-            imageAlt: 'Student testing the EEL redirected-walking virtual reality system',
+                                   image: 'images/RedirectedWalkingNepal.webp',
+            imageAlt: 'Student guiding a visitor through the EEL redirected-walking virtual reality system',
             body: [
                 `Redirected walking allows someone to explore a virtual environment larger than the physical room around them. The EEL system uses translation, rotation, and curvature gains to subtly adjust a participant’s virtual path while boundary-aware software keeps the participant safely inside the laboratory.`,
                 `Students have implemented redirected-walking systems in Unity and Unreal Engine for the Meta Quest 3. Initial testing allowed participants to explore a roughly 50-meter virtual temple environment while remaining within a physical space approximately two meters wide. The next phase will improve path planning, obstacle avoidance, and the integration of multiple large-scale environments captured in Nepal.`
@@ -4136,7 +4136,9 @@ function getAboutContent() {
                     <span class="about-stat-label">Collaborating Academic Areas</span>
                 </div>
             </div>
-
+            <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
+                <img src="images/CarDemo.webp" alt="Students demonstrating an autonomous vehicle project to visitors during an EEL open house" loading="lazy" decoding="async" style="aspect-ratio:auto; height:auto;">
+            </div>
             <h2 class="section-title">Research Engineering for Carolina</h2>
             <p class="about-text">The Experimental Engineering Lab provides the engineering expertise, facilities, and technical support needed to turn research ideas into working systems. Based in the Department of Computer Science at UNC-Chapel Hill, the EEL works with faculty and students across campus to design, fabricate, integrate, and test specialized equipment and experimental systems that often cannot be purchased off the shelf.</p>
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
@@ -4146,12 +4148,16 @@ function getAboutContent() {
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
-
+            <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
+                <img src="images/GloveDemo.webp" alt="EEL students demonstrating a hand-position tracking glove during an open house" loading="lazy" decoding="async" style="aspect-ratio:auto; height:auto;">
+            </div>
             <h2 class="section-title">Collaboration Across Carolina</h2>
             <p class="about-text">The EEL currently supports work involving Computer Science, Applied Mathematics, Earth, Marine and Environmental Sciences, Exercise and Sport Science, Physical Therapy, and Religious Studies.</p>
             <p class="about-text">These collaborations span robotics, accessibility, human movement, rehabilitation, fluid dynamics, environmental sensing, artificial intelligence, virtual and augmented reality, and the documentation and interpretation of cultural sites. By bringing students and researchers from different fields together around a shared problem, the EEL helps create connections that might not develop within the boundaries of a single department.</p>
             <p class="about-text">The lab’s work with Religious Studies is a particularly strong example of this approach. Fieldwork in Nepal has produced detailed 3D records of Buddhist sites, while EEL students have helped develop the models, virtual environments, and redirected-walking technology needed to use that research in immersive educational settings. The collaboration brings together humanities scholarship, computer science, engineering, cultural documentation, and new approaches to teaching.</p>
-
+            <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
+                <img src="images/VR.webp" alt="An EEL student guiding a visitor through a virtual reality demonstration" loading="lazy" decoding="async" style="aspect-ratio:auto; height:auto;">
+            </div>
             <h2 class="section-title">Facilities and Technical Capabilities</h2>
             <p class="about-text">The EEL continues a long tradition of maintaining the ability to design and build specialized research systems within Computer Science. Its facilities include an electronics laboratory, machine shop, rapid-fabrication space, wet lab, and shielded room.</p>
             <p class="about-text">Current capabilities include:</p>
@@ -4168,7 +4174,9 @@ function getAboutContent() {
                 <li>Custom research-system design and integration</li>
             </ul>
             <p class="about-text">Bringing these capabilities together allows researchers and students to develop complete experimental systems on site rather than distributing the work among unrelated facilities or relying entirely on commercial equipment.</p>
-
+            <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
+                <img src="images/Soldering.webp" alt="An EEL student assembling electronics at a laboratory workbench" loading="lazy" decoding="async" style="aspect-ratio:auto; height:auto;">
+            </div>
             <h2 class="section-title">Four Decades of Research Engineering</h2>
             <p class="about-text">The EEL continues a four-decade tradition of building innovative research systems within UNC Computer Science. The facility traces its origins to the Microelectronics Systems Laboratory, established in the 1980s to support research requiring specialized computing hardware.</p>
             <p class="about-text">Among the best-known systems developed through this tradition were the Pixel-Planes and PixelFlow graphics engines. These were among the fastest real-time rendering systems of their era and were widely recognized for their innovative, massively parallel architectures. Their designs explored concepts such as per-pixel processing and scalable rendering pipelines that later became central to modern graphics processors.</p>
