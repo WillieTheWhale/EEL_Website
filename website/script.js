@@ -3558,10 +3558,12 @@ function getPeopleContent() {
     ];
 
     const otherMembers = [
-              {
+                     {
             name: 'Matthew Alexander',
+            major: 'Chemistry B.S. with a focus in analytical chemistry',
+            graduation: 'May 2027',
             headshot: 'headshots/matthew-alexander.png',
-            linkedin: null
+            linkedin: 'https://www.linkedin.com/in/matthew-rastovski-9a48552b7/'
         },
         {
             name: 'Adrian Hito',
@@ -3581,16 +3583,18 @@ function getPeopleContent() {
             headshot: 'headshots/alex-salinas.png',
             linkedin: 'https://www.linkedin.com/in/alex-a-salinas'
         },
-        {
-            name: 'Alexander Bryan',
-            linkedin: null
+               {
+            name: 'Alexander Caza',
+            major: 'Computer Science',
+            graduation: 'May 2030',
+            linkedin: 'https://www.linkedin.com/in/alex-caza-3464b821b/'
         },
-                      {
+                            {
             name: 'Allen Solomon',
             major: 'Computer Science',
             graduation: 'December 2026',
             headshot: 'headshots/allen-solomon.png',
-            linkedin: null
+            linkedin: 'https://www.linkedin.com/in/allen-solomon-68b8a3267/'
         },
         {
             name: 'Brandon Ge',
@@ -3600,8 +3604,10 @@ function getPeopleContent() {
             name: 'Joaquim D\'Silva',
             linkedin: 'https://www.linkedin.com/in/joaquimdsilva'
         },
-               {
+                     {
             name: 'Joseph Sabo',
+            major: 'Computer Science and Mathematics',
+            graduation: 'May 2029',
             headshot: 'headshots/joseph-sabo.png',
             linkedin: 'https://www.linkedin.com/in/josephsabo29'
         },
@@ -3910,7 +3916,7 @@ function getPeopleContent() {
     ];
 
    
-    });
+ 
 
     alumni.sort(function(a, b) {
         return a.name
