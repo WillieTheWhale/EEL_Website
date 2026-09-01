@@ -2887,7 +2887,7 @@ function getProjectsContent() {
         },
         {
             title: 'Scalable 3D Environment Optimization',
-            image: 'images/Real-World3DEnvironments.png',
+                        image: 'images/3DEnvironment.webp',
             imageAlt: 'Large-scale three-dimensional environment captured in Nepal',
             body: [
                 `Fieldwork at Swayambhu in Nepal produced more than 500 gigabytes of photographs, laser-scanned point clouds, and aerial imagery. The resulting photogrammetry model contains approximately 2.7 billion triangles, making it far too large for conventional computers or VR headsets to display directly.`,
@@ -2897,14 +2897,11 @@ function getProjectsContent() {
             link: 'https://research.unc.edu/story/blueprints-for-preservation/',
             linkText: 'Read the UNC Research feature, “Blueprints for Preservation”'
         },
-        {
-          
-                    {
+             {
             title: 'Interactive 3D Heritage Explorer',
             image: 'images/HeritageExplorer.webp',
             imageAlt: 'Interactive 3D Heritage Explorer environment based on the Swayambhu heritage site in Nepal',
             body: [
-        
                 `This project is developing an Unreal Engine application that allows students, researchers, and the public to explore the EEL’s detailed 3D models of Swayambhu and other culturally significant locations in Nepal. The viewer will bring together optimized models, contextual information, photographs, and other field data in an accessible interactive environment.`,
                 `The goal is to make these extensive datasets useful beyond the VR laboratory while preserving the spatial relationships that are difficult to communicate through conventional photographs, maps, and videos.`
             ],
@@ -2926,7 +2923,7 @@ function getProjectsContent() {
         },
         {
             title: 'Finger-Position Optimization for Swimming',
-            image: 'images/OptimizingHandPostionForSwimming.jpg',
+                        image: 'images/SwimmerHand.webp',
             imageAlt: 'Experimental hand models used to study swimming performance',
             body: [
                 `Small changes in finger spacing and hand position can affect the forces produced by a swimmer moving through the water. Students are using 3D-printed hand models, pressure measurements, pitot tubes, and flow visualization to study how finger spacing, wrist angle, and hand orientation influence useful propulsive force.`,
@@ -2938,6 +2935,8 @@ function getProjectsContent() {
         },
         {
             title: 'Hand-Position Tracking Glove',
+                        image: 'images/SwimmerGlove.webp',
+            imageAlt: 'Hand-position tracking glove with flex sensors and embedded electronics',
             body: [
                 `Originally developed as a second phase of the swimming project, this low-cost sensing glove measures the positions of a user’s fingers and displays a corresponding hand model in Unity. The system uses flex sensors, an Arduino Nano 33, a multiplexed circuit, and MATLAB-based calibration to translate physical hand movements into a live digital representation.`,
                 `The glove could eventually provide real-time feedback that helps swimmers maintain an optimal hand position. Its broader potential includes physical therapy, rehabilitation, and guided home-exercise applications. Current work is focused on improving calibration, reducing sensor drift, adding more complete thumb tracking, and developing a custom circuit board.`
@@ -2946,7 +2945,7 @@ function getProjectsContent() {
         },
         {
             title: 'Biologically Driven Autonomous Vehicle Research',
-            image: 'images/AutonomousVehicles.JPG',
+                       image: 'images/AutonomousVehicle.webp',
             imageAlt: 'Biologically controlled autonomous vehicle developed in the EEL',
             body: [
                 `This project investigates how biological movement and other human or animal signals can be used to control autonomous systems. In the initial prototype, a camera and computer-vision system track the movement of a goldfish within different regions of its tank. Those movements are translated into steering and throttle commands for a small robotic vehicle.`,
@@ -2955,8 +2954,8 @@ function getProjectsContent() {
         },
         {
             title: 'Acoustic Communication for an Underwater Manta Ray Robot Swarm',
-            image: 'images/SwarmRobots.JPG',
-            imageAlt: 'Underwater manta ray swarm robot prototype',
+                        image: 'images/MantaRay.webp',
+            imageAlt: 'CAD rendering of an underwater manta ray robot design',
             body: [
                 `Students are developing low-cost underwater robots inspired by manta rays that could eventually work together to map the seafloor or collect environmental measurements. The current research focuses on underwater acoustic communication using piezoelectric transducers and communication protocols designed for a swarm of robots.`,
                 `The project also includes the design and fabrication of PETG bodies, flexible TPU fins, servo-driven propulsion, adjustable buoyancy systems, and waterproof electronics. Future versions could carry cameras, water-quality sensors, or other scientific instruments.`
@@ -2964,6 +2963,8 @@ function getProjectsContent() {
         },
         {
             title: 'Mixed-Reality Motorcycle Assembly Training',
+                        image: 'images/MotorcycleAR.webp',
+            imageAlt: 'Mixed-reality instructions guiding a motorcycle assembly task',
             body: [
                 `This project explores how mixed reality can guide someone through a complex mechanical assembly task. Built in Unity for the Meta Quest 3, the system uses reference markers, environmental depth sensing, and context-aware overlays to show users which tools and components are needed and where each part belongs.`,
                 `Users can confirm steps through hand gestures while the system provides instructions in the order required to complete the task. Initial testing demonstrated accurate alignment between virtual instructions and physical motorcycle components while reducing uncertainty during assembly.`
@@ -2971,7 +2972,7 @@ function getProjectsContent() {
         },
         {
             title: 'Augmented Aurality',
-            image: 'images/AugmentedAurality.JPG',
+                        image: 'images/AugmentedAurality.webp',
             imageAlt: 'Wearable augmented-hearing prototype developed in the EEL',
             body: [
                 `Augmented Aurality explores whether wearable technology can help users focus on a particular speaker in a noisy environment. The prototype uses an array of eight microphones, a Teensy processor, beamforming, and a signal-processing method called imaginary boosting to isolate and amplify sound coming from a selected direction.`,
@@ -3097,6 +3098,8 @@ function getProjectsContent() {
         },
         {
             title: 'Modular WebAR Experiences',
+                        image: 'images/ModularAR.webp',
+            imageAlt: 'Browser-based augmented-reality experience displayed in the EEL',
             body: [
                 `This project developed a reusable toolkit for creating browser-based augmented-reality experiences without requiring users to install a specialized application. The system uses natural images as tracking targets rather than QR codes or AprilTags and was built with A-Frame and MindAR.`,
                 `An administrative dashboard and configuration files allow new experiences to be created and updated without rewriting the underlying software. The system was deployed through GitHub Pages for projects in the EEL and the SN020 makerspace, demonstrating a scalable approach to delivering accessible augmented-reality content.`
