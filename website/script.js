@@ -2552,7 +2552,12 @@ const EELRouteManager = {
 
 // Content cache — generate HTML once, reuse on subsequent opens
 const _contentCache = {};
-
+const EELStats = {
+    studentCount: 0,
+    projectCount: 0,
+    collaboratorCount: 0,
+    majorCounts: []
+};
 // Cached nav panel NodeList (set once after DOM ready)
 let _cachedNavPanels = null;
 function getCachedNavPanels() {
@@ -3188,7 +3193,8 @@ function getProjectsContent() {
         }
     
     ];
-
+    EELStats.projectCount =
+        currentProjects.length + developmentProjects.length;
     const courses = [
         {
             title: 'COMP 290: Introduction to Applied Engineering',
@@ -4126,7 +4132,35 @@ function getPeopleContent() {
             // Tie-breaker if two people have the same last name.
             return a.name.localeCompare(b.name);
         });
+    const majorAliases = {
+        'Math': 'Mathematics',
+        'Chemistry with a Focus in Analytical Chemistry': 'Chemistry'
+    };
+    const majorCounts = {};
 
+    currentMembers.forEach(function(member) {
+        if (!member.major) return;
+
+        member.major
+            .split(/\s*(?:,|&|\band\b)\s*/i)
+            .map(function(major) {
+                return major.trim();
+            })
+            .filter(Boolean)
+            .forEach(function(major) {
+                const normalizedMajor = majorAliases[major] || major;
+
+                majorCounts[normalizedMajor] =
+                    (majorCounts[normalizedMajor] || 0) + 1;
+            });
+    });
+
+    EELStats.studentCount = currentMembers.length;
+    EELStats.collaboratorCount = collaboratingAreas.length;
+
+    EELStats.majorCounts = Object.entries(majorCounts).sort(function(a, b) {
+        return b[1] - a[1] || a[0].localeCompare(b[0]);
+    });
     for (let i = 0; i < currentMembers.length; i++) {
         const member = currentMembers[i];
 
@@ -4268,23 +4302,42 @@ function getPeopleContent() {
            
 
 function getAboutContent() {
+    if (!_contentCache.projects) {
+        _contentCache.projects = getProjectsContent();
+    }
+
+    if (!_contentCache.people) {
+        _contentCache.people = getPeopleContent();
+    }
+
+    const majorList = EELStats.majorCounts.map(function(item) {
+        return '<li><strong>' + item[0] + ':</strong> ' + item[1] + '</li>';
+    }).join('');
+
     return `
         <h1 class="expanded-title">EEL at a Glance</h1>
         <div class="content-section">
             <div class="about-stats">
                 <div class="about-stat">
-                    <strong class="about-stat-number">35</strong>
+                    <strong class="about-stat-number">${EELStats.studentCount}</strong>
                     <span class="about-stat-label">Current Undergraduate Researchers</span>
                 </div>
                 <div class="about-stat">
-                                                          <strong class="about-stat-number">20</strong>
+                    <strong class="about-stat-number">${EELStats.projectCount}</strong>
                     <span class="about-stat-label">Current and Developing Projects</span>
                 </div>
                 <div class="about-stat">
-                    <strong class="about-stat-number">6</strong>
+                    <strong class="about-stat-number">${EELStats.collaboratorCount}</strong>
                     <span class="about-stat-label">Collaborating Academic Areas</span>
                 </div>
             </div>
+
+            <h2 class="section-title">Student Majors</h2>
+            <p class="about-text">EEL undergraduate researchers represent a broad range of academic programs across Carolina. Students pursuing more than one major are counted in each applicable field.</p>
+            <ul class="requirements-list">
+                ${majorList}
+            </ul>
+
             <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
                              <img src="images/CarDemo.webp" alt="Students demonstrating an autonomous vehicle project to visitors during an EEL open house" width="1600" height="1000" loading="lazy" decoding="async">
             </div>
@@ -4293,7 +4346,7 @@ function getAboutContent() {
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
 
             <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
-                                          <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 20 current and developing research projects.</p>
+                                                      <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports ${EELStats.projectCount} current and developing research projects.</p>
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
