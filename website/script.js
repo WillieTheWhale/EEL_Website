@@ -2601,11 +2601,17 @@ function _resumeBackgroundSystems() {
     for (var i = 0; i < bgEls.length; i++) bgEls[i].style.animationPlayState = '';
 }
 
-// Compute the final expanded rectangle in viewport coordinates.
+// Compute the final expanded rectangle inside the currently visible viewport.
 function _getExpandedTargetRect() {
     var viewport = window.visualViewport;
+
     var vw = viewport ? viewport.width : window.innerWidth;
     var vh = viewport ? viewport.height : window.innerHeight;
+
+    // A zoomed visual viewport can be offset inside the layout viewport.
+    // Fixed-position coordinates must include these offsets.
+    var viewportLeft = viewport ? viewport.offsetLeft : 0;
+    var viewportTop = viewport ? viewport.offsetTop : 0;
 
     var isMobile =
         document.body.classList.contains('mobile-portrait') ||
@@ -2613,19 +2619,79 @@ function _getExpandedTargetRect() {
 
     if (isMobile) {
         return {
-            left: 8,
-            top: 8,
+            left: viewportLeft + 8,
+            top: viewportTop + 8,
             width: Math.max(0, vw - 16),
             height: Math.max(0, vh - 16)
         };
     }
 
     return {
-        left: vw * 0.055,
-        top: vh * 0.055,
+        left: viewportLeft + (vw * 0.055),
+        top: viewportTop + (vh * 0.055),
         width: vw * 0.89,
         height: vh * 0.89
     };
+}
+
+// Recenter and resize an already-open panel whenever browser zoom,
+// viewport size, or the visible viewport position changes.
+var _expandedViewportRaf = 0;
+
+function _syncExpandedPanelToViewport() {
+    if (
+        !isExpanded ||
+        isCollapsing ||
+        !_cachedExpandedContainer ||
+        !_cachedExpandedContainer.classList.contains('expanded')
+    ) {
+        return;
+    }
+
+    if (_expandedViewportRaf) {
+        cancelAnimationFrame(_expandedViewportRaf);
+    }
+
+    _expandedViewportRaf = requestAnimationFrame(function() {
+        _expandedViewportRaf = 0;
+
+        if (
+            !isExpanded ||
+            isCollapsing ||
+            !_cachedExpandedContainer
+        ) {
+            return;
+        }
+
+        var target = _getExpandedTargetRect();
+
+        _cachedExpandedContainer.style.left = target.left + 'px';
+        _cachedExpandedContainer.style.top = target.top + 'px';
+        _cachedExpandedContainer.style.width = target.width + 'px';
+        _cachedExpandedContainer.style.height = target.height + 'px';
+        _cachedExpandedContainer.style.transform =
+            'translate3d(0, 0, 0) scale(1, 1)';
+    });
+}
+
+window.addEventListener(
+    'resize',
+    _syncExpandedPanelToViewport,
+    { passive: true }
+);
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener(
+        'resize',
+        _syncExpandedPanelToViewport,
+        { passive: true }
+    );
+
+    window.visualViewport.addEventListener(
+        'scroll',
+        _syncExpandedPanelToViewport,
+        { passive: true }
+    );
 }
 
 function expandPanel(panelId, contentType, routeOptions) {
