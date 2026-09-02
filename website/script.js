@@ -4132,9 +4132,10 @@ function getPeopleContent() {
             // Tie-breaker if two people have the same last name.
             return a.name.localeCompare(b.name);
         });
-    const majorAliases = {
+       const majorAliases = {
         'Math': 'Mathematics',
-        'Chemistry with a Focus in Analytical Chemistry': 'Chemistry'
+        'Chemistry with a Focus in Analytical Chemistry': 'Chemistry',
+        'Applied Sciences with Track in Materials Engineering': 'Applied Sciences'
     };
     const majorCounts = {};
 
@@ -4334,7 +4335,7 @@ function getAboutContent() {
 
              <h2 class="section-title" style="text-align: center;">Student Majors</h2>
             <p class="about-text" style="text-align: center;">EEL undergraduate researchers represent a broad range of academic programs across Carolina.</p>
-                        <ul class="requirements-list" style="columns: 2 280px; column-gap: 48px; max-width: 760px; margin: 0 auto; padding: 0; list-style: none;">
+                                    <ul class="requirements-list" style="columns: 2 280px; column-gap: 48px; max-width: 760px; margin: 0 auto; padding-left: 40px; text-align: left;">
                 ${majorList}
             </ul>
 
