@@ -3668,8 +3668,8 @@ function getPeopleContent() {
     ];
 
     const otherMembers = [
-                     {
-            name: 'Matthew Alexander',
+                            {
+            name: 'Matthew Rastovski',
             major: 'Chemistry B.S. with a focus in analytical chemistry',
             graduation: 'May 2027',
             headshot: 'headshots/matthew-alexander.png',
@@ -3867,8 +3867,8 @@ function getPeopleContent() {
         'Sidharth Yeramaddu': [
             { key: 'brooksVR', poster: true }
         ],
-        'Matthew Alexander': [
-            { key: 'fishCar' },
+                'Matthew Rastovski': [
+            { key: 'fishCar', poster: true },
             { key: 'openCTD' }
         ],
         'Adrian Hito': [
