@@ -159,21 +159,40 @@ html {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
+
+    /*
+       Fallback behind every composited visual layer.
+       This prevents the browser's default white canvas from appearing
+       temporarily during desktop zoom.
+    */
+    background-color: #BBBEC2;
+}
+
+html:has(body[data-theme="dark"]) {
+    background-color: #181D25;
 }
 
 body {
     width: 100%;
     height: 100%;
+    min-width: 100%;
+    min-height: 100%;
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(
+    background-color: var(--bg-gradient-3);
+    background-image: linear-gradient(
         180deg,
         var(--bg-gradient-1) 0%,
         var(--bg-gradient-2) 50%,
         var(--bg-gradient-3) 100%
     );
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     color: var(--text-dark);
     overflow: hidden;
+    overscroll-behavior: none;
     position: relative;
 }
 
@@ -361,8 +380,10 @@ body[data-theme="dark"] .blob-accent-2 {
 /* Cyberspace Container */
 .cyberspace {
     position: fixed;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
+    width: auto;
+    height: auto;
+    overflow: hidden;
     perspective: 3000px;
     perspective-origin: 50% 50%;
     transform-style: preserve-3d;
@@ -906,9 +927,8 @@ body[data-theme="dark"] .nav-panel:hover .panel-hologram {
 .expanded-overlay {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
+    width: auto;
+    height: auto;
     z-index: 5000;
     pointer-events: none;
     overflow: hidden;
