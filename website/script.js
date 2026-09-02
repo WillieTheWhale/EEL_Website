@@ -4332,8 +4332,8 @@ function getAboutContent() {
                 </div>
             </div>
 
-            <h2 class="section-title">Student Majors</h2>
-            <p class="about-text">EEL undergraduate researchers represent a broad range of academic programs across Carolina. Students pursuing more than one major are counted in each applicable field.</p>
+             <h2 class="section-title" style="text-align: center;">Student Majors</h2>
+            <p class="about-text" style="text-align: center;">EEL undergraduate researchers represent a broad range of academic programs across Carolina.</p>
             <ul class="requirements-list">
                 ${majorList}
             </ul>
