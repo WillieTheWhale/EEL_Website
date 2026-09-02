@@ -3164,14 +3164,29 @@ function getProjectsContent() {
             ],
             collaboration: 'Earth, Marine and Environmental Sciences'
         },
-        {
+               {
             title: 'Low-Cost CTD Sensors for Oceanography',
             body: [
                 `Conductivity, temperature, and depth sensors are essential tools in oceanographic research, but commercial CTD systems can be expensive. This project will use OpenCTD, a low-cost, open-source platform whose software, circuit boards, and 3D-printable components are publicly available under an MIT license.`,
                 `Students will fabricate, assemble, calibrate, and test OpenCTD instruments while exploring modifications for specific research applications.`
             ],
             collaboration: 'Earth, Marine and Environmental Sciences'
+        },
+        {
+            title: 'FloodLens',
+            body: [
+                `FloodLens is a flood-visualization project that helps homeowners better understand flood risk by turning abstract elevation and storm-surge data into a visual preview on their own home. Users can enter an address or upload an image of a home, and the system uses Street View imagery, computer vision, and reference-object detection to estimate where flood water could reach on the property.`,
+                `Future work will move beyond a two-dimensional overlay by using photogrammetry from a short video or multiple photographs submitted by the homeowner. This would allow the system to reconstruct a rough 3D model of the property and generate a more realistic visualization of flood water around the structure.`
+            ]
+        },
+        {
+            title: 'RC Vehicle Dynamics',
+            body: [
+                `This project will develop a low-cost experimental platform for studying vehicle dynamics using a hobby-grade RC car. The vehicle will be instrumented with an inertial measurement unit, wheel-speed sensor, and steering-angle sensor to collect synchronized measurements of steering input and vehicle response during controlled driving experiments.`,
+                `Straight-line, steady-state cornering, and transient steering tests will be used to characterize the vehicle and compare its measured behavior with simple vehicle-dynamics models. The platform will also support controlled changes to parameters such as weight distribution to investigate how vehicle setup influences handling and dynamic response.`
+            ]
         }
+    
     ];
 
     const courses = [
@@ -3707,8 +3722,11 @@ function getPeopleContent() {
             headshot: 'headshots/joseph-sabo.png',
             linkedin: 'https://www.linkedin.com/in/josephsabo29'
         },
-        {
+               {
             name: 'Karthik Dundigalla',
+            major: 'Computer Science',
+            graduation: 'May 2027',
+            headshot: 'headshots/karthik-dundigalla.png',
             linkedin: 'https://www.linkedin.com/in/karthik-dundigalla-a92332251'
         },
                      {
@@ -3751,8 +3769,10 @@ function getPeopleContent() {
         nepalModel: 'Scalable 3D Environment Optimization',
         eelWebsite: 'EEL Website Development',
         augmentedAurality: 'Augmented Aurality',
-        heritageExplorer: 'Interactive 3D Heritage Explorer',
-        reliable3D: 'Reliable 3D Reconstruction with Radiance Fields'
+                heritageExplorer: 'Interactive 3D Heritage Explorer',
+        reliable3D: 'Reliable 3D Reconstruction with Radiance Fields',
+        floodLens: 'FloodLens',
+        rcVehicleDynamics: 'RC Vehicle Dynamics'
     };
 
     const projectPosters = {
@@ -3791,8 +3811,9 @@ function getPeopleContent() {
         'Alexa Tinajero': [
             { key: 'spot', poster: true }
         ],
-        'Lily Foo': [
-            { key: 'swimmerHand', poster: true }
+               'Lily Foo': [
+            { key: 'swimmerHand', poster: true },
+            { key: 'rcVehicleDynamics' }
         ],
         'Riley Goodwin': [
             { key: 'fishCar', poster: true },
@@ -3871,12 +3892,18 @@ function getPeopleContent() {
         'Joseph Sabo': [
             { key: 'fishCar', poster: true }
         ],
+                'Karthik Dundigalla': [
+            { key: 'floodLens' }
+        ],
         'Lillian Gann': [
             { key: 'icePIV' }
         ],
                'Luke Hyatt': [
             { key: 'spot', poster: true },
             { key: 'nepalModel' }
+        ],
+                'Nichola Wells': [
+            { key: 'rcVehicleDynamics' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
@@ -4250,7 +4277,7 @@ function getAboutContent() {
                     <span class="about-stat-label">Current Undergraduate Researchers</span>
                 </div>
                 <div class="about-stat">
-                                      <strong class="about-stat-number">18</strong>
+                                                          <strong class="about-stat-number">20</strong>
                     <span class="about-stat-label">Current and Developing Projects</span>
                 </div>
                 <div class="about-stat">
@@ -4266,7 +4293,7 @@ function getAboutContent() {
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
 
             <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
-                               <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 18 current and developing research projects.</p>
+                                          <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports 20 current and developing research projects.</p>
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
