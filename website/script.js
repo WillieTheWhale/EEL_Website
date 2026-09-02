@@ -3670,7 +3670,7 @@ function getPeopleContent() {
     const otherMembers = [
                             {
             name: 'Matthew Rastovski',
-            major: 'Chemistry B.S. with a focus in analytical chemistry',
+            major: 'Chemistry with a Focus in Analytical Chemistry',
             graduation: 'May 2027',
             headshot: 'headshots/matthew-alexander.png',
             linkedin: 'https://www.linkedin.com/in/matthew-rastovski-9a48552b7/'
