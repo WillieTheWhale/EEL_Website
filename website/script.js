@@ -4335,7 +4335,7 @@ function getAboutContent() {
 
              <h2 class="section-title" style="text-align: center;">Student Majors</h2>
             <p class="about-text" style="text-align: center;">EEL undergraduate researchers represent a broad range of academic programs across Carolina.</p>
-                                               <ul class="requirements-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); column-gap: 80px; max-width: 760px; margin: 0 auto; padding-left: 0; text-align: left;">
+                                                           <ul class="requirements-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); column-gap: 80px; max-width: 760px; margin: 0 auto; padding-left: 0; text-align: left;">
                 ${majorList}
             </ul>
 
