@@ -2241,7 +2241,7 @@ const EELRouteManager = {
             contentType: 'people',
             route: 'members-collaborators',
             title: 'Members & Collaborators | EEL',
-            description: 'Meet the EEL undergraduate researchers, alumni, academic partners, and collaborators at UNC-Chapel Hill.'
+          description: 'Meet the EEL undergraduate research engineers, alumni, academic partners, and collaborators at UNC-Chapel Hill.'
         },
 
         about: {
@@ -3206,7 +3206,7 @@ function getProjectsContent() {
         {
             title: 'COMP 293: Internship in Computer Science',
             body: [
-                `In the EEL, COMP 293 is taught by Jim Mahaney and gives experienced undergraduate researchers the opportunity to lead a research team. Student leaders help define project goals, organize the team’s work, mentor newer researchers, guide technical decisions, and address problems as they arise.`,
+             `In the EEL, COMP 293 is taught by Jim Mahaney and gives experienced undergraduate research engineers the opportunity to lead a research team. Student leaders help define project goals, organize the team’s work, mentor newer undergraduate research engineers, guide technical decisions, and address problems as they arise.`,
                 `The course allows students to develop leadership, project-management, communication, and mentoring skills while continuing to contribute directly to active research.`
             ]
         },
@@ -3220,12 +3220,9 @@ function getProjectsContent() {
         {
             title: 'RELI 283: The Buddhist Tradition: India, Nepal, and Tibet',
             body: [
-                `RELI 283 is taught by Lauren Leve in Religious Studies. Working with Leve, Jim Mahaney and EEL undergraduate researchers have developed the 3D models, optimized datasets, VR environments, and redirected-walking system used in the course.`,
+               `RELI 283 is taught by Lauren Leve in Religious Studies. Working with Leve, Jim Mahaney and EEL undergraduate research engineers have developed the 3D models, optimized datasets, VR environments, and redirected-walking system used in the course.`,
                 `During VR labs, students explore accurately scaled models of Swayambhu and other locations discussed in class. Redirected walking allows them to move naturally through a life-size virtual environment much larger than the physical laboratory, giving them a stronger understanding of scale, spatial relationships, and the embodied experience of a religious site.`,
-                `More than a dozen undergraduate researchers have contributed to the models and VR system. The course demonstrates a direct connection between field research and teaching while bringing together Computer Science and the humanities in a way that would not be possible through conventional two-dimensional classroom materials alone.`
-            ],
-            collaboration: 'Religious Studies',
-            link: 'https://www.unc.edu/discover/tar-heel-team-begins-preservation-of-ancient-nepal-temple/',
+              `More than a dozen undergraduate research engineers have contributed to the models and VR system. The course demonstrates a direct connection between field research and teaching while bringing together Computer Science and the humanities in a way that would not be possible through conventional two-dimensional classroom materials alone.`
             linkText: 'Read the Carolina story about the Nepal fieldwork'
         }
     ];
@@ -4087,10 +4084,10 @@ function getPeopleContent() {
         'program, creating opportunities that combine faculty ',
         'collaborations, student-led research, specialized technical ',
         'training, and credit-bearing courses. His current work focuses ',
-        'on hands-on engineering education and helping undergraduate ',
-        'researchers develop practical skills in electronics, machining, ',
-        'welding, fabrication, and rapid prototyping while building ',
-        'systems for active research projects.',
+       'on hands-on engineering education and helping undergraduate ',
+'research engineers develop practical skills in electronics, machining, ',
+'welding, fabrication, and rapid prototyping while building ',
+'systems for active research projects.',
                     '</p>',
         '<a class="research-link" href="https://research.unc.edu/2025/09/03/rooted-jim-mahaney/" target="_blank" rel="noopener noreferrer">Read the UNC Research profile, “Rooted: Jim Mahaney”</a>',
         '</div>',
@@ -4101,7 +4098,7 @@ function getPeopleContent() {
     parts.push(
         '<div class="people-section">',
         '<h2 class="people-section-title">',
-        'Current Undergraduate Researchers',
+       'Current Undergraduate Research Engineers',
         '</h2>',
         '<div class="people-grid featured-grid current-researchers-grid">'
     );
@@ -4263,7 +4260,7 @@ function getPeopleContent() {
         '<div class="people-section">',
         '<h2 class="people-section-title">EEL Alumni</h2>',
         '<p class="people-section-intro">',
-        'Recognizing undergraduate researchers who contributed to the ',
+       'Recognizing former undergraduate research engineers who contributed to the ',
         'EEL and graduated from UNC-Chapel Hill.',
         '</p>',
         '<div class="people-grid featured-grid alumni-grid">'
@@ -4321,7 +4318,7 @@ function getAboutContent() {
             <div class="about-stats">
                 <div class="about-stat">
                     <strong class="about-stat-number">${EELStats.studentCount}</strong>
-                    <span class="about-stat-label">Current Undergraduate Researchers</span>
+                   <span class="about-stat-label">Current Undergraduate Research Engineers</span>
                 </div>
                 <div class="about-stat">
                     <strong class="about-stat-number">${EELStats.projectCount}</strong>
@@ -4334,7 +4331,7 @@ function getAboutContent() {
             </div>
 
              <h2 class="section-title" style="text-align: center;">Student Majors</h2>
-            <p class="about-text" style="text-align: center;">EEL undergraduate researchers represent a broad range of academic programs across Carolina.</p>
+            <p class="about-text" style="text-align: center;">EEL undergraduate researcher engineers represent a broad range of academic programs across Carolina.</p>
                                                            <ul class="requirements-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); column-gap: 80px; max-width: 760px; margin: 0 auto; padding-left: 0; text-align: left;">
                 ${majorList}
             </ul>
@@ -4347,7 +4344,7 @@ function getAboutContent() {
             <p class="about-text">The lab brings together hardware, software, fabrication, and experimental design in one facility. This allows projects to move quickly from an initial concept to a system that can be tested and used in actual research. It also makes specialized equipment and technical expertise available across projects and departments, extending the value of resources that already exist at Carolina.</p>
 
             <h2 class="section-title">Undergraduate Research and Engineering Education</h2>
-                                                      <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate researchers working across 14 active projects. It now supports ${EELStats.projectCount} current and developing research projects.</p>
+            <p class="about-text">In fall 2025, under the direction of Jim Mahaney, Director of Engineering and Research, the Applied Engineering Lab was renamed the Experimental Engineering Lab and its mission was expanded to include a structured undergraduate research and engineering-training program. By the end of its first two semesters, the program had grown from an idea into a community of 35 undergraduate research engineers working across 14 active projects. It now supports ${EELStats.projectCount} current and developing research projects.</p>
             <p class="about-text">Students in the EEL do more than observe research or perform routine laboratory tasks. They help define problems, design components, fabricate parts, develop software, integrate systems, collect data, troubleshoot failures, and present their results. Some projects begin with the needs of faculty researchers, while others originate with students who bring their own ideas to the lab.</p>
             <p class="about-text">This approach gives students experience with the complete process of research engineering: moving from a question or idea to a working system, testing it, learning from what fails, and improving the design. Along the way, students develop practical skills in machining, welding, electronics, rapid prototyping, robotics, sensing, programming, 3D modeling, and immersive technologies.</p>
             <p class="about-text">Research opportunities are complemented by credit-bearing courses and independent studies, allowing students to develop technical skills while contributing to active research. These experiences help prepare students for careers, graduate study, entrepreneurship, and future work in laboratories where progress depends on being able to build something that has never existed before.</p>
