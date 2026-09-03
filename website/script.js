@@ -10,10 +10,9 @@ const PHI_INV = 0.618033988749;
 const _initialTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 const _initialNarrowViewport = window.innerWidth <= 768;
 const _initialMobileDevice =
-    _initialNarrowViewport ||
-    (_initialTouchDevice &&
-        window.matchMedia('(pointer: coarse)').matches &&
-        window.matchMedia('(hover: none)').matches);
+    (_initialTouchDevice && window.matchMedia('(pointer: coarse)').matches &&
+        window.matchMedia('(hover: none)').matches) ||
+    (_initialTouchDevice && _initialNarrowViewport);
 
 const RuntimeVisibility = {
     // Match MobileHandler's existing device test synchronously so hidden work
@@ -1129,9 +1128,8 @@ class RadialPanelPhysics {
                console.log('%cElements positioned and revealed', 'color: #7ec8e3; font-weight: bold;');
     }
     
-    addPanelListeners(panel) {
+       addPanelListeners(panel) {
         panel.addEventListener('mousedown', (e) => {
-                        if (RuntimeVisibility.mobilePortrait) return;
             const panelData = this.panels.get(panel.id);
             if (!panelData) return;
             
@@ -1155,24 +1153,14 @@ class RadialPanelPhysics {
             panelData.angularVelocity = 0;
             e.preventDefault();
         });
-                        panel.addEventListener('click', () => {
-            const mobileLayout =
-                document.documentElement.classList.contains('mobile-portrait') ||
-                document.body.classList.contains('mobile-portrait') ||
-                window.innerWidth <= 768;
-
-            if (!mobileLayout) return;
-
-            const contentType = panel.dataset.contentType;
-            if (contentType && !isExpanded && !isCollapsing) {
-                expandPanel(panel.id, contentType);
-            }
-        });
+        
         panel.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 const contentType = panel.dataset.contentType;
-                if (contentType && !isExpanded && !isCollapsing) expandPanel(panel.id, contentType);
+                if (contentType && !isExpanded && !isCollapsing) {
+                    expandPanel(panel.id, contentType);
+                }
             }
         });
     }
