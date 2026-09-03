@@ -36,40 +36,26 @@
             // Check orientation
             this.isPortrait = window.innerHeight > window.innerWidth;
             
-            // Determine if mobile
-                       this.isMobile = isNarrow ||
-                           (isTouchDevice && hasCoarsePointer && noHover);
+                       // Determine if mobile
+            this.isMobile = (isTouchDevice && hasCoarsePointer && noHover) || 
+                           (isTouchDevice && isNarrow);
             
             this.applyMobileStyles();
         },
         
-               applyMobileStyles: function() {
-            const root = document.documentElement;
+        applyMobileStyles: function() {
             const body = document.body;
-
-            if (this.isMobile) {
-                root.classList.add('mobile-portrait');
+            
+            if (this.isMobile && this.isPortrait) {
                 body.classList.add('mobile-portrait');
-
-                if (window.EELRuntime) {
-                    window.EELRuntime.setMobilePortrait(true);
-                }
-
+                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(true);
                 this.disablePanelPhysics();
             } else {
-                root.classList.remove('mobile-portrait');
                 body.classList.remove('mobile-portrait');
-
-                if (window.EELRuntime) {
-                    window.EELRuntime.setMobilePortrait(false);
-                }
-
+                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(false);
                 this.enablePanelPhysics();
             }
         },
-        
-        disablePanelPhysics: function() {
-            // Disable physics and show panels in scrollable layout
             if (typeof radialPanelPhysics !== 'undefined' && radialPanelPhysics) {
                 radialPanelPhysics.panels.forEach((panelData) => {
                     panelData.physicsDisabled = true;
