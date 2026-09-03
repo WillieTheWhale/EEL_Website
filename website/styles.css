@@ -3301,7 +3301,7 @@ body[data-theme="dark"] .trace-gradient-end {
     }
 }
 /* ============================================
-   RESTORE MOBILE PAGE SCROLLING
+   MOBILE PAGE SCROLLING AND INTERACTION FALLBACK
    Must remain at the end of the stylesheet
    ============================================ */
 
@@ -3316,7 +3316,7 @@ body[data-theme="dark"] .trace-gradient-end {
         overscroll-behavior-y: auto;
     }
 
-    body.mobile-portrait {
+    body {
         width: 100%;
         height: auto !important;
         min-height: 100vh;
@@ -3324,12 +3324,22 @@ body[data-theme="dark"] .trace-gradient-end {
         overflow-x: hidden !important;
         overflow-y: visible !important;
         overscroll-behavior-y: auto;
+        perspective: none !important;
     }
 
-    body.mobile-portrait .cyberspace {
+    .cyberspace {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 100vh;
         min-height: 100dvh;
         overflow: visible !important;
+        pointer-events: auto !important;
+    }
+
+    .nav-panel {
+        pointer-events: auto !important;
+        touch-action: manipulation;
     }
 }
