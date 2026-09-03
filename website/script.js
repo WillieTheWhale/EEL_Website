@@ -3662,15 +3662,7 @@ function getPeopleContent() {
             headshot: 'headshots/sanskriti-negi.jpeg',
             linkedin: 'https://www.linkedin.com/in/sanskriti-negi-unc'
         },
-        {
-            name: 'Sidharth Yeramaddu',
-            major: 'Applied Mathematics & Computer Science',
-            status: 'Undergraduate',
-                       graduation: 'May 2029',
-            project: 'Sidharth is an applied mathematics and computer science student at UNC.',
-            headshot: 'headshots/sidharth-yeramaddu.jpeg',
-            linkedin: 'https://www.linkedin.com/in/sidharth-yeramaddu'
-        }
+       
     ];
 
     const otherMembers = [
@@ -3681,8 +3673,11 @@ function getPeopleContent() {
             headshot: 'headshots/matthew-alexander.png',
             linkedin: 'https://www.linkedin.com/in/matthew-rastovski-9a48552b7/'
         },
-        {
+                {
             name: 'Adrian Hito',
+            major: 'Computer Science & Biomedical Engineering',
+            graduation: 'May 2029',
+            headshot: 'headshots/adrian-hito.png',
             linkedin: 'https://www.linkedin.com/in/adrian-hito'
         },
                        {
@@ -3713,14 +3708,7 @@ function getPeopleContent() {
             headshot: 'headshots/allen-solomon.png',
             linkedin: 'https://www.linkedin.com/in/allen-solomon-68b8a3267/'
         },
-        {
-            name: 'Brandon Ge',
-            linkedin: 'https://www.linkedin.com/in/brandonyge'
-        },
-        {
-            name: 'Joaquim D\'Silva',
-            linkedin: 'https://www.linkedin.com/in/joaquimdsilva'
-        },
+       
                      {
             name: 'Joseph Sabo',
             major: 'Computer Science and Mathematics',
@@ -3873,9 +3861,7 @@ function getPeopleContent() {
             { key: 'mantaRay', poster: true },
             { key: 'icePIV' }
         ],
-        'Sidharth Yeramaddu': [
-            { key: 'brooksVR', poster: true }
-        ],
+       
                 'Matthew Rastovski': [
             { key: 'fishCar', poster: true },
             { key: 'openCTD' }
