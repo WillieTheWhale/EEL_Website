@@ -167,8 +167,7 @@ body {
     overflow: hidden;
     height: 100vh;
     position: relative;
-    perspective: 3000px;
-    perspective-origin: 50% 50%;
+   
 }
 
 /* Chrome Grid Floor */
@@ -357,6 +356,8 @@ body[data-theme="dark"] .blob-accent-2 {
     position: fixed;
     width: 100vw;
     height: 100vh;
+        perspective: 3000px;
+    perspective-origin: 50% 50%;
     transform-style: preserve-3d;
     z-index: 100;
     pointer-events: none;
