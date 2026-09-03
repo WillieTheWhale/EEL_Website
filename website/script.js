@@ -10,9 +10,10 @@ const PHI_INV = 0.618033988749;
 const _initialTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 const _initialNarrowViewport = window.innerWidth <= 768;
 const _initialMobileDevice =
-    (_initialTouchDevice && window.matchMedia('(pointer: coarse)').matches &&
-        window.matchMedia('(hover: none)').matches) ||
-    (_initialTouchDevice && _initialNarrowViewport);
+    _initialNarrowViewport ||
+    (_initialTouchDevice &&
+        window.matchMedia('(pointer: coarse)').matches &&
+        window.matchMedia('(hover: none)').matches);
 
 const RuntimeVisibility = {
     // Match MobileHandler's existing device test synchronously so hidden work
@@ -1154,8 +1155,13 @@ class RadialPanelPhysics {
             panelData.angularVelocity = 0;
             e.preventDefault();
         });
-                panel.addEventListener('click', () => {
-            if (!RuntimeVisibility.mobilePortrait) return;
+                        panel.addEventListener('click', () => {
+            const mobileLayout =
+                document.documentElement.classList.contains('mobile-portrait') ||
+                document.body.classList.contains('mobile-portrait') ||
+                window.innerWidth <= 768;
+
+            if (!mobileLayout) return;
 
             const contentType = panel.dataset.contentType;
             if (contentType && !isExpanded && !isCollapsing) {
