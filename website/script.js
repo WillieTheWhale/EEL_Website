@@ -3223,10 +3223,11 @@ function getProjectsContent() {
                `RELI 283 is taught by Lauren Leve in Religious Studies. Working with Leve, Jim Mahaney and EEL undergraduate research engineers have developed the 3D models, optimized datasets, VR environments, and redirected-walking system used in the course.`,
                 `During VR labs, students explore accurately scaled models of Swayambhu and other locations discussed in class. Redirected walking allows them to move naturally through a life-size virtual environment much larger than the physical laboratory, giving them a stronger understanding of scale, spatial relationships, and the embodied experience of a religious site.`,
                     `More than a dozen undergraduate research engineers have contributed to the models and VR system. The course demonstrates a direct connection between field research and teaching while bringing together Computer Science and the humanities in a way that would not be possible through conventional two-dimensional classroom materials alone.`
-                       ],
+                                ],
             collaboration: 'Religious Studies',
             link: 'https://www.unc.edu/discover/tar-heel-team-begins-preservation-of-ancient-nepal-temple/',
             linkText: 'Read the Carolina story about the Nepal fieldwork'
+        }
     ];
 
     const pastProjects = [
