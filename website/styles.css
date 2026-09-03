@@ -3343,3 +3343,57 @@ body[data-theme="dark"] .trace-gradient-end {
         touch-action: manipulation;
     }
 }
+
+/* ============================================
+   DEFINITIVE MOBILE INPUT AND SCROLL FIX
+   ============================================ */
+
+html.mobile-portrait {
+    width: 100%;
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+}
+
+html.mobile-portrait body {
+    width: 100%;
+    height: auto !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    position: relative;
+    perspective: none !important;
+    touch-action: pan-y pinch-zoom;
+}
+
+html.mobile-portrait .cyberspace {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    perspective: none !important;
+}
+
+html.mobile-portrait .nav-panel {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 300px !important;
+    min-height: 300px !important;
+    flex: 0 0 300px;
+    transform: none !important;
+    pointer-events: auto !important;
+    touch-action: pan-y pinch-zoom;
+}
