@@ -155,45 +155,20 @@ body.no-transitions * {
                 box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-
-    /*
-       Fallback behind every composited visual layer.
-       This prevents the browser's default white canvas from appearing
-       temporarily during desktop zoom.
-    */
-    background-color: #BBBEC2;
-}
-
-html:has(body[data-theme="dark"]) {
-    background-color: #181D25;
-}
-
 body {
-    width: 100%;
-    height: 100%;
-    min-width: 100%;
-    min-height: 100%;
-    margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-gradient-3);
-    background-image: linear-gradient(
+    background: linear-gradient(
         180deg,
         var(--bg-gradient-1) 0%,
         var(--bg-gradient-2) 50%,
         var(--bg-gradient-3) 100%
     );
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
     color: var(--text-dark);
     overflow: hidden;
-    overscroll-behavior: none;
+    height: 100vh;
     position: relative;
+    perspective: 3000px;
+    perspective-origin: 50% 50%;
 }
 
 /* Chrome Grid Floor */
@@ -380,12 +355,8 @@ body[data-theme="dark"] .blob-accent-2 {
 /* Cyberspace Container */
 .cyberspace {
     position: fixed;
-    inset: 0;
-    width: auto;
-    height: auto;
-    overflow: hidden;
-    perspective: 3000px;
-    perspective-origin: 50% 50%;
+    width: 100vw;
+    height: 100vh;
     transform-style: preserve-3d;
     z-index: 100;
     pointer-events: none;
@@ -926,12 +897,12 @@ body[data-theme="dark"] .nav-panel:hover .panel-hologram {
 
 .expanded-overlay {
     position: fixed;
-    inset: 0;
-    width: auto;
-    height: auto;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 5000;
     pointer-events: none;
-    overflow: hidden;
     background-color: transparent;
     transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     contain: layout style;
@@ -3299,101 +3270,4 @@ body[data-theme="dark"] .trace-gradient-end {
         max-width: 100%;
         min-width: 0;
     }
-}
-/* ============================================
-   MOBILE PAGE SCROLLING AND INTERACTION FALLBACK
-   Must remain at the end of the stylesheet
-   ============================================ */
-
-@media screen and (max-width: 768px) {
-    html {
-        width: 100%;
-        height: auto !important;
-        min-height: 100%;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        overscroll-behavior-x: none;
-        overscroll-behavior-y: auto;
-    }
-
-    body {
-        width: 100%;
-        height: auto !important;
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow-x: hidden !important;
-        overflow-y: visible !important;
-        overscroll-behavior-y: auto;
-        perspective: none !important;
-    }
-
-    .cyberspace {
-        position: relative !important;
-        inset: auto !important;
-        width: 100% !important;
-        height: auto !important;
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow: visible !important;
-        pointer-events: auto !important;
-    }
-
-    .nav-panel {
-        pointer-events: auto !important;
-        touch-action: manipulation;
-    }
-}
-
-/* ============================================
-   DEFINITIVE MOBILE INPUT AND SCROLL FIX
-   ============================================ */
-
-html.mobile-portrait {
-    width: 100%;
-    height: auto !important;
-    min-height: 100%;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior-x: none;
-    overscroll-behavior-y: auto;
-}
-
-html.mobile-portrait body {
-    width: 100%;
-    height: auto !important;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    position: relative;
-    perspective: none !important;
-    touch-action: pan-y pinch-zoom;
-}
-
-html.mobile-portrait .cyberspace {
-    position: relative !important;
-    inset: auto !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: visible !important;
-    pointer-events: auto !important;
-    transform: none !important;
-    perspective: none !important;
-}
-
-html.mobile-portrait .nav-panel {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: 100% !important;
-    height: 300px !important;
-    min-height: 300px !important;
-    flex: 0 0 300px;
-    transform: none !important;
-    pointer-events: auto !important;
-    touch-action: pan-y pinch-zoom;
 }
