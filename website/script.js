@@ -3753,9 +3753,12 @@ function getPeopleContent() {
             headshot: 'headshots/luke-hyatt.png',
             linkedin: 'https://www.linkedin.com/in/luke-hyatt-49a168288/'
         },
-        {
+               {
             name: 'Nichola Wells',
-            linkedin: 'https://www.linkedin.com/in/nichola-wells-872178262'
+            major: 'Applied Mathematics and Engineering Physics',
+            graduation: 'May 2028',
+            headshot: 'headshots/nichola-wells.png',
+            linkedin: 'https://www.linkedin.com/in/nichola-wells-872178262/'
         }
     ];
 
