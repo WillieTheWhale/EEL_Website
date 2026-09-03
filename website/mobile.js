@@ -43,16 +43,27 @@
             this.applyMobileStyles();
         },
         
-        applyMobileStyles: function() {
+               applyMobileStyles: function() {
+            const root = document.documentElement;
             const body = document.body;
-            
-            if (this.isMobile && this.isPortrait) {
+
+            if (this.isMobile) {
+                root.classList.add('mobile-portrait');
                 body.classList.add('mobile-portrait');
-                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(true);
+
+                if (window.EELRuntime) {
+                    window.EELRuntime.setMobilePortrait(true);
+                }
+
                 this.disablePanelPhysics();
             } else {
+                root.classList.remove('mobile-portrait');
                 body.classList.remove('mobile-portrait');
-                if (window.EELRuntime) window.EELRuntime.setMobilePortrait(false);
+
+                if (window.EELRuntime) {
+                    window.EELRuntime.setMobilePortrait(false);
+                }
+
                 this.enablePanelPhysics();
             }
         },
