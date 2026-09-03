@@ -37,8 +37,8 @@
             this.isPortrait = window.innerHeight > window.innerWidth;
             
             // Determine if mobile
-            this.isMobile = (isTouchDevice && hasCoarsePointer && noHover) || 
-                           (isTouchDevice && isNarrow);
+                       this.isMobile = isNarrow ||
+                           (isTouchDevice && hasCoarsePointer && noHover);
             
             this.applyMobileStyles();
         },
