@@ -3107,11 +3107,27 @@ body[data-theme="dark"] .trace-gradient-end {
         overflow-x: hidden !important;
     }
 
+    /*
+       Fixed-position expanded cards must use the mobile viewport,
+       not the scrolled body as their containing block.
+    */
+    body {
+        perspective: none !important;
+        perspective-origin: initial !important;
+    }
+    /*
+       Fixed-position expanded cards must use the mobile viewport,
+       not the scrolled body as their containing block.
+    */
+    body {
+        perspective: none !important;
+        perspective-origin: initial !important;
+    }
     /* Keep the expanded panel and everything inside it constrained
        to the mobile viewport */
-    body.mobile-portrait .expanded-container,
-    body.mobile-portrait .expanded-glass-container,
-    body.mobile-portrait .expanded-content {
+        .expanded-container,
+    .expanded-glass-container,
+    .expanded-content {
         max-width: 100%;
         min-width: 0;
     }
@@ -3119,7 +3135,7 @@ body[data-theme="dark"] .trace-gradient-end {
        Mobile expanded panels always open at the same viewport position.
        The !important rules override the inline dimensions added by script.js.
     */
-    body.mobile-portrait .expanded-overlay {
+       .expanded-overlay {
         position: fixed !important;
         inset: 0 !important;
         width: 100vw !important;
@@ -3128,7 +3144,7 @@ body[data-theme="dark"] .trace-gradient-end {
         overflow: hidden !important;
     }
 
-    body.mobile-portrait .expanded-container {
+        .expanded-container {
         position: fixed !important;
         top: 8px !important;
         right: 8px !important;
@@ -3141,11 +3157,11 @@ body[data-theme="dark"] .trace-gradient-end {
         transform-origin: center !important;
     }
 
-    body.mobile-portrait .expanded-glass-container {
+        .expanded-glass-container {
         width: 100% !important;
         height: 100% !important;
     }
-       body.mobile-portrait .expanded-content {
+          .expanded-content {
         width: 100%;
         height: 100%;
         max-height: 100%;
