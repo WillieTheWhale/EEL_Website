@@ -56,7 +56,9 @@
                 this.enablePanelPhysics();
             }
         },
-            if (typeof radialPanelPhysics !== 'undefined' && radialPanelPhysics) {
+                disablePanelPhysics: function() {
+            // Disable physics and show panels in scrollable layout    
+        if (typeof radialPanelPhysics !== 'undefined' && radialPanelPhysics) {
                 radialPanelPhysics.panels.forEach((panelData) => {
                     panelData.physicsDisabled = true;
                     panelData.isDragging = false;
