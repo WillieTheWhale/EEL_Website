@@ -3184,12 +3184,20 @@ function getProjectsContent() {
                 `Future work will move beyond a two-dimensional overlay by using photogrammetry from a short video or multiple photographs submitted by the homeowner. This would allow the system to reconstruct a rough 3D model of the property and generate a more realistic visualization of flood water around the structure.`
             ]
         },
-        {
+               {
             title: 'RC Vehicle Dynamics',
             body: [
                 `This project will develop a low-cost experimental platform for studying vehicle dynamics using a hobby-grade RC car. The vehicle will be instrumented with an inertial measurement unit, wheel-speed sensor, and steering-angle sensor to collect synchronized measurements of steering input and vehicle response during controlled driving experiments.`,
                 `Straight-line, steady-state cornering, and transient steering tests will be used to characterize the vehicle and compare its measured behavior with simple vehicle-dynamics models. The platform will also support controlled changes to parameters such as weight distribution to investigate how vehicle setup influences handling and dynamic response.`
             ]
+        },
+        {
+            title: 'Ocular Response Impairment Screening',
+            body: [
+                `This project explores how consumer camera technology could help physical therapists screen for concussion and traumatic brain injury. The current system combines computer vision-based pupil tracking, standardized oculomotor tests including smooth pursuit, saccades, and convergence, and validated clinical benchmarks from the Vestibular/Ocular Motor Screening assessment (VOMS) to identify movement patterns associated with concussion.`,
+                `The system tracks a user’s eye movements as they follow a visual stimulus, compares the results with clinician-administered reference scores, and provides physical therapists with objective, repeatable oculomotor metrics at the point of care. Future work will explore pupillary light reflex testing, a wearable headset-based form factor, and integration with vestibular and balance assessment.`
+            ],
+            collaboration: 'Physical Therapy'
         }
     
     ];
@@ -3769,7 +3777,8 @@ function getPeopleContent() {
                 heritageExplorer: 'Interactive 3D Heritage Explorer',
         reliable3D: 'Reliable 3D Reconstruction with Radiance Fields',
         floodLens: 'FloodLens',
-        rcVehicleDynamics: 'RC Vehicle Dynamics'
+                rcVehicleDynamics: 'RC Vehicle Dynamics',
+        ocularScreening: 'Ocular Response Impairment Screening'
     };
 
     const projectPosters = {
