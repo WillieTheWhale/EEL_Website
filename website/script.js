@@ -3821,10 +3821,11 @@ function getPeopleContent() {
             { key: 'swimmerHand', poster: true },
             { key: 'rcVehicleDynamics' }
         ],
-        'Riley Goodwin': [
+                'Riley Goodwin': [
             { key: 'fishCar', poster: true },
             { key: 'handTracking', poster: true },
-            { key: 'dorsiflexion' }
+            { key: 'dorsiflexion' },
+            { key: 'ocularScreening' }
         ],
         'Ethan DeRosa': [
             { key: 'fishCar', poster: true }
@@ -3893,8 +3894,9 @@ function getPeopleContent() {
             { key: 'hologram' },
             { key: 'brooksVR', poster: true }
         ],
-        'Joseph Sabo': [
-            { key: 'fishCar', poster: true }
+                'Joseph Sabo': [
+            { key: 'fishCar', poster: true },
+            { key: 'ocularScreening' }
         ],
                 'Karthik Dundigalla': [
             { key: 'floodLens' }
