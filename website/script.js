@@ -3025,9 +3025,11 @@ function getProjectsContent() {
                 `Fieldwork at Swayambhu in Nepal produced more than 500 gigabytes of photographs, laser-scanned point clouds, and aerial imagery. The resulting photogrammetry model contains approximately 2.7 billion triangles, making it far too large for conventional computers or VR headsets to display directly.`,
                 `Students are comparing photogrammetry, Neural Radiance Fields, and 3D Gaussian Splatting to determine how very large environments can be represented efficiently without losing their essential visual detail. Preliminary results suggest that a hybrid workflow may provide the best combination of image quality, real-time performance, and portability across VR and conventional computing platforms.`
             ],
-            collaboration: 'Religious Studies',
+                       collaboration: 'Religious Studies',
             link: 'https://research.unc.edu/story/blueprints-for-preservation/',
-            linkText: 'Read the UNC Research feature, “Blueprints for Preservation”'
+            linkText: 'Read the UNC Research feature, “Blueprints for Preservation”',
+            secondLink: 'https://www.unc.edu/discover/tar-heel-team-begins-preservation-of-ancient-nepal-temple/',
+            secondLinkText: 'Read the Carolina story about the Nepal fieldwork'
         },
              {
             title: 'Interactive 3D Heritage Explorer',
@@ -3232,9 +3234,9 @@ function getProjectsContent() {
                 `During VR labs, students explore accurately scaled models of Swayambhu and other locations discussed in class. Redirected walking allows them to move naturally through a life-size virtual environment much larger than the physical laboratory, giving them a stronger understanding of scale, spatial relationships, and the embodied experience of a religious site.`,
                     `More than a dozen undergraduate research engineers have contributed to the models and VR system. The course demonstrates a direct connection between field research and teaching while bringing together Computer Science and the humanities in a way that would not be possible through conventional two-dimensional classroom materials alone.`
                                 ],
-            collaboration: 'Religious Studies',
-            link: 'https://www.unc.edu/discover/tar-heel-team-begins-preservation-of-ancient-nepal-temple/',
-            linkText: 'Read the Carolina story about the Nepal fieldwork'
+                       collaboration: 'Religious Studies',
+            link: 'https://dailytarheel.com/480769/lifestyle/religious-studies-class-transports-students-to-nepal-through-virtual-reality/',
+            linkText: 'Read The Daily Tar Heel story about RELI 283 and virtual reality'
         }
     ];
 
@@ -3280,8 +3282,12 @@ function getProjectsContent() {
             parts.push(`<p class="research-collaboration"><strong>Collaboration:</strong> ${item.collaboration}</p>`);
         }
 
-        if (item.link) {
+               if (item.link) {
             parts.push(`<a class="research-link" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.linkText}</a>`);
+        }
+
+        if (item.secondLink) {
+            parts.push(`<br><a class="research-link" href="${item.secondLink}" target="_blank" rel="noopener noreferrer">${item.secondLinkText}</a>`);
         }
 
         return parts.join('');
