@@ -4376,6 +4376,11 @@ function getAboutContent() {
             <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
                                <img src="images/VR.webp" alt="An EEL student guiding a visitor through a virtual reality demonstration" width="1600" height="1000" loading="lazy" decoding="async">
             </div>
+                        <h2 class="section-title">In the News</h2>
+            <p class="about-text"><strong>The Daily Tar Heel</strong> | September 9, 2026</p>
+            <p class="about-text"><em>Religious studies class transports students to Nepal through virtual reality</em></p>
+            <p class="about-text">The Daily Tar Heel looks at how 3D models and virtual reality developed through the EEL are being used in RELI 283 to bring field research from Nepal into the classroom.</p>
+            <a class="research-link" href="https://dailytarheel.com/480769/lifestyle/religious-studies-class-transports-students-to-nepal-through-virtual-reality/" target="_blank" rel="noopener noreferrer">Read the Daily Tar Heel article</a>
             <h2 class="section-title">Facilities and Technical Capabilities</h2>
             <p class="about-text">The EEL continues a long tradition of maintaining the ability to design and build specialized research systems within Computer Science. Its facilities include an electronics laboratory, machine shop, rapid-fabrication space, wet lab, and shielded room.</p>
             <p class="about-text">Current capabilities include:</p>
