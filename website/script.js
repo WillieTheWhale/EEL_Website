@@ -4382,8 +4382,13 @@ function getAboutContent() {
             <p class="about-text">The lab’s work with Religious Studies is a particularly strong example of this approach. Fieldwork in Nepal has produced detailed 3D records of Buddhist sites, while EEL students have helped develop the models, virtual environments, and redirected-walking technology needed to use that research in immersive educational settings. The collaboration brings together humanities scholarship, computer science, engineering, cultural documentation, and new approaches to teaching.</p>
             <div class="research-entry-media" style="max-width:1200px; margin:28px auto 42px;">
                                <img src="images/VR.webp" alt="An EEL student guiding a visitor through a virtual reality demonstration" width="1600" height="1000" loading="lazy" decoding="async">
-            </div>
-                        <h2 class="section-title">In the News</h2>
+                        </div>
+
+            <h2 class="section-title">Follow the EEL</h2>
+            <p class="about-text">Follow the Experimental Engineering Lab on Instagram for project updates, student work, and life in the lab.</p>
+            <a class="research-link" href="https://www.instagram.com/experimentalengineeringlab/" target="_blank" rel="noopener noreferrer">Follow @experimentalengineeringlab on Instagram</a>
+
+            <h2 class="section-title">In the News</h2>
             <p class="about-text"><strong>The Daily Tar Heel</strong> | September 9, 2026</p>
             <p class="about-text"><em>Religious studies class transports students to Nepal through virtual reality</em></p>
             <p class="about-text">The Daily Tar Heel looks at how 3D models and virtual reality developed through the EEL are being used in RELI 283 to bring field research from Nepal into the classroom.</p>
