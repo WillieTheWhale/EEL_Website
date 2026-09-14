@@ -3765,8 +3765,12 @@ function getPeopleContent() {
         {
             name: 'Agastya Maheshwari'
         },
-        {
-            name: 'Vedh Krishnan'
+                {
+            name: 'Vedh Krishnan',
+            major: 'Data Science & Computer Science',
+            graduation: 'May 2030',
+            headshot: 'headshots/vedh-krishnan.png',
+            linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
         },
                {
             name: 'Brandon Ge',
