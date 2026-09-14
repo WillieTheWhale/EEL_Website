@@ -3586,12 +3586,12 @@ function getPeopleContent() {
             headshot: 'headshots/mihika-tyagi.jpg',
             linkedin: 'https://www.linkedin.com/in/mihika-tyagi'
         },
-        {
+               {
             name: 'Siera Gashi',
             major: 'Biomedical Engineering',
             status: 'Junior',
             graduation: 'May 2028',
-            project: 'I have assisted in analyzing swimmer hand models to study fluid dynamics and optimization, as well as supporting a Parkinson\'s disease project that utilizes motion-sensing data to analyze movement patterns and quantify motor symptoms.',
+            role: 'EEL Social Media Coordinator',
             headshot: 'headshots/siera-gashi.jpeg',
             linkedin: 'https://www.linkedin.com/in/siera-gashi-2a991422b'
         },
@@ -4237,11 +4237,19 @@ function getPeopleContent() {
             parts.push('<p class="person-role">Research Team</p>');
         }
 
-        if (member.graduation) {
+              if (member.graduation) {
             parts.push(
                 '<p class="person-graduation">',
                 'Expected Graduation: ',
                 member.graduation,
+                '</p>'
+            );
+        }
+
+        if (member.role) {
+            parts.push(
+                '<p class="person-role">',
+                member.role,
                 '</p>'
             );
         }
