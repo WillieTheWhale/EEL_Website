@@ -3764,8 +3764,12 @@ function getPeopleContent() {
         {
             name: 'Vedh Krishnan'
         },
-        {
-            name: 'Brandon Ge'
+               {
+            name: 'Brandon Ge',
+            major: 'Computer Science and Data Science',
+            graduation: 'May 2028',
+            headshot: 'headshots/brandon-ge.png',
+            linkedin: 'https://www.linkedin.com/in/brandonyge/'
         }
     ];
 
@@ -3905,9 +3909,12 @@ function getPeopleContent() {
         'Alexander Caza': [
             { key: 'wavemaker' }
         ],
-        'Allen Solomon': [
+               'Allen Solomon': [
             { key: 'hologram' },
             { key: 'brooksVR', poster: true }
+        ],
+        'Brandon Ge': [
+            { key: 'immersive360AI' }
         ],
                 'Joseph Sabo': [
             { key: 'fishCar', poster: true },
