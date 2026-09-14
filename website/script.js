@@ -3467,10 +3467,14 @@ function getPeopleContent() {
             'Member of the first EEL Undergraduate Cohort</p>';
     }
 
-    const specialAccolades = {
+        const specialAccolades = {
         'Lily Foo': {
             badge: 'Best Aluminum TIG Welder',
                         subtitle: 'Fall 2025 & Spring 2026'
+        },
+        'Siera Gashi': {
+            badge: 'Social Media Coordinator',
+            subtitle: 'Experimental Engineering Lab'
         }
     };
 
@@ -3591,7 +3595,7 @@ function getPeopleContent() {
             major: 'Biomedical Engineering',
             status: 'Junior',
             graduation: 'May 2028',
-            role: 'EEL Social Media Coordinator',
+            
             headshot: 'headshots/siera-gashi.jpeg',
             linkedin: 'https://www.linkedin.com/in/siera-gashi-2a991422b'
         },
@@ -4246,14 +4250,7 @@ function getPeopleContent() {
             );
         }
 
-        if (member.role) {
-            parts.push(
-                '<p class="person-role">',
-                member.role,
-                '</p>'
-            );
-        }
-
+       
         parts.push(
             accoladeBadge(member.name),
             foundingBadge(member.name),
