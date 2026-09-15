@@ -3129,7 +3129,9 @@ function getProjectsContent() {
             collaboration: 'Applied Mathematics'
         },
         {
-            title: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
+                       title: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
+            image: 'images/RAMPA.webp',
+            imageAlt: 'RAMPA augmented-reality interface used to demonstrate and visualize a robotic arm trajectory',
             body: [
                 `RAMPA is an augmented-reality framework that allows users to teach tasks to industrial robotic arms by demonstration. Using a Meta Quest 3 headset, users can demonstrate, record, and visualize robotic trajectories directly within the physical environment without manually moving the robot hardware.`,
                 `The system combines real-time hand mimicry, in-situ simulation, machine-learning model training, and editable virtual waypoints before deploying trained skills to a Universal Robots UR10 arm. In a study involving 20 participants, RAMPA was evaluated against traditional kinesthetic teaching methods across three manipulation tasks, with results showing improvements in operational safety, task efficiency, trajectory smoothness, and user experience.`
@@ -3795,7 +3797,7 @@ function getPeopleContent() {
             linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
         },
         {
-            name: 'Nil Dogan',
+                       name: 'Nil Zeren Dogan',
             major: 'Computer Engineering',
             affiliation: 'Boğaziçi University · Non-degree Exchange Student at UNC',
             graduation: '2029',
@@ -3979,7 +3981,7 @@ function getPeopleContent() {
         'Vedh Krishnan': [
             { key: 'courtLineCalling' }
         ],
-        'Nil Dogan': [
+        'Nil Zeren Dogan': [
             { key: 'rampa' }
         ],
         'Andy Choe': [
