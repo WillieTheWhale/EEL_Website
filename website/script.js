@@ -4205,10 +4205,15 @@ function getPeopleContent() {
             // Tie-breaker if two people have the same last name.
             return a.name.localeCompare(b.name);
         });
-       const majorAliases = {
+             const majorAliases = {
         'Math': 'Mathematics',
+        'Business': 'Business Administration',
+        'Statistics': 'Statistics and Analytics',
+        'Biochemistry': 'Chemistry – Biochemistry Track',
+        'Applied Mathematics': 'Mathematics – Applied Option',
+        'Engineering Physics': 'Physics – Engineering Physics Option',
         'Chemistry with a Focus in Analytical Chemistry': 'Chemistry',
-        'Applied Sciences with Track in Materials Engineering': 'Applied Sciences'
+        'Applied Sciences with Track in Materials Engineering': 'Applied Sciences – Materials Engineering Track'
     };
     const majorCounts = {};
 
