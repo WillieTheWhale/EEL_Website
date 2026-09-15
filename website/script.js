@@ -3140,7 +3140,7 @@ function getProjectsContent() {
             secondLink: 'https://github.com/nilzerendogan/rampaextended',
             secondLinkText: 'View the active RAMPA development version'
         }
-
+    ];
     const developmentProjects = [
         {
             title: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
