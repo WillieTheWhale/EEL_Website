@@ -4213,7 +4213,7 @@ function getPeopleContent() {
         'Applied Mathematics': 'Mathematics – Applied Option',
         'Engineering Physics': 'Physics – Engineering Physics Option',
         'Chemistry with a Focus in Analytical Chemistry': 'Chemistry',
-        'Applied Sciences with Track in Materials Engineering': 'Applied Sciences – Materials Engineering Track'
+        'Applied Sciences with Track in Materials Engineering': 'APS – Materials Engineering Track'
     };
     const majorCounts = {};
 
