@@ -3118,7 +3118,7 @@ function getProjectsContent() {
             ],
             collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
         },
-               {
+                            {
             title: '30-Channel Wavemaker Control Interface',
             image: 'images/Wavemaker.webp',
             imageAlt: 'Thirty-channel wavemaker used for fluid-dynamics research in the EEL',
@@ -3127,8 +3127,19 @@ function getProjectsContent() {
                 `The interface will make the existing system easier to operate while allowing researchers to design experiments that would be difficult to conduct through manual control.`
             ],
             collaboration: 'Applied Mathematics'
+        },
+        {
+            title: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
+            body: [
+                `RAMPA is an augmented-reality framework that allows users to teach tasks to industrial robotic arms by demonstration. Using a Meta Quest 3 headset, users can demonstrate, record, and visualize robotic trajectories directly within the physical environment without manually moving the robot hardware.`,
+                `The system combines real-time hand mimicry, in-situ simulation, machine-learning model training, and editable virtual waypoints before deploying trained skills to a Universal Robots UR10 arm. In a study involving 20 participants, RAMPA was evaluated against traditional kinesthetic teaching methods across three manipulation tasks, with results showing improvements in operational safety, task efficiency, trajectory smoothness, and user experience.`
+            ],
+            collaboration: 'CoLoRs Lab, Boğaziçi University',
+            link: 'https://github.com/dogadogan/rampa',
+            linkText: 'View the published RAMPA version',
+            secondLink: 'https://github.com/nilzerendogan/rampaextended',
+            secondLinkText: 'View the active RAMPA development version'
         }
-    ];
 
     const developmentProjects = [
         {
@@ -3193,13 +3204,20 @@ function getProjectsContent() {
                 `Straight-line, steady-state cornering, and transient steering tests will be used to characterize the vehicle and compare its measured behavior with simple vehicle-dynamics models. The platform will also support controlled changes to parameters such as weight distribution to investigate how vehicle setup influences handling and dynamic response.`
             ]
         },
-        {
+              {
             title: 'Ocular Response Impairment Screening',
             body: [
                 `This project explores how consumer camera technology could help physical therapists screen for concussion and traumatic brain injury. The current system combines computer vision-based pupil tracking, standardized oculomotor tests including smooth pursuit, saccades, and convergence, and validated clinical benchmarks from the Vestibular/Ocular Motor Screening assessment (VOMS) to identify movement patterns associated with concussion.`,
                 `The system tracks a user’s eye movements as they follow a visual stimulus, compares the results with clinician-administered reference scores, and provides physical therapists with objective, repeatable oculomotor metrics at the point of care. Future work will explore pupillary light reflex testing, a wearable headset-based form factor, and integration with vestibular and balance assessment.`
             ],
             collaboration: 'Physical Therapy'
+        },
+        {
+            title: 'Multi-Camera Court Line Calling System',
+            body: [
+                `This project is developing a portable line-calling system for pickleball and tennis using multiple cameras positioned around the court. Computer-vision software will track the ball from several angles and use the court markings to calibrate the cameras and combine their views into an estimate of the ball’s three-dimensional position.`,
+                `The system will compare bounce locations with court boundaries to determine whether a shot is in or out. The goal is to create an affordable, easy-to-deploy system that can provide audio feedback and allow players to review close calls through replay on their phones.`
+            ]
         }
     
     ];
@@ -3762,8 +3780,12 @@ function getPeopleContent() {
             headshot: 'headshots/nichola-wells.png',
             linkedin: 'https://www.linkedin.com/in/nichola-wells-872178262/'
         },
-        {
-            name: 'Agastya Maheshwari'
+               {
+            name: 'Agastya Maheshwari',
+            major: 'Computer Science',
+            graduation: 'May 2029',
+            headshot: 'headshots/agastya-maheshwari.png',
+            linkedin: 'https://www.linkedin.com/in/agastyamaheshwari22'
         },
                 {
             name: 'Vedh Krishnan',
@@ -3771,6 +3793,14 @@ function getPeopleContent() {
             graduation: 'May 2030',
             headshot: 'headshots/vedh-krishnan.png',
             linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
+        },
+        {
+            name: 'Nil Dogan',
+            major: 'Computer Engineering',
+            affiliation: 'Boğaziçi University · Non-degree Exchange Student at UNC',
+            graduation: '2029',
+            headshot: 'headshots/nil-dogan.png',
+            linkedin: 'https://www.linkedin.com/in/nilzerendogan/'
         },
                {
             name: 'Brandon Ge',
@@ -3804,8 +3834,10 @@ function getPeopleContent() {
                 heritageExplorer: 'Interactive 3D Heritage Explorer',
         reliable3D: 'Reliable 3D Reconstruction with Radiance Fields',
         floodLens: 'FloodLens',
-                rcVehicleDynamics: 'RC Vehicle Dynamics',
-        ocularScreening: 'Ocular Response Impairment Screening'
+                             rcVehicleDynamics: 'RC Vehicle Dynamics',
+        ocularScreening: 'Ocular Response Impairment Screening',
+        courtLineCalling: 'Multi-Camera Court Line Calling System',
+        rampa: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration'
     };
 
     const projectPosters = {
@@ -3938,8 +3970,17 @@ function getPeopleContent() {
             { key: 'spot', poster: true },
             { key: 'nepalModel' }
         ],
-                'Nichola Wells': [
+                              'Nichola Wells': [
             { key: 'rcVehicleDynamics' }
+        ],
+        'Agastya Maheshwari': [
+            { key: 'courtLineCalling' }
+        ],
+        'Vedh Krishnan': [
+            { key: 'courtLineCalling' }
+        ],
+        'Nil Dogan': [
+            { key: 'rampa' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
@@ -4245,7 +4286,15 @@ function getPeopleContent() {
             parts.push('<p class="person-role">Research Team</p>');
         }
 
-              if (member.graduation) {
+                    if (member.affiliation) {
+            parts.push(
+                '<p class="person-graduation">',
+                member.affiliation,
+                '</p>'
+            );
+        }
+
+        if (member.graduation) {
             parts.push(
                 '<p class="person-graduation">',
                 'Expected Graduation: ',
