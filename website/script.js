@@ -3614,7 +3614,7 @@ function getPeopleContent() {
             status: 'Junior',
             graduation: 'May 2028',
             
-            headshot: 'headshots/siera-gashi.jpeg',
+                        headshot: 'headshots/siera-gashi.png',
             linkedin: 'https://www.linkedin.com/in/siera-gashi-2a991422b'
         },
         {
