@@ -4237,8 +4237,8 @@ function getPeopleContent() {
     EELStats.studentCount = currentMembers.length;
     EELStats.collaboratorCount = collaboratingAreas.length;
 
-    EELStats.majorCounts = Object.entries(majorCounts).sort(function(a, b) {
-        return b[1] - a[1] || a[0].localeCompare(b[0]);
+       EELStats.majorCounts = Object.entries(majorCounts).sort(function(a, b) {
+        return a[0].localeCompare(b[0]);
     });
     for (let i = 0; i < currentMembers.length; i++) {
         const member = currentMembers[i];
