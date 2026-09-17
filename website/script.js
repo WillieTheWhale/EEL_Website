@@ -3797,12 +3797,20 @@ function getPeopleContent() {
             linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
         },
         {
+                             {
                        name: 'Nil Zeren Dogan',
             major: 'Computer Engineering',
             affiliation: 'Boğaziçi University · Non-degree Exchange Student at UNC',
             graduation: '2029',
             headshot: 'headshots/nil-dogan.png',
             linkedin: 'https://www.linkedin.com/in/nilzerendogan/'
+        },
+        {
+            name: 'Jesvitha Maria Jayakaran',
+            major: 'Biomedical Engineering',
+            graduation: 'May 2030',
+            headshot: 'headshots/jesvitha-jayakaran.png',
+            linkedin: 'https://www.linkedin.com/in/jesvitha-jayakaran-0b554a27b'
         },
                {
             name: 'Brandon Ge',
@@ -3838,8 +3846,9 @@ function getPeopleContent() {
         floodLens: 'FloodLens',
                              rcVehicleDynamics: 'RC Vehicle Dynamics',
         ocularScreening: 'Ocular Response Impairment Screening',
-        courtLineCalling: 'Multi-Camera Court Line Calling System',
-        rampa: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration'
+              courtLineCalling: 'Multi-Camera Court Line Calling System',
+        rampa: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
+        virtualChemistry: 'Virtual Chemistry Lab'
     };
 
     const projectPosters = {
@@ -3981,8 +3990,11 @@ function getPeopleContent() {
         'Vedh Krishnan': [
             { key: 'courtLineCalling' }
         ],
-        'Nil Zeren Dogan': [
+                'Nil Zeren Dogan': [
             { key: 'rampa' }
+        ],
+        'Jesvitha Maria Jayakaran': [
+            { key: 'virtualChemistry' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
