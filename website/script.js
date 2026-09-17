@@ -3797,7 +3797,7 @@ function getPeopleContent() {
             linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
         },
         {
-                             {
+                          
                        name: 'Nil Zeren Dogan',
             major: 'Computer Engineering',
             affiliation: 'Boğaziçi University · Non-degree Exchange Student at UNC',
