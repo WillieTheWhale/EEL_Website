@@ -3812,7 +3812,21 @@ function getPeopleContent() {
             headshot: 'headshots/jesvitha-jayakaran.png',
             linkedin: 'https://www.linkedin.com/in/jesvitha-jayakaran-0b554a27b'
         },
-               {
+                       {
+            name: 'Avery Yurui Yang',
+            major: 'Mathematics',
+            graduation: 'May 2030',
+            headshot: 'headshots/avery-yang.png',
+            linkedin: 'https://www.linkedin.com/in/avery-yang-561625397/'
+        },
+        {
+            name: 'Samantha Chang',
+            major: 'Computer Science',
+            graduation: 'May 2027',
+            headshot: 'headshots/samantha-chang.png',
+            linkedin: 'https://www.linkedin.com/in/samantha-chang-2bb947348/'
+        },
+        {
             name: 'Brandon Ge',
             major: 'Computer Science and Data Science',
             graduation: 'May 2028',
@@ -3993,8 +4007,14 @@ function getPeopleContent() {
                 'Nil Zeren Dogan': [
             { key: 'rampa' }
         ],
-        'Jesvitha Maria Jayakaran': [
+               'Jesvitha Maria Jayakaran': [
             { key: 'virtualChemistry' }
+        ],
+        'Avery Yurui Yang': [
+            { key: 'augmentedAurality' }
+        ],
+        'Samantha Chang': [
+            { key: 'heritageExplorer' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
