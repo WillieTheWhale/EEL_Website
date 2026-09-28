@@ -139,14 +139,13 @@
         margin: 0;
     }
 
-    .nav-panel .panel-data {
+       .nav-panel .panel-data {
         position: static;
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
+        justify-content: center;
+        align-items: flex-end;
         flex-shrink: 0;
-        gap: 4px;
+        gap: 8px;
         width: 100%;
         height: auto;
         min-height: 0;
@@ -155,23 +154,51 @@
         font-size: 9px;
         line-height: 1.4;
         letter-spacing: 0.4px;
+        text-align: center;
     }
 
-    .nav-panel .panel-data > span,
-    .nav-panel .panel-data > span:last-child:not(:first-child),
-    #panel-people .panel-data > span:first-child {
-        flex: none;
-        width: 100%;
+    .nav-panel .panel-data > span {
         min-width: 0;
-        text-align: left;
+        text-align: center;
         white-space: normal;
         overflow-wrap: normal;
         word-break: normal;
     }
 
+    #panel-about .panel-data > span,
+    #panel-join .panel-data > span {
+        width: 100%;
+    }
+
+    #panel-about .panel-data > span {
+        white-space: nowrap;
+    }
+
+    #panel-projects .panel-data,
+    #panel-people .panel-data {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    /* Give the longer undergraduate label enough room. */
+    #panel-people .panel-data {
+        grid-template-columns: 1.5fr 1fr;
+    }
+
+    #panel-projects .panel-data > span,
+    #panel-people .panel-data > span {
+        white-space: nowrap;
+    }
+
     .nav-panel .panel-data b {
-        display: inline;
-        font-weight: inherit;
+        display: block;
+        margin-bottom: 4px;
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0;
+        text-align: center;
     }
 </style>
 </head>
@@ -307,8 +334,7 @@
                         See the lab’s impact, capabilities, history, and campus-wide role.
                     </p>
                     <div class="panel-data">
-                                               <span>HANDS-ON ENGINEERING</span>
-                        <span>CROSS-CAMPUS COLLABORATION</span>
+                                                                      <span>HANDS-ON ENGINEERING</span>
                     </div>
                 </div>
             </div>
