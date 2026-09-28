@@ -3854,6 +3854,13 @@ function getPeopleContent() {
             headshot: 'headshots/samantha-chang.png',
             linkedin: 'https://www.linkedin.com/in/samantha-chang-2bb947348/'
         },
+               {
+            name: 'Muhammad Zain Zeeshan Malik',
+            major: 'Computer Science and Economics',
+            graduation: 'May 2028',
+            headshot: 'headshots/muhammad-malik.png',
+            linkedin: 'https://www.linkedin.com/in/mzzmalik/'
+        },
         {
             name: 'Brandon Ge',
             major: 'Computer Science and Data Science',
