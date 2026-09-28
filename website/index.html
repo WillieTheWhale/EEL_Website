@@ -110,38 +110,70 @@
     <script>
         !function(e){"use strict";var t=function(t,n,r,o){var i=e.document,a=i.createElement("link");if(n)var d=n;else{var l=(i.body||i.getElementsByTagName("head")[0]).childNodes;d=l[l.length-1]}var s=i.styleSheets;if(o)for(var u in o)o.hasOwnProperty(u)&&a.setAttribute(u,o[u]);a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(i.body)return t();setTimeout(function(){e(t)})}(function(){d.parentNode.insertBefore(a,n?d:d.nextSibling)});var f=function(e){for(var t=a.href,n=s.length;n--;)if(s[n].href===t)return e();setTimeout(function(){f(e)})};function c(){a.addEventListener&&a.removeEventListener("load",c),a.media=r||"all"}return a.addEventListener&&a.addEventListener("load",c),a.onloadcssdefined=f,f(c),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
     </script>
-        <style>
-        .nav-panel .panel-content {
-            padding-bottom: 76px;
-        }
+  <style>
+    .nav-panel .panel-content {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        gap: 0;
+    }
 
-        .nav-panel .panel-data {
-            gap: 8px;
-            height: auto;
-            min-height: 25px;
-            align-items: flex-end;
-        }
+    .nav-panel .panel-icon {
+        width: 44px;
+        height: 40px;
+        margin-bottom: 8px;
+    }
 
-        .nav-panel .panel-data > span {
-            flex: 1;
-            min-width: 0;
-            white-space: normal;
-            overflow-wrap: anywhere;
-            line-height: 1.4;
-        }
+    .nav-panel .panel-title {
+        font-size: 20px;
+        line-height: 1.2;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
 
-        .nav-panel .panel-data > span:last-child:not(:first-child) {
-            text-align: right;
-        }
+    .nav-panel .panel-description {
+        flex: 0 0 auto;
+        font-size: 11px;
+        line-height: 1.45;
+        padding-right: 0;
+        margin: 0;
+    }
 
-        .nav-panel .panel-data b {
-            font-weight: inherit;
-        }
+    .nav-panel .panel-data {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-shrink: 0;
+        gap: 4px;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        margin-top: auto;
+        padding-top: 10px;
+        font-size: 9px;
+        line-height: 1.4;
+        letter-spacing: 0.4px;
+    }
 
-        #panel-people .panel-data > span:first-child {
-            flex: 2;
-        }
-    </style>
+    .nav-panel .panel-data > span,
+    .nav-panel .panel-data > span:last-child:not(:first-child),
+    #panel-people .panel-data > span:first-child {
+        flex: none;
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+
+    .nav-panel .panel-data b {
+        display: inline;
+        font-weight: inherit;
+    }
+</style>
 </head>
 <body>
     <!-- Expanded Container Overlay -->
