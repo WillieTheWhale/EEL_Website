@@ -2256,7 +2256,7 @@ const EELRouteManager = {
             panelId: 'panel-join',
             contentType: 'join',
             route: 'join-our-lab',
-            title: 'Join Our Lab | EEL',
+                        title: 'Get Involved | EEL',
            description: 'Learn how UNC undergraduates can join the Experimental Engineering Lab and contribute to hands-on research and engineering projects.'
         },
 
@@ -2555,9 +2555,36 @@ const _contentCache = {};
 const EELStats = {
     studentCount: 0,
     projectCount: 0,
+    courseCount: 0,
     collaboratorCount: 0,
     majorCounts: []
 };
+
+// Use the same records that populate the content panels.
+function updateCardStats() {
+    if (!_contentCache.projects) {
+        _contentCache.projects = getProjectsContent();
+    }
+
+    if (!_contentCache.people) {
+        _contentCache.people = getPeopleContent();
+    }
+
+    const counts = {
+        projects: EELStats.projectCount,
+        courses: EELStats.courseCount,
+        students: EELStats.studentCount,
+        majors: EELStats.majorCounts.length
+    };
+
+    document.querySelectorAll('[data-eel-count]').forEach(function(element) {
+        const key = element.getAttribute('data-eel-count');
+
+        if (Object.prototype.hasOwnProperty.call(counts, key)) {
+            element.textContent = String(counts[key]);
+        }
+    });
+}
 // Cached nav panel NodeList (set once after DOM ready)
 let _cachedNavPanels = null;
 function getCachedNavPanels() {
@@ -3259,6 +3286,7 @@ function getProjectsContent() {
             linkText: 'Read The Daily Tar Heel story about RELI 283 and virtual reality'
         }
     ];
+        EELStats.courseCount = courses.length;
 
     const pastProjects = [
         {
@@ -4525,7 +4553,8 @@ function getAboutContent() {
 
 function getJoinContent() {
     return `
-        <h1 class="expanded-title">Join Our Lab</h1>
+               <h1 class="expanded-title">Get Involved</h1>
+        <h2 class="people-section-title">Join the Lab</h2>
         <div class="content-section">
             <div class="join-poster">
                 <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img" loading="lazy" decoding="async">
@@ -4764,6 +4793,7 @@ function initPanelGearIcons() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
+                updateCardStats();
         initPanelGearIcons();
         radialPanelPhysics = new RadialPanelPhysics();
         startVisualRuntime();
@@ -4774,6 +4804,7 @@ if (document.readyState === 'loading') {
     });
 } else {
     ThemeManager.init();
+        updateCardStats();
     initPanelGearIcons();
     radialPanelPhysics = new RadialPanelPhysics();
     startVisualRuntime();
