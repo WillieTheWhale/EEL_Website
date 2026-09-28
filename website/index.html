@@ -110,6 +110,38 @@
     <script>
         !function(e){"use strict";var t=function(t,n,r,o){var i=e.document,a=i.createElement("link");if(n)var d=n;else{var l=(i.body||i.getElementsByTagName("head")[0]).childNodes;d=l[l.length-1]}var s=i.styleSheets;if(o)for(var u in o)o.hasOwnProperty(u)&&a.setAttribute(u,o[u]);a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(i.body)return t();setTimeout(function(){e(t)})}(function(){d.parentNode.insertBefore(a,n?d:d.nextSibling)});var f=function(e){for(var t=a.href,n=s.length;n--;)if(s[n].href===t)return e();setTimeout(function(){f(e)})};function c(){a.addEventListener&&a.removeEventListener("load",c),a.media=r||"all"}return a.addEventListener&&a.addEventListener("load",c),a.onloadcssdefined=f,f(c),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
     </script>
+        <style>
+        .nav-panel .panel-content {
+            padding-bottom: 76px;
+        }
+
+        .nav-panel .panel-data {
+            gap: 8px;
+            height: auto;
+            min-height: 25px;
+            align-items: flex-end;
+        }
+
+        .nav-panel .panel-data > span {
+            flex: 1;
+            min-width: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
+        }
+
+        .nav-panel .panel-data > span:last-child:not(:first-child) {
+            text-align: right;
+        }
+
+        .nav-panel .panel-data b {
+            font-weight: inherit;
+        }
+
+        #panel-people .panel-data > span:first-child {
+            flex: 2;
+        }
+    </style>
 </head>
 <body>
     <!-- Expanded Container Overlay -->
@@ -243,8 +275,8 @@
                         See the lab’s impact, capabilities, history, and campus-wide role.
                     </p>
                     <div class="panel-data">
-                        <span>MISSION</span>
-                        <span>IMPACT</span>
+                                               <span>HANDS-ON ENGINEERING</span>
+                        <span>CROSS-CAMPUS COLLABORATION</span>
                     </div>
                 </div>
             </div>
@@ -266,8 +298,8 @@
                         Explore current projects, developing ideas, courses, and past work.
                     </p>
                     <div class="panel-data">
-                        <span>RESEARCH</span>
-                        <span>TEACHING</span>
+                        <span title="Current and developing projects"><b data-eel-count="projects">—</b> PROJECTS</span>
+                        <span><b data-eel-count="courses">—</b> COURSES</span>
                     </div>
                 </div>
             </div>
@@ -289,8 +321,8 @@
                         Meet the EEL’s undergraduate research engineers, alumni, and academic partners.
                     </p>
                     <div class="panel-data">
-                        <span>MEMBERS</span>
-                        <span>PARTNERS</span>
+                                              <span><b data-eel-count="students">—</b> UNDERGRADUATES</span>
+                        <span><b data-eel-count="majors">—</b> MAJORS</span>
                     </div>
                 </div>
             </div>
@@ -307,13 +339,12 @@
                 <div class="panel-hologram"></div>
                 <div class="panel-content">
                     <div class="panel-icon panel-icon-join"></div>
-                    <h2 class="panel-title">Join Our Lab</h2>
+                                      <h2 class="panel-title">Get Involved</h2>
                     <p class="panel-description">
-                        Learn how UNC undergraduates can join an EEL research team.
+                        Join a research team, collaborate on a project, or support the EEL.
                     </p>
                     <div class="panel-data">
-                        <span>APPLY</span>
-                        <span>NOW</span>
+                        <span>JOIN · COLLABORATE · SUPPORT</span>
                     </div>
                 </div>
             </div>
