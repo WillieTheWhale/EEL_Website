@@ -3875,6 +3875,12 @@ function getPeopleContent() {
             headshot: 'headshots/nikhil-tamhankar.png',
             linkedin: 'https://www.linkedin.com/in/avneesh-tamhankar/'
         },
+               {
+            name: 'Jason Robert Gergler Jr.',
+            major: 'Biomedical Engineering',
+            graduation: 'May 2027',
+            linkedin: 'https://www.linkedin.com/in/jason-gergler-359203183'
+        },
         {
             name: 'Brandon Ge',
             major: 'Computer Science and Data Science',
@@ -4028,8 +4034,11 @@ function getPeopleContent() {
             { key: 'hologram' },
             { key: 'brooksVR', poster: true }
         ],
-        'Brandon Ge': [
+               'Brandon Ge': [
             { key: 'immersive360AI' }
+        ],
+        'Jason Robert Gergler Jr.': [
+            { key: 'fishCar' }
         ],
                 'Joseph Sabo': [
             { key: 'fishCar', poster: true },
