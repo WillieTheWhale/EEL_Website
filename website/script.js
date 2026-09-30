@@ -3171,6 +3171,13 @@ function getProjectsContent() {
         }
     ];
     const developmentProjects = [
+                {
+            title: 'AI Research Discovery Platform',
+            body: [
+                `This project will create an interactive map of research at UNC, beginning with Computer Science. It will connect faculty, research topics, publications, and projects so users can explore related work and discover opportunities for collaboration.`,
+                `A faculty portal will help researchers find collaborators, assemble teams for major proposals, and identify relevant calls for papers and grant opportunities. A separate portal for campus leaders will show research strengths, emerging areas, gaps, overlap, and potential duplication to support planning and investment.`
+            ]
+        },
         {
             title: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
             body: [
