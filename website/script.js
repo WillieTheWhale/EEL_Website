@@ -3900,6 +3900,7 @@ function getPeopleContent() {
         openCTD: 'Low-Cost CTD Sensors for Oceanography',
         hologram: 'Floating Holographic Display',
         immersive360AI: 'Generative AI for Immersive 360° Environments',
+                   aiResearchDiscovery: 'AI Research Discovery Platform',
         dorsiflexion: 'Dorsiflexion and Corticomuscular Coherence Measurement System',
         nepalModel: 'Scalable 3D Environment Optimization',
         eelWebsite: 'EEL Website Development',
@@ -4064,6 +4065,12 @@ function getPeopleContent() {
         ],
         'Samantha Chang': [
             { key: 'heritageExplorer' }
+        ],
+                'Muhammad Zain Zeeshan Malik': [
+            { key: 'aiResearchDiscovery' }
+        ],
+        'Avneesh Nikhil Tamhankar': [
+            { key: 'aiResearchDiscovery' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
