@@ -3861,6 +3861,13 @@ function getPeopleContent() {
             headshot: 'headshots/muhammad-malik.png',
             linkedin: 'https://www.linkedin.com/in/mzzmalik/'
         },
+              {
+            name: 'Avneesh Nikhil Tamhankar',
+            major: 'Computer Science & Data Science',
+            graduation: 'May 2029',
+            headshot: 'headshots/nikhil-tamhankar.png',
+            linkedin: 'https://www.linkedin.com/in/avneesh-tamhankar/'
+        },
         {
             name: 'Brandon Ge',
             major: 'Computer Science and Data Science',
