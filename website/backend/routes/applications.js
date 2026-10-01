@@ -95,13 +95,7 @@ function createMailTransporter() {
 }
 
 function notificationRecipients() {
-    const configuredRecipients = process.env.NOTIFY_EMAILS || process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
-    return [...new Set(
-        configuredRecipients
-            .split(/[;,]/)
-            .map((recipient) => recipient.trim())
-            .filter(Boolean)
-    )];
+    return ['mahaney@cs.unc.edu'];
 }
 
 // Send one message per reviewer so recipients cannot see one another.
