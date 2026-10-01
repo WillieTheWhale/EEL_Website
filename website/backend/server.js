@@ -7,6 +7,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const express = require('express');
 const applicationsRouter = require('./routes/applications');
+const inquiriesRouter = require('./routes/inquiries');
 const adminRouter = require('./routes/admin');
 
 // Frontend directory (website root, one level up from backend/)
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use('/api/applications', applicationsRouter);
+app.use('/api/inquiries', inquiriesRouter);
 app.use('/admin', adminRouter);
 
 // Serve static frontend files
@@ -61,8 +63,8 @@ app.listen(PORT, () => {
     // Log email configuration so it's visible in pod logs
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT || '587';
-    const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
-    const notifyEmail = process.env.NOTIFY_EMAILS || process.env.NOTIFY_EMAIL || 'wilk05@unc.edu';
+       const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
+    const notifyEmail = 'mahaney@cs.unc.edu';
     if (smtpHost) {
         console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: [${notifyEmail}]`);
     } else if (process.env.EMAIL_USER) {
