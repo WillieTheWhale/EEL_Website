@@ -16,7 +16,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copy application code
 COPY backend/ ./backend/
 COPY index.html styles.css script.js mobile.js ./
-COPY application.html application.css application.js ./
+COPY application.html application.css application.js collaboration.html support.html inquiry.js ./
 COPY EEL_Logo.png EEL_Logo.svg EELRedraw.svg EELRedraw.png ./
 COPY favicon.ico favicon.png apple-touch-icon.png ./
 COPY headshots/ ./headshots/
