@@ -3888,6 +3888,20 @@ function getPeopleContent() {
             headshot: 'headshots/brandon-ge.png',
             linkedin: 'https://www.linkedin.com/in/brandonyge/'
         }
+       ];
+
+    const highSchoolInterns = [
+        {
+            name: 'Griffin Schultz',
+            role: 'High School Research Intern'
+        },
+        {
+            name: 'Prisha Maheshwary',
+            role: 'High School Research Intern',
+            graduation: '2029',
+            headshot: 'headshots/prisha-maheshwary.png',
+            linkedin: 'https://www.linkedin.com/in/prisha-maheshwary/'
+        }
     ];
 
        const projectCatalog = {
@@ -4078,8 +4092,11 @@ function getPeopleContent() {
                 'Muhammad Zain Zeeshan Malik': [
             { key: 'aiResearchDiscovery' }
         ],
-        'Avneesh Nikhil Tamhankar': [
+                'Avneesh Nikhil Tamhankar': [
             { key: 'aiResearchDiscovery' }
+        ],
+        'Prisha Maheshwary': [
+            { key: 'virtualChemistry' }
         ],
         'Andy Choe': [
             { key: 'augmentedAurality', poster: true }
@@ -4415,7 +4432,69 @@ function getPeopleContent() {
             '</div>'
         );
     }
-                   parts.push('</div>', '</div>');
+                                      parts.push('</div>', '</div>');
+
+    parts.push(
+        '<div class="people-section">',
+        '<h2 class="people-section-title">High School Research Interns</h2>',
+        '<p class="people-section-intro">',
+        'High school students contributing to active EEL research and engineering projects.',
+        '</p>',
+        '<div class="people-grid featured-grid">'
+    );
+
+    for (let i = 0; i < highSchoolInterns.length; i++) {
+        const intern = highSchoolInterns[i];
+
+        parts.push('<div class="person-card featured-card">');
+
+        if (intern.headshot) {
+            parts.push(
+                '<img class="person-image person-headshot" src="',
+                intern.headshot,
+                '" alt="',
+                intern.name,
+                '" loading="lazy" decoding="async">'
+            );
+        } else {
+            const initials = intern.name
+                .split(' ')
+                .map(function(namePart) {
+                    return namePart[0];
+                })
+                .join('');
+
+            parts.push(
+                '<div class="person-image placeholder-image" aria-hidden="true">',
+                '<span>', initials, '</span>',
+                '</div>'
+            );
+        }
+
+        parts.push(
+            '<div class="person-name-row">',
+            '<h3 class="person-name">', intern.name, '</h3>',
+            linkedinLink(intern.linkedin),
+            '</div>',
+            '<p class="person-role">', intern.role, '</p>'
+        );
+
+        if (intern.graduation) {
+            parts.push(
+                '<p class="person-graduation">',
+                'High School Graduation: ',
+                intern.graduation,
+                '</p>'
+            );
+        }
+
+        parts.push(
+            renderMemberProjects(intern.name),
+            '</div>'
+        );
+    }
+
+    parts.push('</div>', '</div>');
 
     parts.push(
         '<div class="people-section collaborators-section">',
