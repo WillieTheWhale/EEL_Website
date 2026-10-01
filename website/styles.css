@@ -2244,7 +2244,60 @@ body[data-theme="dark"] .apply-now-btn:hover {
         rgba(111, 160, 184, 0.5),
         rgba(149, 196, 216, 0.35));
 }
+.get-involved-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
+.get-involved-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    padding: 12px 36px 8px;
+    text-align: center;
+}
+
+.get-involved-column + .get-involved-column {
+    border-left: 1px solid var(--glass-border);
+}
+
+.get-involved-title {
+    margin: 0 0 14px;
+    color: var(--text-dark);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+.get-involved-description {
+    max-width: 340px;
+    margin: 0 auto 24px;
+    color: var(--text-light);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.get-involved-column .apply-now-btn {
+    margin-top: auto;
+}
+
+@media (max-width: 800px) {
+    .get-involved-options {
+        grid-template-columns: 1fr;
+    }
+
+    .get-involved-column {
+        padding: 26px 12px;
+    }
+
+    .get-involved-column + .get-involved-column {
+        border-left: 0;
+        border-top: 1px solid var(--glass-border);
+    }
+}
 /* ============================================
    ENGINEERING NODE NETWORK
    ============================================ */
