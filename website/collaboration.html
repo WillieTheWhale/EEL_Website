@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborate | E.E.L.</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="application.css">
+</head>
+<body>
+    <div class="chamber-bg">
+        <div class="panel-surface"></div>
+    </div>
+
+    <div class="facility-container">
+        <header class="observation-header">
+            <a href="index.html" class="nav-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>EXIT</span>
+            </a>
+
+            <div class="facility-brand">
+                <img src="EEL_Logo.png" alt="E.E.L." class="facility-logo">
+                <div class="facility-text">
+                    <span class="facility-name">EXPERIMENTAL ENGINEERING LAB</span>
+                    <span class="facility-division">COLLABORATION INTAKE</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="test-chamber">
+            <div class="chamber-header">
+                <div class="chamber-number">
+                    <span class="number-label">FORM</span>
+                    <span class="number-value">C-01</span>
+                </div>
+                <div class="chamber-title">
+                    <h1>Collaborate with the EEL</h1>
+                    <p>Tell us about the research, engineering, or project challenge you would like to explore with the lab.</p>
+                </div>
+            </div>
+
+            <form id="inquiryForm" class="application-form" data-inquiry-type="collaboration" autocomplete="off">
+                <fieldset class="form-panel">
+                    <legend class="panel-header">
+                        <span class="header-number">01</span>
+                        <span class="header-text">CONTACT INFORMATION</span>
+                    </legend>
+
+                    <div class="field-group">
+                        <label for="fullName" class="field-label">
+                            FULL NAME
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <input type="text" id="fullName" name="fullName" required class="field-input" placeholder="Your name">
+                    </div>
+
+                    <div class="field-group">
+                        <label for="email" class="field-label">
+                            EMAIL ADDRESS
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <input type="email" id="email" name="email" required class="field-input" placeholder="you@example.edu">
+                    </div>
+
+                    <div class="field-group">
+                        <label for="organization" class="field-label">
+                            DEPARTMENT / ORGANIZATION
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <input type="text" id="organization" name="organization" required class="field-input" placeholder="Department, lab, university, company, or organization">
+                    </div>
+
+                    <div class="field-group">
+                        <label for="role" class="field-label">
+                            POSITION / ROLE
+                            <span class="field-optional">OPTIONAL</span>
+                        </label>
+                        <input type="text" id="role" name="role" class="field-input" placeholder="Faculty, researcher, staff, industry partner, etc.">
+                    </div>
+
+                    <div class="field-group">
+                        <label for="website" class="field-label">
+                            WEBSITE OR PROJECT LINK
+                            <span class="field-optional">OPTIONAL</span>
+                        </label>
+                        <input type="url" id="website" name="website" class="field-input" placeholder="https://">
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-panel">
+                    <legend class="panel-header">
+                        <span class="header-number">02</span>
+                        <span class="header-text">COLLABORATION</span>
+                    </legend>
+
+                    <div class="field-group">
+                        <label for="collaborationType" class="field-label">
+                            PRIMARY AREA
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <select id="collaborationType" name="collaborationType" required class="field-input">
+                            <option value="" disabled selected>Select the closest match</option>
+                            <option value="Research project">Research project</option>
+                            <option value="Experimental system or prototyping">Experimental system or prototyping</option>
+                            <option value="Fabrication or manufacturing">Fabrication or manufacturing</option>
+                            <option value="Robotics or controls">Robotics or controls</option>
+                            <option value="Virtual reality, augmented reality, or 3D">Virtual reality, augmented reality, or 3D</option>
+                            <option value="Undergraduate research team">Undergraduate research team</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="projectStage" class="field-label">
+                            CURRENT PROJECT STAGE
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <select id="projectStage" name="projectStage" required class="field-input">
+                            <option value="" disabled selected>Select the current stage</option>
+                            <option value="Idea">Idea</option>
+                            <option value="Planning">Planning</option>
+                            <option value="Active research">Active research</option>
+                            <option value="Existing prototype">Existing prototype</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="timeframe" class="field-label">
+                            DESIRED TIMEFRAME
+                            <span class="field-optional">OPTIONAL</span>
+                        </label>
+                        <input type="text" id="timeframe" name="timeframe" class="field-input" placeholder="This semester, Spring 2027, no fixed deadline, etc.">
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-panel">
+                    <legend class="panel-header">
+                        <span class="header-number">03</span>
+                        <span class="header-text">PROJECT SUMMARY</span>
+                    </legend>
+
+                    <div class="field-group">
+                        <label for="summary" class="field-label">
+                            WHAT WOULD YOU LIKE TO WORK WITH THE EEL ON?
+                            <span class="field-required">REQUIRED</span>
+                        </label>
+                        <span class="field-note field-note--top">A short description is enough. We can work through technical details after the initial contact.</span>
+                        <textarea id="summary" name="summary" required class="field-textarea" rows="6" maxlength="2500" data-counter="summaryCount" placeholder="Describe the project, research need, or engineering challenge..."></textarea>
+                        <div class="char-count"><span id="summaryCount">0</span>/2500</div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="additionalInfo" class="field-label">
+                            ADDITIONAL INFORMATION
+                            <span class="field-optional">OPTIONAL</span>
+                        </label>
+                        <textarea id="additionalInfo" name="additionalInfo" class="field-textarea" rows="4" maxlength="1500" data-counter="additionalCount" placeholder="Anything else that would help us understand the collaboration..."></textarea>
+                        <div class="char-count"><span id="additionalCount">0</span>/1500</div>
+                    </div>
+                </fieldset>
+
+                <div class="form-submit">
+                    <button type="submit" class="submit-button">
+                        <span>COLLABORATE</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <footer class="facility-footer">
+            <div class="footer-left">
+                <img src="EEL_Logo.png" alt="" class="footer-logo">
+                <span class="footer-text">Experimental Engineering Lab</span>
+            </div>
+            <div class="footer-right">
+                <span class="footer-serial">REF: <span id="serialNumber">0000-0000</span></span>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-panel">
+            <div class="modal-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h2 class="modal-title">COLLABORATION REQUEST RECEIVED</h2>
+            <p class="modal-text">Thank you. Your information has been sent directly to the Experimental Engineering Lab.</p>
+            <div class="modal-ref">
+                REFERENCE: <span id="refId">---</span>
+            </div>
+            <a href="index.html" class="modal-button">RETURN TO MAIN SITE</a>
+        </div>
+    </div>
+
+    <script src="inquiry.js"></script>
+</body>
+</html>
