@@ -2252,12 +2252,12 @@ const EELRouteManager = {
             description: 'See the Experimental Engineering Lab’s impact, capabilities, history, and campus-wide research-engineering role at UNC-Chapel Hill.'
         },
 
-        join: {
+               join: {
             panelId: 'panel-join',
             contentType: 'join',
             route: 'join-our-lab',
                         title: 'Get Involved | EEL',
-           description: 'Learn how UNC undergraduates can join the Experimental Engineering Lab and contribute to hands-on research and engineering projects.'
+           description: 'Join the EEL, collaborate on a research or engineering project, or support undergraduate research and lab development.'
         },
 
         currentProjects: {
@@ -4669,40 +4669,57 @@ function getAboutContent() {
 
 function getJoinContent() {
     return `
-               <h1 class="expanded-title">Get Involved</h1>
-        <h2 class="people-section-title">Join the Lab</h2>
+        <h1 class="expanded-title">Get Involved</h1>
         <div class="content-section">
             <div class="join-poster">
-                <img src="images/jointhelab.png" alt="Join the Experimental Engineering Lab" class="join-poster-img" loading="lazy" decoding="async">
+                <img src="images/jointhelab.png" alt="Experimental Engineering Lab" class="join-poster-img" loading="lazy" decoding="async">
             </div>
 
-            <p class="about-text">
-                The Experimental Engineering Lab gives UNC undergraduates the opportunity to contribute directly to active research and engineering projects. Students work on real problems involving areas such as robotics, immersive technology, sensing, fabrication, 3D modeling, and experimental systems while developing practical technical and research skills.
-            </p>
+            <div class="get-involved-options">
+                <div class="get-involved-column">
+                    <h2 class="get-involved-title">Join</h2>
+                    <p class="get-involved-description">
+                        UNC students can contribute directly to active EEL research and engineering projects while developing practical technical and research skills.
+                    </p>
+                    <a href="application.html" class="apply-now-btn">
+                        <span class="btn-text">JOIN</span>
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
 
-            <p class="about-text">
-                Previous engineering or shop experience is not required. We are looking for students who are curious, reliable, willing to learn, and prepared to contribute consistently as part of a research team.
-            </p>
+                <div class="get-involved-column">
+                    <h2 class="get-involved-title">Collaborate</h2>
+                    <p class="get-involved-description">
+                        Faculty, research groups, departments, and external partners can work with the EEL on research, prototyping, experimental systems, and undergraduate research projects.
+                    </p>
+                    <a href="collaboration.html" class="apply-now-btn">
+                        <span class="btn-text">COLLABORATE</span>
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
 
-            <div class="join-requirements">
-                <h3 class="requirements-title">What We Ask of Students</h3>
-                <ul class="requirements-list">
-                    <li>Curiosity and willingness to learn</li>
-                    <li>Ability to work collaboratively on a research team</li>
-                    <li>Minimum commitment of 5 hours per week</li>
-                                       <li>Current UNC undergraduate with a valid UNC email address</li>
-                </ul>
-            </div>
-
-            <div class="join-cta">
-                <a href="application.html" class="apply-now-btn">
-                    <span class="btn-text">APPLY NOW</span>
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </span>
-                </a>
+                <div class="get-involved-column">
+                    <h2 class="get-involved-title">Support</h2>
+                    <p class="get-involved-description">
+                        Individuals and organizations can support undergraduate research, equipment, materials, student projects, and continued development of the lab.
+                    </p>
+                    <a href="support.html" class="apply-now-btn">
+                        <span class="btn-text">SUPPORT</span>
+                        <span class="btn-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
             </div>
         </div>
     `;
