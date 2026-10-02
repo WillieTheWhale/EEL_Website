@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-const NOTIFICATION_EMAIL = 'mahaney@cs.unc.edu';
+const NOTIFICATION_EMAILS = ['wilk05@unc.edu', 'mahaney@cs.unc.edu'];
 
 const dataDir = path.join(__dirname, '../data');
 const inquiriesFile = path.join(dataDir, 'inquiries.json');
@@ -197,15 +197,23 @@ ${narrative}
             inquiry.additionalInfo || 'Not provided'
         );
 
-        await transporter.sendMail({
-            from: `"Experimental Engineering Lab" <${smtpFrom}>`,
-            to: NOTIFICATION_EMAIL,
-            subject,
-            text: textLines.join('\n'),
-            html
+        const deliveryResults = await Promise.allSettled(
+            NOTIFICATION_EMAILS.map((recipient) => transporter.sendMail({
+                from: `"Experimental Engineering Lab" <${smtpFrom}>`,
+                to: recipient,
+                subject,
+                text: textLines.join('\n'),
+                html
+            }))
+        );
+        deliveryResults.forEach((result, index) => {
+            const recipient = NOTIFICATION_EMAILS[index];
+            if (result.status === 'fulfilled') {
+                console.log(`Inquiry notification email sent to: ${recipient}`);
+            } else {
+                console.error(`Failed to send inquiry notification email to ${recipient}:`, result.reason.message);
+            }
         });
-
-        console.log(`Inquiry notification email sent to: ${NOTIFICATION_EMAIL}`);
     } catch (err) {
         console.error('Failed to send inquiry notification email:', err.message);
     }
