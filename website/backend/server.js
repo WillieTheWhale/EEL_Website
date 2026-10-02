@@ -63,12 +63,12 @@ app.listen(PORT, () => {
     // Log email configuration so it's visible in pod logs
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = process.env.SMTP_PORT || '587';
-       const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
-    const notifyEmail = 'mahaney@cs.unc.edu';
+    const smtpFrom = process.env.SMTP_FROM || process.env.EMAIL_USER;
+    const notifyEmails = ['wilk05@unc.edu', 'mahaney@cs.unc.edu'].join(', ');
     if (smtpHost) {
-        console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: [${notifyEmail}]`);
+        console.log(`Email: relay via ${smtpHost}:${smtpPort} | from: ${smtpFrom} | to: [${notifyEmails}]`);
     } else if (process.env.EMAIL_USER) {
-        console.log(`Email: Gmail SMTP as ${process.env.EMAIL_USER} | to: [${notifyEmail}]`);
+        console.log(`Email: Gmail SMTP as ${process.env.EMAIL_USER} | to: [${notifyEmails}]`);
     } else {
         console.log('Email: NOT CONFIGURED — set SMTP_HOST for relay or EMAIL_USER/EMAIL_PASS for Gmail');
     }
