@@ -95,7 +95,7 @@ function createMailTransporter() {
 }
 
 function notificationRecipients() {
-    return ['mahaney@cs.unc.edu'];
+    return ['wilk05@unc.edu', 'mahaney@cs.unc.edu'];
 }
 
 // Send one message per reviewer so recipients cannot see one another.
