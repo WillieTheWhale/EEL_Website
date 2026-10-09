@@ -3824,12 +3824,18 @@ function getPeopleContent() {
             headshot: 'headshots/agastya-maheshwari.png',
             linkedin: 'https://www.linkedin.com/in/agastyamaheshwari22'
         },
-                {
+                               {
             name: 'Vedh Krishnan',
             major: 'Data Science & Computer Science',
             graduation: 'May 2030',
             headshot: 'headshots/vedh-krishnan.png',
             linkedin: 'https://www.linkedin.com/in/vedh-krishnan-595252436'
+        },
+        {
+            name: 'Kevin Xie',
+            major: 'Computer Science',
+            graduation: 'May 2030',
+            headshot: 'headshots/kevin-xie.png'
         },
         {
                           
@@ -4074,7 +4080,10 @@ function getPeopleContent() {
         'Agastya Maheshwari': [
             { key: 'courtLineCalling' }
         ],
-        'Vedh Krishnan': [
+               'Vedh Krishnan': [
+            { key: 'courtLineCalling' }
+        ],
+        'Kevin Xie': [
             { key: 'courtLineCalling' }
         ],
                 'Nil Zeren Dogan': [
