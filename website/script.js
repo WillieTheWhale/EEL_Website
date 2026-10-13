@@ -3253,6 +3253,13 @@ function getProjectsContent() {
             body: [
                 `This project is developing a portable line-calling system for pickleball and tennis using multiple cameras positioned around the court. Computer-vision software will track the ball from several angles and use the court markings to calibrate the cameras and combine their views into an estimate of the ball’s three-dimensional position.`,
                 `The system will compare bounce locations with court boundaries to determine whether a shot is in or out. The goal is to create an affordable, easy-to-deploy system that can provide audio feedback and allow players to review close calls through replay on their phones.`
+                       ]
+        },
+        {
+            title: 'Heatmapping Car Buffing',
+            body: [
+                `This project builds a system that tracks a car buffer’s movement and gives users feedback on their technique. A fiducial marker on the back of the buffer is tracked by an Intel RealSense depth camera on a tripod. The data is turned into a heatmap in Unity that shows missed areas, spots that got too much attention, and overall coverage.`,
+                `We will record a reference dataset of correct technique using an experienced professional detailer, then test the system with beginners to see whether visual feedback helps them learn to buff more evenly.`
             ]
         }
     
@@ -3897,9 +3904,11 @@ function getPeopleContent() {
        ];
 
     const highSchoolInterns = [
-        {
+               {
             name: 'Griffin Schultz',
-            role: 'High School Research Intern'
+            role: 'High School Research Intern',
+            graduation: 'June 2027',
+            headshot: 'headshots/griffin-schultz.png'
         },
         {
             name: 'Prisha Maheshwary',
@@ -3938,7 +3947,8 @@ function getPeopleContent() {
         ocularScreening: 'Ocular Response Impairment Screening',
               courtLineCalling: 'Multi-Camera Court Line Calling System',
         rampa: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
-        virtualChemistry: 'Virtual Chemistry Lab'
+              virtualChemistry: 'Virtual Chemistry Lab',
+        carBuffingHeatmap: 'Heatmapping Car Buffing'
     };
 
     const projectPosters = {
@@ -4103,6 +4113,9 @@ function getPeopleContent() {
         ],
                 'Avneesh Nikhil Tamhankar': [
             { key: 'aiResearchDiscovery' }
+        ],
+               'Griffin Schultz': [
+            { key: 'carBuffingHeatmap' }
         ],
         'Prisha Maheshwary': [
             { key: 'virtualChemistry' }
