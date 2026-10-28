@@ -4608,7 +4608,10 @@ function getAboutContent() {
                <h1 class="expanded-title">EEL at a Glance</h1>
         <div class="content-section">
             <p class="about-text">The Experimental Engineering Lab sits at the intersection of engineering and undergraduate research. Students build equipment for faculty research, develop their own prototypes, and learn to work through the unknowns that make research different from a classroom assignment. Based in UNC’s Department of Computer Science, the lab brings together students and researchers from across campus.</p>
-            <p class="about-text"><em>“I want to use research to impact students, not use students to impact my research.”</em> — Jim Mahaney</p>
+            <p class="about-text" style="text-align: center; margin: 40px 0;">
+                <em>“I want to use research to impact students, not use students to impact my research.”</em>
+                <span style="display: block; margin-top: 12px;">— Jim Mahaney</span>
+            </p>
             <div class="about-stats">
                 <div class="about-stat">
                     <strong class="about-stat-number">${EELStats.studentCount}</strong>
@@ -4663,7 +4666,7 @@ function getAboutContent() {
             <p class="about-text">UNC-Chapel Hill features COMP 290 and the EEL, where students learn machining, welding, and fabrication while building equipment for research across campus.</p>
             <a class="research-link" href="https://www.unc.edu/posts/2026/10/20/these-students-solve-research-problems-with-their-hands/" target="_blank" rel="noopener noreferrer">Read the UNC-Chapel Hill article</a>
 
-            <p class="about-text"><strong>The Daily Tar Heel</strong> | September 9, 2026</p>
+                       <p class="about-text" style="margin-top: 40px;"><strong>The Daily Tar Heel</strong> | September 9, 2026</p>
             <p class="about-text"><em>Religious studies class transports students to Nepal through virtual reality</em></p>
             <p class="about-text">The Daily Tar Heel looks at how 3D models and virtual reality developed through the EEL are being used in RELI 283 to bring field research from Nepal into the classroom.</p>
             <a class="research-link" href="https://dailytarheel.com/480769/lifestyle/religious-studies-class-transports-students-to-nepal-through-virtual-reality/" target="_blank" rel="noopener noreferrer">Read the Daily Tar Heel article</a>
