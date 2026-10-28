@@ -3267,12 +3267,14 @@ function getProjectsContent() {
     EELStats.projectCount =
         currentProjects.length + developmentProjects.length;
     const courses = [
-        {
+              {
             title: 'COMP 290: Introduction to Applied Engineering',
             body: [
                 `Introduction to Applied Engineering is a hands-on course taught by Jim Mahaney in the Computer Science machine shop. Students personally operate metal lathes, milling machines, welding equipment, and related tools while learning traditional fabrication methods, shop safety, materials, tolerances, and mechanical design.`,
                 `One of the course’s central themes is the use of applied engineering to support research. Student projects are connected to research in Computer Science and in collaborating departments across campus. Based on a review of UNC’s published course offerings, this appears to be the University’s first undergraduate credit-bearing course centered on students operating this range of traditional machine-shop equipment.`
-            ]
+            ],
+            link: 'https://www.unc.edu/posts/2026/10/20/these-students-solve-research-problems-with-their-hands/',
+            linkText: 'Read the UNC-Chapel Hill feature on COMP 290'
         },
         {
             title: 'COMP 293: Internship in Computer Science',
@@ -4282,8 +4284,8 @@ function getPeopleContent() {
         'alt="Jim Mahaney" loading="lazy" decoding="async">',
         '<h3 class="person-name">', labDirector.name, '</h3>',
         '<p class="person-role">', labDirector.role, '</p>',
-        '<p class="person-bio director-bio">',
-                '<strong>Jim Mahaney is the Director of Engineering and Research ',
+               '<p class="person-bio director-bio">',
+        '<strong>Jim Mahaney is the Director of Engineering and Research ',
         'for the Department of Computer Science at the University of ',
         'North Carolina at Chapel Hill.</strong> Since first joining ',
         'Carolina as a student assistant in 1997, he has designed and ',
@@ -4292,15 +4294,17 @@ function getPeopleContent() {
         'technologies, fluid dynamics, and large-scale 3D capture and ',
         'reconstruction. He later returned to lead the facility, bringing ',
         'his career at Carolina full circle. ',
-              'In fall 2025, he launched the EEL’s undergraduate research ',
+        'In fall 2025, he launched the EEL’s undergraduate research ',
         'program, creating opportunities that combine faculty ',
         'collaborations, student-led research, specialized technical ',
-        'training, and credit-bearing courses. His current work focuses ',
-       'on hands-on engineering education and helping undergraduate ',
-'research engineers develop practical skills in electronics, machining, ',
-'welding, fabrication, and rapid prototyping while building ',
-'systems for active research projects.',
-                    '</p>',
+        'training, and credit-bearing courses. His experience across these ',
+        'fields allows him to support the wide range of projects and ',
+        'student interests found in the EEL. His current work focuses ',
+        'on hands-on engineering education and helping undergraduate ',
+        'research engineers develop practical skills in electronics, machining, ',
+        'welding, fabrication, and rapid prototyping while building ',
+        'systems for active research projects.',
+        '</p>',
         '<a class="research-link" href="https://research.unc.edu/2025/09/03/rooted-jim-mahaney/" target="_blank" rel="noopener noreferrer">Read the UNC Research profile, “Rooted: Jim Mahaney”</a>',
         '</div>',
         '</div>',
@@ -4601,8 +4605,10 @@ function getAboutContent() {
     }).join('');
 
     return `
-        <h1 class="expanded-title">EEL at a Glance</h1>
+               <h1 class="expanded-title">EEL at a Glance</h1>
         <div class="content-section">
+            <p class="about-text">The Experimental Engineering Lab sits at the intersection of engineering and undergraduate research. Students build equipment for faculty research, develop their own prototypes, and learn to work through the unknowns that make research different from a classroom assignment. Based in UNC’s Department of Computer Science, the lab brings together students and researchers from across campus.</p>
+            <p class="about-text"><em>“I want to use research to impact students, not use students to impact my research.”</em> — Jim Mahaney</p>
             <div class="about-stats">
                 <div class="about-stat">
                     <strong class="about-stat-number">${EELStats.studentCount}</strong>
@@ -4651,7 +4657,12 @@ function getAboutContent() {
             <p class="about-text">Follow the Experimental Engineering Lab on Instagram for project updates, student work, and life in the lab.</p>
             <a class="research-link" href="https://www.instagram.com/experimentalengineeringlab/" target="_blank" rel="noopener noreferrer">Follow @experimentalengineeringlab on Instagram</a>
 
-            <h2 class="section-title">In the News</h2>
+                        <h2 class="section-title">In the News</h2>
+            <p class="about-text"><strong>The Well</strong> | October 20, 2026</p>
+            <p class="about-text"><em>These students solve research problems with their hands</em></p>
+            <p class="about-text">UNC-Chapel Hill features COMP 290 and the EEL, where students learn machining, welding, and fabrication while building equipment for research across campus.</p>
+            <a class="research-link" href="https://www.unc.edu/posts/2026/10/20/these-students-solve-research-problems-with-their-hands/" target="_blank" rel="noopener noreferrer">Read the UNC-Chapel Hill article</a>
+
             <p class="about-text"><strong>The Daily Tar Heel</strong> | September 9, 2026</p>
             <p class="about-text"><em>Religious studies class transports students to Nepal through virtual reality</em></p>
             <p class="about-text">The Daily Tar Heel looks at how 3D models and virtual reality developed through the EEL are being used in RELI 283 to bring field research from Nepal into the classroom.</p>
