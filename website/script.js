@@ -3274,7 +3274,7 @@ function getProjectsContent() {
                 `One of the course’s central themes is the use of applied engineering to support research. Student projects are connected to research in Computer Science and in collaborating departments across campus. Based on a review of UNC’s published course offerings, this appears to be the University’s first undergraduate credit-bearing course centered on students operating this range of traditional machine-shop equipment.`
             ],
             link: 'https://www.unc.edu/posts/2026/10/20/these-students-solve-research-problems-with-their-hands/',
-            linkText: 'Read the UNC-Chapel Hill feature on COMP 290'
+            linkText: 'Read The Well feature on COMP 290'
         },
         {
             title: 'COMP 293: Internship in Computer Science',
