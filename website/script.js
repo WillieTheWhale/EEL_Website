@@ -3536,7 +3536,11 @@ function getPeopleContent() {
             badge: 'Best Aluminum TIG Welder',
                         subtitle: 'Fall 2025 & Spring 2026'
         },
-        'Siera Gashi': {
+             'Siera Gashi': {
+            badge: 'Social Media Coordinator',
+            subtitle: 'Experimental Engineering Lab'
+        },
+        'Yuxin Tian': {
             badge: 'Social Media Coordinator',
             subtitle: 'Experimental Engineering Lab'
         }
@@ -3555,6 +3559,14 @@ function getPeopleContent() {
     }
 
     const featuredMembers = [
+                {
+            name: 'Yuxin Tian',
+            major: 'Economics',
+            status: 'Senior',
+            graduation: 'May 2027',
+            headshot: 'headshots/yuxin-tian.png',
+            linkedin: 'https://www.linkedin.com/in/yuxin-tian-aa0799306'
+        },
         {
             name: 'Markandeya Yalamanchi',
             major: 'Computer Science',
