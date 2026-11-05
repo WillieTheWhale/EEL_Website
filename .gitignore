@@ -8,3 +8,6 @@ nul
 
 # Reference/design assets (large files)
 Reference_Images/
+
+# Local test output
+website/test-results/

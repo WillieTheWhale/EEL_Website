@@ -32,12 +32,640 @@ const RuntimeVisibility = {
             TetherSystem.update();
         }
 
-        if (wasHidden && !isMobilePortrait) startVisualRuntime();
-        if (!wasHidden && isMobilePortrait && !renderer) startMobileGearLoop();
+        if (wasHidden !== isMobilePortrait) startVisualRuntime();
     }
 };
 
 window.EELRuntime = RuntimeVisibility;
+
+// ============================================
+// AMBIENT RENDERER HOST
+// ============================================
+// Feeds the pre-rendered background engine (ambient.js) with the geometry,
+// colours and keyframes it needs. Everything is read from the live CSS, so
+// styles.css stays the single source of truth for how the scene looks.
+
+const AmbientHost = {
+    engine: null,          // engine instance when running on this thread
+    worker: null,          // worker running the engine, when supported
+    droneEngine: null,     // main-thread drone fallback if the worker has no WebGL
+    mode: 'off',           // 'worker' | 'main' | 'off'
+    nebulaCanvas: null,
+    glowCanvas: null,
+    droneCanvas: null,
+    gearCanvases: [],
+    droneState: 'idle',    // idle | loading | ready | failed
+    _droneWaiters: [],
+    _probe: null,
+    _resizeTimer: 0,
+    _mobilePortrait: null,
+    _statsResolvers: [],
+
+    THREE_URL: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+
+    supported: function() {
+        return typeof window.EELAmbient !== 'undefined' && !!document.createElement('canvas').getContext;
+    },
+
+    testMode: function() {
+        return !!window.__EEL_TEST__ || /[?&]ambient=main\b/.test(location.search);
+    },
+
+    init: function() {
+        if (this.mode !== 'off' || !this.supported()) return;
+
+        const nebula = document.querySelector('.organic-nebula');
+        if (nebula) {
+            this.nebulaCanvas = document.createElement('canvas');
+            this.nebulaCanvas.className = 'nebula-canvas';
+            this.nebulaCanvas.setAttribute('aria-hidden', 'true');
+            nebula.appendChild(this.nebulaCanvas);
+        }
+        const medallion = document.getElementById('centralMedallion');
+        if (medallion) {
+            this.glowCanvas = document.createElement('canvas');
+            this.glowCanvas.className = 'medallion-shadow-canvas';
+            this.glowCanvas.setAttribute('aria-hidden', 'true');
+            // Painted after the glass so it stays out of the glass's
+            // backdrop-filter input, like the box-shadow it replaces.
+            medallion.appendChild(this.glowCanvas);
+        }
+        this.droneCanvas = document.getElementById('three-canvas');
+        this.createGearIcons(document.querySelectorAll('.panel-icon'));
+
+        const canWorker = !this.testMode() &&
+            typeof Worker !== 'undefined' &&
+            typeof OffscreenCanvas !== 'undefined' &&
+            typeof HTMLCanvasElement.prototype.transferControlToOffscreen === 'function';
+
+        const theme = document.body.getAttribute('data-theme') || 'light';
+        const base = { type: 'init', theme: theme, mobilePortrait: RuntimeVisibility.mobilePortrait };
+
+        if (canWorker) {
+            try {
+                const scriptEl = document.querySelector('script[src$="ambient.js"]');
+                this.worker = new Worker(scriptEl ? scriptEl.src : 'ambient.js');
+                const transfer = [];
+                const off = (c) => { if (!c) return null; const o = c.transferControlToOffscreen(); transfer.push(o); return o; };
+                const msg = Object.assign({}, base, {
+                    mainTimeOrigin: performance.timeOrigin,
+                    threeUrl: this.THREE_URL,
+                    canvases: {
+                        nebula: off(this.nebulaCanvas),
+                        glow: off(this.glowCanvas),
+                        gears: this.gearCanvases.map(off),
+                        drone: off(this.droneCanvas)
+                    }
+                });
+                this.worker.onmessage = (e) => this.onEngineMessage(e.data);
+                this.worker.onerror = () => this.fallbackToMain();
+                this.worker.postMessage(msg, transfer);
+                this.mode = 'worker';
+                // If the worker never comes up, render on this thread instead.
+                this._readyTimer = setTimeout(() => { if (!this._workerReady) this.fallbackToMain(); }, 4000);
+            } catch (e) {
+                console.warn('Ambient worker unavailable; rendering on the main thread.', e);
+                this.worker = null;
+            }
+        }
+
+        if (this.mode !== 'worker') this.startMainEngine();
+
+        this.whenStylesReady(() => {
+            this.configureNebula();
+            this.configureGlow();
+            this.configureGears();
+        });
+        // The medallion and panels are positioned/revealed asynchronously;
+        // refresh the pixel alignment once layout has settled.
+        window.addEventListener('load', () => setTimeout(() => this.configureLayout(), 50));
+
+        window.addEventListener('themechange', (e) => {
+            this.post({ type: 'theme', theme: e.detail.theme });
+            this.configureNebula();
+            this.configureGlow();
+        });
+        window.addEventListener('resize', () => {
+            clearTimeout(this._resizeTimer);
+            this._resizeTimer = setTimeout(() => {
+                this.configureLayout();
+                this.post({ type: 'drone', config: this.droneConfig() });
+            }, 100);
+        }, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+            this.post({ type: 'visibility', hidden: document.hidden });
+        });
+    },
+
+    startMainEngine: function() {
+        this.engine = new window.EELAmbient.Engine({
+            onMessage: (m) => this.onEngineMessage(m),
+            loadThree: () => window.EELLoadThree ? window.EELLoadThree() : Promise.reject(new Error('no loader'))
+        });
+        this.engine.handle({
+            type: 'init',
+            theme: document.body.getAttribute('data-theme') || 'light',
+            mobilePortrait: RuntimeVisibility.mobilePortrait,
+            canvases: { nebula: this.nebulaCanvas, glow: this.glowCanvas, gears: this.gearCanvases, drone: this.droneCanvas }
+        });
+        this.mode = 'main';
+    },
+
+    // The worker failed (script error, or it never started): its canvases
+    // cannot be taken back, so swap in fresh ones and render here.
+    fallbackToMain: function() {
+        if (this.mode !== 'worker' || this._fellBack) return;
+        this._fellBack = true;
+        console.warn('Ambient worker failed; rendering on the main thread.');
+        clearTimeout(this._readyTimer);
+        if (this.droneEngine) {
+            if (this.droneEngine.drone) this.droneEngine.drone.dispose();
+            this.droneEngine = null;
+        }
+        try { this.worker.terminate(); } catch (e) { /* already gone */ }
+        this.worker = null;
+        const swap = (c) => {
+            if (!c || !c.parentNode) return c;
+            const fresh = document.createElement('canvas');
+            fresh.className = c.className;
+            if (c.id) fresh.id = c.id;
+            fresh.style.cssText = c.style.cssText;
+            fresh.setAttribute('aria-hidden', 'true');
+            c.parentNode.replaceChild(fresh, c);
+            return fresh;
+        };
+        this.nebulaCanvas = swap(this.nebulaCanvas);
+        this.glowCanvas = swap(this.glowCanvas);
+        this.droneCanvas = swap(this.droneCanvas);
+        this.gearCanvases = this.gearCanvases.map(swap);
+        if (typeof _cachedThreeCanvas !== 'undefined') _cachedThreeCanvas = null;
+        this.startMainEngine();
+        if (this._bgPausedState) this.engine.handle({ type: 'bgPaused', paused: true, time: performance.now() });
+        this.configureLayout();
+        if (this.droneState !== 'idle') { this.droneState = 'loading'; this.post({ type: 'drone', config: this.droneConfig() }); }
+        if (this._circuitPayload) {
+            const canvas = swap(this._circuitCanvas);
+            if (CircuitGridMatrix.canvas === this._circuitCanvas) CircuitGridMatrix.canvas = canvas;
+            this.initCircuits(canvas, this._circuitPayload);
+        }
+        wakeScene();
+    },
+
+    configureLayout: function() {
+        this.configureNebula();
+        this.configureGlow();
+        this.configureGears();
+    },
+
+    post: function(msg) {
+        if (this.worker) this.worker.postMessage(msg);
+        else if (this.engine) this.engine.handle(msg);
+        if (this.droneEngine && /^(drone|droneFade|theme|bgPaused|visibility|mobilePortrait)$/.test(msg.type)) {
+            this.droneEngine.handle(msg);
+        }
+    },
+
+    // Called every frame by the main scene loop.
+    mainFrame: function(now) {
+        if (this.engine) this.engine.frame(now);
+        if (this.droneEngine) this.droneEngine.frame(now);
+    },
+
+    onEngineMessage: function(msg) {
+        if (msg.type === 'ready') {
+            this._workerReady = true;
+            clearTimeout(this._readyTimer);
+            return;
+        }
+        if (msg.type === 'droneReady') {
+            this.droneState = 'ready';
+            renderer = true;
+            this.flushDroneWaiters();
+        } else if (msg.type === 'droneFailed') {
+            if (this.mode === 'worker' && !this.droneEngine) {
+                this.startMainThreadDrone();
+            } else {
+                this.droneState = 'failed';
+                document.documentElement.classList.add('no-webgl');
+                console.warn('WebGL background unavailable; continuing with the static background.');
+                this.flushDroneWaiters();
+            }
+        } else if (msg.type === 'stats') {
+            const r = this._statsResolvers.shift();
+            if (r) r(msg.stats);
+        }
+    },
+
+    // The worker could not create a WebGL context (e.g. no WebGL in
+    // workers): swap in a fresh canvas and render the drone on this thread.
+    startMainThreadDrone: function() {
+        const old = this.droneCanvas;
+        const fresh = document.createElement('canvas');
+        fresh.id = old.id;
+        fresh.className = old.className;
+        old.parentNode.replaceChild(fresh, old);
+        this.droneCanvas = fresh;
+        if (typeof _cachedThreeCanvas !== 'undefined') _cachedThreeCanvas = null;
+        this.droneEngine = new window.EELAmbient.Engine({
+            onMessage: (m) => {
+                if (m.type === 'droneFailed') { this.droneEngine = null; this.onEngineMessage(m); }
+                else this.onEngineMessage(m);
+            },
+            loadThree: () => window.EELLoadThree ? window.EELLoadThree() : Promise.reject(new Error('no loader'))
+        });
+        this.droneEngine.handle({
+            type: 'init', theme: document.body.getAttribute('data-theme') || 'light',
+            mobilePortrait: RuntimeVisibility.mobilePortrait, canvases: { drone: fresh }
+        });
+        if (this._bgPausedState) this.droneEngine.handle({ type: 'bgPaused', paused: true, time: performance.now() });
+        this.droneEngine.handle({ type: 'drone', config: this.droneConfig() });
+    },
+
+    initCircuits: function(canvas, payload) {
+        this._circuitCanvas = canvas;
+        this._circuitPayload = payload;
+        const msg = {
+            type: 'circuitsInit', size: payload.size, styles: payload.styles, time: payload.time,
+            packets: payload.packets.map((p) => ({ conn: p.conn, progress: p.progress, speed: p.speed, direction: p.direction }))
+        };
+        if (this.worker) {
+            msg.canvas = canvas.transferControlToOffscreen();
+            msg.autoTick = true;
+            this.worker.postMessage(msg, [msg.canvas]);
+        } else if (this.engine) {
+            msg.canvas = canvas;
+            msg.autoTick = false;
+            this.engine.handle(msg);
+        }
+    },
+
+    // On the main thread the packets advance exactly when the old code
+    // advanced them; in a worker the engine keeps that cadence itself.
+    circuitTick: function(now) {
+        if (!this.worker && this.engine) this.engine.handle({ type: 'circuitTick', time: now });
+    },
+
+    droneConfig: function() {
+        return { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 };
+    },
+
+    startDrone: function() {
+        if (this.mode === 'off') return;
+        if (this.droneState === 'idle') this.droneState = 'loading';
+        this.post({ type: 'drone', config: this.droneConfig() });
+    },
+
+    // Test clock only: mirror the old start order (loop starts with the drone).
+    waitForDroneBeforeLoop: function() {
+        if (!this.testMode() || RuntimeVisibility.mobilePortrait) return false;
+        if (this.droneState === 'ready' || this.droneState === 'failed') return false;
+        this._droneWaiters.push(startSceneLoop);
+        return true;
+    },
+
+    flushDroneWaiters: function() {
+        const w = this._droneWaiters;
+        this._droneWaiters = [];
+        w.forEach((fn) => fn());
+    },
+
+    setMobilePortrait: function(value) {
+        if (this._mobilePortrait === value) return;
+        this._mobilePortrait = value;
+        this.post({ type: 'mobilePortrait', value: value });
+        clearTimeout(this._resizeTimer);
+        this._resizeTimer = setTimeout(() => this.configureLayout(), 100);
+    },
+
+    setBgPaused: function(paused) {
+        this._bgPausedState = paused;
+        this.post({ type: 'bgPaused', paused: paused, time: performance.now() });
+    },
+
+    // Worker frame-time statistics (for performance testing).
+    workerStats: function() {
+        return new Promise((resolve) => {
+            if (this.worker) { this._statsResolvers.push(resolve); this.worker.postMessage({ type: 'stats' }); }
+            else if (this.engine) { const s = this.engine.stats; this.engine.stats = { frames: 0, busyMs: 0, maxMs: 0 }; resolve(s); }
+            else resolve(null);
+        });
+    },
+
+    dispose: function() {
+        if (this.worker) this.worker.terminate();
+        [this.engine, this.droneEngine].forEach((e) => { if (e && e.drone) e.drone.dispose(); });
+    },
+
+    // styles.css is loaded asynchronously; wait until its rules apply.
+    stylesReady: function() {
+        const blob = document.querySelector('.nebula-blob');
+        if (!blob) return true;
+        const container = blob.parentNode;
+        const had = container.classList.contains('eel-prerendered');
+        if (had) container.classList.remove('eel-prerendered');
+        const ready = /blur\(/.test(getComputedStyle(blob).filter);
+        if (had) container.classList.add('eel-prerendered');
+        return ready;
+    },
+
+    whenStylesReady: function(cb) {
+        if (this.stylesReady()) { cb(); return; }
+        const started = Date.now();
+        const check = () => {
+            if (this.stylesReady()) cb();
+            else if (Date.now() - started < 15000) setTimeout(check, 30);
+        };
+        setTimeout(check, 30);
+    },
+
+    // ---- CSS reading helpers ------------------------------------------
+    probe: function() {
+        if (!this._probe) {
+            const p = document.createElement('div');
+            p.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:0;height:0;';
+            document.body.appendChild(p);
+            this._probe = p;
+        }
+        return this._probe;
+    },
+
+    lengthPx: function(expr) {
+        const p = this.probe();
+        p.style.marginLeft = expr;
+        const v = parseFloat(getComputedStyle(p).marginLeft);
+        p.style.marginLeft = '';
+        return isFinite(v) ? v : 0;
+    },
+
+    splitTopLevel: function(str, sep) {
+        const parts = [];
+        let depth = 0, cur = '';
+        for (let i = 0; i < str.length; i++) {
+            const ch = str[i];
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            if (depth === 0 && (sep === ' ' ? /\s/.test(ch) : ch === sep)) {
+                if (cur.trim()) parts.push(cur.trim());
+                cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        if (cur.trim()) parts.push(cur.trim());
+        return parts;
+    },
+
+    parseColor: function(str) {
+        const m = /rgba?\(([^)]+)\)/.exec(str);
+        if (!m) return { r: 0, g: 0, b: 0, a: 0 };
+        const v = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat);
+        return { r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1 };
+    },
+
+    parseRadialGradient: function(str) {
+        const m = /radial-gradient\((.*)\)\s*$/.exec(str.trim());
+        if (!m) return null;
+        const parts = this.splitTopLevel(m[1], ',');
+        let cx = 0.5, cy = 0.5;
+        if (!/^(rgb|#|transparent)/.test(parts[0])) {
+            const at = /at\s+([-\d.]+)%\s+([-\d.]+)%/.exec(parts[0]);
+            if (at) { cx = parseFloat(at[1]) / 100; cy = parseFloat(at[2]) / 100; }
+            parts.shift();
+        }
+        const stops = parts.map((p) => {
+            const colorEnd = p.lastIndexOf(')') + 1;
+            const color = this.parseColor(p.slice(0, colorEnd));
+            const rest = p.slice(colorEnd).trim();
+            color.pos = rest ? parseFloat(rest) / 100 : null;
+            return color;
+        });
+        if (stops.length && stops[0].pos === null) stops[0].pos = 0;
+        if (stops.length && stops[stops.length - 1].pos === null) stops[stops.length - 1].pos = 1;
+        for (let i = 1; i < stops.length; i++) {
+            if (stops[i].pos === null) {
+                let j = i;
+                while (stops[j].pos === null) j++;
+                const a = stops[i - 1].pos, b = stops[j].pos;
+                for (let k = i; k < j; k++) stops[k].pos = a + (b - a) * (k - i + 1) / (j - i + 1);
+            }
+            if (stops[i].pos < stops[i - 1].pos) stops[i].pos = stops[i - 1].pos;
+        }
+        return { cx: cx, cy: cy, stops: stops };
+    },
+
+    findKeyframes: function(name) {
+        for (const sheet of Array.from(document.styleSheets)) {
+            let rules;
+            try { rules = sheet.cssRules; } catch (e) { continue; }
+            if (!rules) continue;
+            for (const rule of Array.from(rules)) {
+                if (rule.type === CSSRule.KEYFRAMES_RULE && rule.name === name) return rule;
+            }
+        }
+        return null;
+    },
+
+    // translate/scale/rotate keyframes -> [{offset, v:[tx, ty, scale, deg]}]
+    transformKeyframes: function(name) {
+        const rule = this.findKeyframes(name);
+        if (!rule) return null;
+        const frames = [];
+        for (const kf of Array.from(rule.cssRules)) {
+            const v = [0, 0, 1, 0];
+            const text = kf.style.getPropertyValue('transform');
+            const fnRe = /([a-zA-Z]+)\(/g;
+            let m;
+            while ((m = fnRe.exec(text))) {
+                let depth = 1, i = fnRe.lastIndex;
+                while (i < text.length && depth > 0) { if (text[i] === '(') depth++; else if (text[i] === ')') depth--; i++; }
+                const args = this.splitTopLevel(text.slice(fnRe.lastIndex, i - 1), ',');
+                fnRe.lastIndex = i;
+                if (m[1] === 'translate') { v[0] = this.lengthPx(args[0]); v[1] = args[1] ? this.lengthPx(args[1]) : 0; }
+                else if (m[1] === 'scale') v[2] = parseFloat(args[0]);
+                else if (m[1] === 'rotate') v[3] = parseFloat(args[0]);
+            }
+            kf.keyText.split(',').forEach((k) => {
+                k = k.trim();
+                const off = k === 'from' ? 0 : k === 'to' ? 1 : parseFloat(k) / 100;
+                frames.push({ offset: off, v: v.slice() });
+            });
+        }
+        frames.sort((a, b) => a.offset - b.offset);
+        return frames;
+    },
+
+    configureNebula: function() {
+        if (!this.nebulaCanvas) return;
+        const container = this.nebulaCanvas.parentNode;
+        const W = container.clientWidth, H = container.clientHeight;
+        if (!W || !H) return;
+
+        // Read the original (un-overridden) blob styles.
+        container.classList.remove('eel-prerendered');
+        const blobs = [];
+        container.querySelectorAll('.nebula-blob').forEach((el) => {
+            const cs = getComputedStyle(el);
+            const blur = /blur\(([\d.]+)px\)/.exec(cs.filter);
+            const kf = this.transformKeyframes(cs.animationName);
+            const grad = this.parseRadialGradient(cs.backgroundImage);
+            if (!blur || !kf || !grad) return;
+            blobs.push({
+                left: parseFloat(cs.left), top: parseFloat(cs.top),
+                width: parseFloat(cs.width), height: parseFloat(cs.height),
+                sigma: parseFloat(blur[1]),
+                opacity: parseFloat(cs.opacity),
+                gradient: grad,
+                anim: {
+                    duration: parseFloat(cs.animationDuration) * (cs.animationDuration.indexOf('ms') > 0 ? 1 : 1000),
+                    direction: cs.animationDirection,
+                    easing: cs.animationTimingFunction,
+                    keyframes: kf
+                }
+            });
+        });
+        container.classList.add('eel-prerendered');
+        if (!blobs.length) return;
+
+        const sigma = Math.min.apply(null, blobs.map((b) => b.sigma));
+        const h = sigma / 8;
+        const grid = { h: h, x0: -h, y0: -h, cols: Math.ceil(W / h) + 2, rows: Math.ceil(H / h) + 2 };
+        const c = this.nebulaCanvas;
+        c.style.left = grid.x0 + 'px';
+        c.style.top = grid.y0 + 'px';
+        c.style.width = (grid.cols * h) + 'px';
+        c.style.height = (grid.rows * h) + 'px';
+        this.post({ type: 'nebula', config: { grid: grid, spriteTexel: sigma / 12, blobs: blobs } });
+    },
+
+    // ---- medallion glow: the animated box-shadow ------------------------
+    parseShadowList: function(text) {
+        const p = this.probe();
+        p.style.boxShadow = text;
+        const computed = getComputedStyle(p).boxShadow;
+        p.style.boxShadow = '';
+        if (!computed || computed === 'none') return [];
+        return this.splitTopLevel(computed, ',').map((sh) => {
+            const colorEnd = sh.indexOf(')') + 1;
+            const c = this.parseColor(sh.slice(0, colorEnd));
+            const nums = sh.slice(colorEnd).trim().split(/\s+/).map(parseFloat);
+            return { r: c.r, g: c.g, b: c.b, a: c.a, x: nums[0] || 0, y: nums[1] || 0, blur: nums[2] || 0, spread: nums[3] || 0 };
+        });
+    },
+
+    configureGlow: function() {
+        if (!this.glowCanvas) return;
+        const medallion = this.glowCanvas.parentNode;
+        const glass = medallion.querySelector('.medallion-glass-container');
+        if (!glass) return;
+        medallion.classList.remove('eel-prerendered');
+        const cs = getComputedStyle(glass);
+        const name = cs.animationName;
+        const duration = parseFloat(cs.animationDuration) * (cs.animationDuration.indexOf('ms') > 0 ? 1 : 1000);
+        const easing = cs.animationTimingFunction, direction = cs.animationDirection;
+        medallion.classList.add('eel-prerendered');
+        const rule = name && name !== 'none' ? this.findKeyframes(name) : null;
+        if (!rule) return;
+
+        const frames = [];
+        let count = 0;
+        for (const kf of Array.from(rule.cssRules)) {
+            const list = this.parseShadowList(kf.style.getPropertyValue('box-shadow'));
+            count = Math.max(count, list.length);
+            const v = [];
+            list.forEach((sh) => v.push(sh.r * sh.a, sh.g * sh.a, sh.b * sh.a, sh.a, sh.x, sh.y, sh.blur, sh.spread));
+            kf.keyText.split(',').forEach((k) => {
+                k = k.trim();
+                frames.push({ offset: k === 'from' ? 0 : k === 'to' ? 1 : parseFloat(k) / 100, v: v.slice() });
+            });
+        }
+        if (!frames.length || frames.some((f) => f.v.length !== count * 8)) return;
+        frames.sort((a, b) => a.offset - b.offset);
+
+        // Shadows that never change across the keyframes stay a real
+        // box-shadow on the glass (painted by the browser, so their sharp
+        // edges sit exactly where they always did); only the animated glow
+        // is drawn on the canvas.
+        const staticList = [];
+        for (let sIdx = 0; sIdx < count; sIdx++) {
+            const v0 = frames[0].v.slice(sIdx * 8, sIdx * 8 + 8);
+            const constant = frames.every((f) => f.v.slice(sIdx * 8, sIdx * 8 + 8).every((x, j) => Math.abs(x - v0[j]) < 1e-9));
+            if (!constant) continue;
+            const a = v0[3];
+            const col = 'rgba(' + [0, 1, 2].map((j) => Math.round(a > 0 ? v0[j] / a : 0)).join(', ') + ', ' + a + ')';
+            staticList.push(col + ' ' + v0[4] + 'px ' + v0[5] + 'px ' + v0[6] + 'px ' + v0[7] + 'px');
+        }
+        glass.style.boxShadow = staticList.length ? staticList.join(', ') : 'none';
+
+        let pad = 4;
+        frames.forEach((f) => {
+            for (let s = 0; s < count; s++) {
+                const o = s * 8;
+                pad = Math.max(pad, 1.5 * f.v[o + 6] + Math.max(0, f.v[o + 7]) + Math.max(Math.abs(f.v[o + 4]), Math.abs(f.v[o + 5])) + 4);
+            }
+        });
+
+        // Geometry in the medallion's own (pre-transform) layout space. Blink
+        // paints box decorations on a pixel-snapped border box, and snaps the
+        // canvas' layout position; the medallion's fractional translate(-50%)
+        // then applies to both alike.
+        const dpr = window.devicePixelRatio || 1;
+        const rect = glass.getBoundingClientRect();
+        const mrect = medallion.getBoundingClientRect();
+        if (!rect.width) return;
+        const m = /matrix\(([^)]+)\)/.exec(getComputedStyle(medallion).transform);
+        const mt = m ? m[1].split(',').map(parseFloat) : [1, 0, 0, 1, 0, 0];
+        const Mx = mrect.left - mt[4], My = mrect.top - mt[5];
+        const gx = Mx + (rect.left - mrect.left), gy = My + (rect.top - mrect.top);
+        const GL = Math.round(gx * dpr), GR = Math.round((gx + rect.width) * dpr);
+        const GT = Math.round(gy * dpr), GB = Math.round((gy + rect.height) * dpr);
+        const originX = Math.floor((gx - pad) * dpr), originY = Math.floor((gy - pad) * dpr);
+        const width = Math.ceil((gx + rect.width + pad) * dpr) - originX;
+        const height = Math.ceil((gy + rect.height + pad) * dpr) - originY;
+        const c = this.glowCanvas;
+        c.style.left = (originX / dpr - Mx) + 'px';
+        c.style.top = (originY / dpr - My) + 'px';
+        c.style.width = (width / dpr) + 'px';
+        c.style.height = (height / dpr) + 'px';
+        this.post({
+            type: 'glow',
+            config: {
+                width: width, height: height, dpr: dpr,
+                cx: (GL + GR) / 2 - originX,
+                cy: (GT + GB) / 2 - originY,
+                r: (GR - GL) / 2,
+                shadowCount: count,
+                staticByHost: true,
+                anim: { duration: duration, easing: easing, direction: direction, keyframes: frames }
+            }
+        });
+    },
+
+    // ---- gear icons -------------------------------------------------------
+    createGearIcons: function(iconEls) {
+        if (this.gearCanvases.length || !iconEls.length) return;
+        iconEls.forEach((el) => {
+            const c = document.createElement('canvas');
+            c.className = 'panel-icon-canvas';
+            c.setAttribute('aria-hidden', 'true');
+            el.textContent = '';
+            el.appendChild(c);
+            this.gearCanvases.push(c);
+        });
+    },
+
+    configureGears: function() {
+        if (!this.gearCanvases.length) return;
+        const dpr = window.devicePixelRatio || 1;
+        const icons = this.gearCanvases.map((c) => {
+            const box = c.parentNode;
+            const cssW = box.clientWidth, cssH = box.clientHeight;
+            return { cssW: cssW, cssH: cssH, dpr: dpr, width: Math.max(1, Math.round(cssW * dpr)), height: Math.max(1, Math.round(cssH * dpr)) };
+        });
+        this.post({ type: 'gears', config: { icons: icons } });
+    }
+};
+
+window.EELAmbientHost = AmbientHost;
 
 // ============================================
 // THEME MANAGER
@@ -163,195 +791,116 @@ const CircuitGridMatrix = {
     svg: null,
     gridGroup: null,
     tracesGroup: null,
-    nodesGroup: null,
-    packetsGroup: null,
+    canvas: null,
     initialized: false,
     cachedMedallionEl: null,
     cachedMedallionRadius: 100,
-    
+
     // Grid configuration
     gridSize: 40, // Grid cell size in pixels
     gridOpacity: 0.08,
-    
+
     // Connection data
     connections: new Map(),
     connectionList: [],
     packets: [],
-    junctionNodes: [],
-    
-    // Animation timing
+
     packetSpeed: 0.2, // Progress per second (reduced by 50%)
-    lastUpdateTime: 0,
-    
+
+    // The grid pattern and the trace glows are static SVG. The dashed traces,
+    // nodes and data packets animate, so they are simulated and drawn by the
+    // ambient engine (ambient.js) on a canvas, off the main thread when the
+    // browser supports it. This object only computes the routes.
     init: function() {
         const container = document.getElementById('engineeringNetwork');
         if (!container || this.initialized) return;
-        
-        // Create main SVG
+
         this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svg.setAttribute('class', 'circuit-grid-svg');
         this.svg.setAttribute('width', '100%');
         this.svg.setAttribute('height', '100%');
-        
-        // Create defs for gradients and filters
-        const defs = this.createDefs();
-        this.svg.appendChild(defs);
-        
-        // Create layer groups (order matters for z-index)
+        this.svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'defs'));
+
         this.gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.gridGroup.setAttribute('class', 'circuit-grid-layer');
         this.svg.appendChild(this.gridGroup);
-        
+
         this.tracesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         this.tracesGroup.setAttribute('class', 'circuit-traces-layer');
         this.svg.appendChild(this.tracesGroup);
-        
-        this.nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        this.nodesGroup.setAttribute('class', 'circuit-nodes-layer');
-        this.svg.appendChild(this.nodesGroup);
-        
-        this.packetsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        this.packetsGroup.setAttribute('class', 'circuit-packets-layer');
-        this.svg.appendChild(this.packetsGroup);
-        
-        // Initialize grid background
+
         this.createGridBackground();
-        
-        // Initialize connections for each panel
+
         const panels = ['projects', 'people', 'about', 'join'];
         panels.forEach((id, index) => {
-            const connection = {
-                panelId: 'panel-' + id,
-                path: null,
-                pathElement: null,
-                pathGlowElement: null,
-                junctions: [],
-                packets: [],
-                pathPoints: [],
-                segmentLengths: [],
-                totalLength: 0
-            };
+            const connection = { panelId: 'panel-' + id, index: index, pathPoints: [], glowElement: null };
             this.connections.set(connection.panelId, connection);
             this.connectionList.push(connection);
-            
-            // Create multiple packets per connection for visual richness
             for (let p = 0; p < 2; p++) {
                 this.packets.push({
-                    connectionId: 'panel-' + id,
-                    connection: connection,
+                    conn: index,
                     progress: (p * 0.5) + (index * 0.1), // Stagger packet positions
-                    element: null,
-                    glowElement: null,
-                    direction: 1, // 1 = outward, -1 = inward
+                    direction: 1,
                     speed: this.packetSpeed * (0.8 + Math.random() * 0.4)
                 });
             }
         });
-        
-        // Create packet elements
-        this.createPacketElements();
-        
-        container.appendChild(this.svg);
-        this.initialized = true;
-        this.lastUpdateTime = performance.now();
 
-        // Cache medallion radius
+        container.appendChild(this.svg);
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.className = 'circuit-canvas';
+        this.canvas.setAttribute('aria-hidden', 'true');
+        container.appendChild(this.canvas);
+        const size = this.canvasSize();
+
+        this.initialized = true;
         this.cachedMedallionEl = document.getElementById('centralMedallion');
         if (this.cachedMedallionEl) {
             this.cachedMedallionRadius = this.cachedMedallionEl.offsetWidth / 2;
         }
-        
-                console.log('%cCircuit Grid Matrix initialized', 'color: #7ec8e3; font-weight: bold;');
+
+        AmbientHost.initCircuits(this.canvas, {
+            size: size,
+            styles: this.readStyles(),
+            packets: this.packets,
+            time: performance.now()
+        });
+        window.addEventListener('themechange', () => {
+            AmbientHost.post({ type: 'circuitStyles', styles: this.readStyles(), time: performance.now() });
+        });
+
+        console.log('%cCircuit Grid Matrix initialized', 'color: #7ec8e3; font-weight: bold;');
     },
-    
-    createDefs: function() {
-        const ns = 'http://www.w3.org/2000/svg';
-        const defs = document.createElementNS(ns, 'defs');
-        
-        // Helper to create SVG filter with Gaussian blur + merge
-        function createGlowFilter(id, x, y, w, h, blurConfigs) {
-            const filter = document.createElementNS(ns, 'filter');
-            filter.setAttribute('id', id);
-            filter.setAttribute('x', x);
-            filter.setAttribute('y', y);
-            filter.setAttribute('width', w);
-            filter.setAttribute('height', h);
-            
-            const merge = document.createElementNS(ns, 'feMerge');
-            for (let i = 0; i < blurConfigs.length; i++) {
-                const blur = document.createElementNS(ns, 'feGaussianBlur');
-                blur.setAttribute('stdDeviation', blurConfigs[i].dev);
-                blur.setAttribute('result', blurConfigs[i].result);
-                filter.appendChild(blur);
-                const mergeNode = document.createElementNS(ns, 'feMergeNode');
-                mergeNode.setAttribute('in', blurConfigs[i].result);
-                merge.appendChild(mergeNode);
-            }
-            // Add SourceGraphic as final merge node
-            const srcNode = document.createElementNS(ns, 'feMergeNode');
-            srcNode.setAttribute('in', 'SourceGraphic');
-            merge.appendChild(srcNode);
-            filter.appendChild(merge);
-            return filter;
-        }
-        
-        // Trace glow filter (reduced stdDeviation for performance)
-        defs.appendChild(createGlowFilter('traceGlow', '-50%', '-50%', '200%', '200%',
-            [{ dev: '2', result: 'coloredBlur' }]));
-        
-        // Packet glow filter
-        defs.appendChild(createGlowFilter('packetGlow', '-100%', '-100%', '300%', '300%',
-            [{ dev: '3', result: 'blur1' }]));
-        
-        // Node glow filter
-        defs.appendChild(createGlowFilter('nodeGlow', '-100%', '-100%', '300%', '300%',
-            [{ dev: '1.5', result: 'coloredBlur' }]));
-        
-        // Trace gradient
-        const traceGradient = document.createElementNS(ns, 'linearGradient');
-        traceGradient.setAttribute('id', 'traceGradient');
-        const stops = [
-            { offset: '0%', cls: 'trace-gradient-start' },
-            { offset: '50%', cls: 'trace-gradient-mid' },
-            { offset: '100%', cls: 'trace-gradient-end' }
-        ];
-        for (let i = 0; i < stops.length; i++) {
-            const stop = document.createElementNS(ns, 'stop');
-            stop.setAttribute('offset', stops[i].offset);
-            stop.setAttribute('class', stops[i].cls);
-            traceGradient.appendChild(stop);
-        }
-        defs.appendChild(traceGradient);
-        
-        return defs;
+
+    canvasSize: function() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = Math.round(window.innerWidth * dpr), h = Math.round(window.innerHeight * dpr);
+        this.canvas.style.width = (w / dpr) + 'px';
+        this.canvas.style.height = (h / dpr) + 'px';
+        return { width: w, height: h, dpr: dpr };
     },
-    
+
     createGridBackground: function() {
-        // Clear existing grid
         while (this.gridGroup.firstChild) {
             this.gridGroup.removeChild(this.gridGroup.firstChild);
         }
-        
+
         const width = window.innerWidth;
         const height = window.innerHeight;
         const gridSize = this.gridSize;
         const ns = 'http://www.w3.org/2000/svg';
-        
-        // Use SVG <pattern> instead of individual lines — reduces DOM nodes from ~75+ to 3
-        // Ensure pattern defs exist in our SVG
-        let defs = this.svg.querySelector('defs');
-        
-        // Remove old grid pattern if present
+        const defs = this.svg.querySelector('defs');
+
         const oldPattern = defs.querySelector('#circuitGridPattern');
         if (oldPattern) oldPattern.remove();
-        
+
         const pattern = document.createElementNS(ns, 'pattern');
         pattern.setAttribute('id', 'circuitGridPattern');
         pattern.setAttribute('width', gridSize);
         pattern.setAttribute('height', gridSize);
         pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-        
-        // Single cell: right edge + bottom edge lines
+
         const pathD = 'M ' + gridSize + ' 0 L ' + gridSize + ' ' + gridSize + ' M 0 ' + gridSize + ' L ' + gridSize + ' ' + gridSize;
         const pathEl = document.createElementNS(ns, 'path');
         pathEl.setAttribute('d', pathD);
@@ -359,154 +908,117 @@ const CircuitGridMatrix = {
         pathEl.setAttribute('fill', 'none');
         pattern.appendChild(pathEl);
         defs.appendChild(pattern);
-        
-        // Single rect covers entire viewport using the pattern
+
         const rect = document.createElementNS(ns, 'rect');
         rect.setAttribute('width', width);
         rect.setAttribute('height', height);
         rect.setAttribute('fill', 'url(#circuitGridPattern)');
         this.gridGroup.appendChild(rect);
     },
-    
-    createPacketElements: function() {
-        this.packets.forEach((packet) => {
-            // Move both packet layers as one compositor-friendly SVG group.
-            // The old implementation changed four geometry attributes for
-            // every packet, forcing repeated SVG layout on every update.
-            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            group.setAttribute('class', 'circuit-packet-group');
-            this.packetsGroup.appendChild(group);
-            packet.groupElement = group;
 
-            // Create glow element (larger, behind)
-            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            glow.setAttribute('class', 'circuit-packet-glow');
-            glow.setAttribute('x', '-6');
-            glow.setAttribute('y', '-6');
-            glow.setAttribute('width', '12');
-            glow.setAttribute('height', '12');
-            glow.setAttribute('rx', '2');
-            glow.setAttribute('filter', 'url(#packetGlow)');
-            group.appendChild(glow);
-            packet.glowElement = glow;
-            
-            // Create main packet element (diamond shape)
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            el.setAttribute('class', 'circuit-packet');
-            el.setAttribute('x', '-4');
-            el.setAttribute('y', '-4');
-            el.setAttribute('width', '8');
-            el.setAttribute('height', '8');
-            el.setAttribute('rx', '1');
-            el.style.transform = 'rotate(45deg)';
-            group.appendChild(el);
-            packet.element = el;
+    readStyles: function() {
+        const ns = 'http://www.w3.org/2000/svg';
+        if (!this._probeSvg) {
+            const svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('class', 'circuit-style-probe');
+            svg.setAttribute('aria-hidden', 'true');
+            const mk = (tag, cls) => { const el = document.createElementNS(ns, tag); el.setAttribute('class', cls); svg.appendChild(el); return el; };
+            this._probes = {
+                trace: mk('path', 'circuit-trace'),
+                junction: mk('rect', 'circuit-junction'),
+                junctionP: mk('rect', 'circuit-junction pulsing'),
+                port: mk('circle', 'circuit-medallion-port'),
+                portP: mk('circle', 'circuit-medallion-port pulsing'),
+                endpoint: mk('circle', 'circuit-endpoint'),
+                packet: mk('rect', 'circuit-packet'),
+                glow: mk('rect', 'circuit-packet-glow')
+            };
+            document.getElementById('engineeringNetwork').appendChild(svg);
+            this._probeSvg = svg;
+        }
+        const P = this._probes;
+        const color = (v) => { const m = /rgba?\(([^)]+)\)/.exec(v); if (!m) return [0, 0, 0, 0]; const a = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat); return [a[0], a[1], a[2], a.length > 3 ? a[3] : 1]; };
+        const shadowBlur = (f) => { const m = /drop-shadow\((.*)\)/.exec(f || ''); if (!m) return 0; const nums = m[1].replace(/rgba?\([^)]*\)/, '').match(/[-\d.]+px/g) || []; return nums.length >= 3 ? parseFloat(nums[2]) : 0; };
+        const cs = (el) => getComputedStyle(el);
+        const t = cs(P.trace), j = cs(P.junction), jp = cs(P.junctionP), p = cs(P.port), pp = cs(P.portP), e = cs(P.endpoint), k = cs(P.packet), g = cs(P.glow);
+        return ({
+            trace: { stroke: color(t.stroke), opacity: +t.opacity, width: parseFloat(t.strokeWidth), dash: t.strokeDasharray.split(/[\s,]+/).map(parseFloat) },
+            junction: { fill: color(j.fill), opacity: +j.opacity, pulseFill: color(jp.fill), pulseOpacity: +jp.opacity },
+            port: { fill: color(p.fill), opacity: +p.opacity, shadow: shadowBlur(p.filter), shadowColor: color((/drop-shadow\((rgba?\([^)]*\))/.exec(p.filter) || [])[1] || p.fill), pulseFill: color(pp.fill), pulseOpacity: +pp.opacity },
+            endpoint: { fill: color(e.fill), opacity: +e.opacity },
+            packet: { fill: color(k.fill), opacity: +k.opacity },
+            glow: { fill: color(g.fill), opacity: +g.opacity }
         });
     },
-    
-    // Snap a coordinate value to the nearest grid intersection
+
+    snapToGrid: function(x, y) {
+        return { x: this._snapVal(x), y: this._snapVal(y) };
+    },
+
     _snapVal: function(v) {
         const gs = this.gridSize;
         return Math.round(v / gs) * gs;
     },
-    // Snap a point to the nearest grid intersection
-    snapToGrid: function(x, y) {
-        return {
-            x: this._snapVal(x),
-            y: this._snapVal(y)
-        };
-    },
-    
+
     // Calculate Manhattan/orthogonal route from medallion edge to panel edge
     calculateRoute: function(medallionCenter, medallionRadius, panelRect, panelAngle) {
         const points = [];
         const gridSize = this.gridSize;
-        
-        // Calculate the panel's center position
         const panelCenterX = panelRect.x + panelRect.width / 2;
         const panelCenterY = panelRect.y + panelRect.height / 2;
-        
-        // Calculate the ACTUAL angle from medallion center to panel center
         const actualAngle = Math.atan2(panelCenterY - medallionCenter.y, panelCenterX - medallionCenter.x);
-        
-        // Start point: exactly on the medallion edge, pointing toward the panel
         const startX = medallionCenter.x + Math.cos(actualAngle) * medallionRadius;
         const startY = medallionCenter.y + Math.sin(actualAngle) * medallionRadius;
         const start = { x: startX, y: startY };
-        
-        // Lead-out point: a short distance from the medallion in the direction of the panel
         const leadOutDistance = gridSize * 1.5;
         const leadOutX = medallionCenter.x + Math.cos(actualAngle) * (medallionRadius + leadOutDistance);
         const leadOutY = medallionCenter.y + Math.sin(actualAngle) * (medallionRadius + leadOutDistance);
         const leadOut = this.snapToGrid(leadOutX, leadOutY);
-        
-        // Calculate which edge of the panel is closest to the medallion center
-        // by finding the intersection point of the line from medallion to panel center with the panel edges
         const dx = panelCenterX - medallionCenter.x;
         const dy = panelCenterY - medallionCenter.y;
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
-        
-        // Determine the primary direction and which edge to connect to
         let endX, endY;
         const horizontalBias = (absDx / panelRect.width) > (absDy / panelRect.height);
-        
+
         if (horizontalBias) {
-            // Connect to left or right edge
             if (dx > 0) {
-                // Panel is to the right - connect to left edge
                 endX = panelRect.x;
-                // Calculate Y position where the line intersects the left edge
                 const t = (panelRect.x - medallionCenter.x) / dx;
                 endY = medallionCenter.y + t * dy;
-                // Clamp to panel bounds
                 endY = Math.max(panelRect.y + 10, Math.min(endY, panelRect.y + panelRect.height - 10));
             } else {
-                // Panel is to the left - connect to right edge
                 endX = panelRect.x + panelRect.width;
                 const t = (panelRect.x + panelRect.width - medallionCenter.x) / dx;
                 endY = medallionCenter.y + t * dy;
                 endY = Math.max(panelRect.y + 10, Math.min(endY, panelRect.y + panelRect.height - 10));
             }
         } else {
-            // Connect to top or bottom edge
             if (dy > 0) {
-                // Panel is below - connect to top edge
                 endY = panelRect.y;
                 const t = (panelRect.y - medallionCenter.y) / dy;
                 endX = medallionCenter.x + t * dx;
                 endX = Math.max(panelRect.x + 10, Math.min(endX, panelRect.x + panelRect.width - 10));
             } else {
-                // Panel is above - connect to bottom edge
                 endY = panelRect.y + panelRect.height;
                 const t = (panelRect.y + panelRect.height - medallionCenter.y) / dy;
                 endX = medallionCenter.x + t * dx;
                 endX = Math.max(panelRect.x + 10, Math.min(endX, panelRect.x + panelRect.width - 10));
             }
         }
-        
-        // DON'T snap the final endpoint - keep it exactly at the panel edge
+
         const end = { x: endX, y: endY };
-        
-        // Create a pre-endpoint that IS snapped for clean circuit routing
-        const preEndX = horizontalBias ? 
-            (dx > 0 ? endX - gridSize * 2 : endX + gridSize * 2) : 
-            endX;
-        const preEndY = horizontalBias ? 
-            endY : 
-            (dy > 0 ? endY - gridSize * 2 : endY + gridSize * 2);
+        const preEndX = horizontalBias ? (dx > 0 ? endX - gridSize * 2 : endX + gridSize * 2) : endX;
+        const preEndY = horizontalBias ? endY : (dy > 0 ? endY - gridSize * 2 : endY + gridSize * 2);
         const preEnd = this.snapToGrid(preEndX, preEndY);
-        
-        // Build orthogonal path
+
         points.push(start);
         points.push(leadOut);
-        
-        // Determine routing based on relative position
+
         const isRightOfCenter = dx > 0;
         const isAboveCenter = dy < 0;
-        
+
         if (horizontalBias) {
-            // Horizontal connection (to left/right edge)
             const xSign = isRightOfCenter ? 1 : -1;
             const turn1X = this._snapVal(leadOut.x + xSign * gridSize * 2);
             const yForTurn2 = isAboveCenter ? Math.min(leadOut.y, preEnd.y) - gridSize : Math.max(leadOut.y, preEnd.y) + gridSize;
@@ -516,7 +1028,6 @@ const CircuitGridMatrix = {
             points.push({ x: preEnd.x, y: turn2Y });
             points.push({ x: preEnd.x, y: end.y });
         } else {
-            // Vertical connection (to top/bottom edge)
             const ySign = isAboveCenter ? -1 : 1;
             const turn1Y = this._snapVal(leadOut.y + ySign * gridSize * 2);
             const xForTurn2 = isRightOfCenter ? Math.max(leadOut.x, preEnd.x) + gridSize : Math.min(leadOut.x, preEnd.x) - gridSize;
@@ -526,25 +1037,20 @@ const CircuitGridMatrix = {
             points.push({ x: turn2X, y: preEnd.y });
             points.push({ x: end.x, y: preEnd.y });
         }
-        
-        // Final point exactly at panel edge
+
         points.push(end);
-        
         return points;
     },
-    
-    // Create SVG path from points — uses array join for performance
+
     createPathFromPoints: function(points) {
         if (points.length < 2) return '';
-        
         const parts = ['M', points[0].x, points[0].y];
         for (let i = 1; i < points.length; i++) {
             parts.push('L', points[i].x, points[i].y);
         }
         return parts.join(' ');
     },
-    
-    // Calculate total length of a path — optimized with local variable access
+
     calculatePathLength: function(points, segmentLengths) {
         let length = 0;
         let prevX = points[0].x, prevY = points[0].y;
@@ -559,11 +1065,9 @@ const CircuitGridMatrix = {
         }
         return length;
     },
-    
-    // Reusable point object to avoid GC pressure in hot path
+
     _tempPoint: { x: 0, y: 0 },
-    
-    // Get point along path at given progress (0-1)
+
     getPointAtProgress: function(points, segmentLengths, progress, precomputedLength) {
         if (points.length < 2) {
             const p = points[0] || this._tempPoint;
@@ -571,307 +1075,104 @@ const CircuitGridMatrix = {
             this._tempPoint.y = p.y;
             return this._tempPoint;
         }
-
         const totalLength = precomputedLength || this.calculatePathLength(points);
         const targetLength = progress * totalLength;
-        
         let currentLength = 0;
         for (let i = 1; i < points.length; i++) {
-            const dx = points[i].x - points[i-1].x;
-            const dy = points[i].y - points[i-1].y;
+            const dx = points[i].x - points[i - 1].x;
+            const dy = points[i].y - points[i - 1].y;
             const segmentLength = segmentLengths[i - 1];
-            
             if (currentLength + segmentLength >= targetLength) {
                 const t = segmentLength > 0 ? (targetLength - currentLength) / segmentLength : 0;
-                this._tempPoint.x = points[i-1].x + dx * t;
-                this._tempPoint.y = points[i-1].y + dy * t;
+                this._tempPoint.x = points[i - 1].x + dx * t;
+                this._tempPoint.y = points[i - 1].y + dy * t;
                 return this._tempPoint;
             }
             currentLength += segmentLength;
         }
-        
         const last = points[points.length - 1];
         this._tempPoint.x = last.x;
         this._tempPoint.y = last.y;
         return this._tempPoint;
     },
-    
-    // Reusable rect object to avoid GC pressure
+
     _tempRect: { x: 0, y: 0, width: 0, height: 0 },
-    
     _frameSkip: 0,
-    
+
+    // Same cadence as before (every other call); routes are recomputed only
+    // when a panel moved, and sent to the renderer.
     update: function() {
         if (!this.initialized || !radialPanelPhysics) return;
-        
-        // Run every 2nd frame (30fps is sufficient for SVG packet animations)
+
         this._frameSkip++;
         if (this._frameSkip & 1) return;
-        
+
         const now = performance.now();
-        const deltaTime = (now - this.lastUpdateTime) / 1000;
-        this.lastUpdateTime = now;
-        
         const center = MedallionSystem.getCenter();
         const medallionRadius = this.cachedMedallionRadius;
         const tempRect = this._tempRect;
-        
-        // Update each connection without allocating per-frame iterator callbacks.
+        let routes = null;
+
         for (let connectionIndex = 0; connectionIndex < this.connectionList.length; connectionIndex++) {
             const conn = this.connectionList[connectionIndex];
             const panelData = radialPanelPhysics.panels.get(conn.panelId);
             if (!panelData) continue;
-            
-            // Reuse rect object instead of creating new one each frame
+
             tempRect.x = panelData.position.x;
             tempRect.y = panelData.position.y;
             tempRect.width = panelData.width || 180;
             tempRect.height = panelData.height || 240;
-            
-            // Only recalculate route if panel has moved since last frame
+
             const posKey = tempRect.x | 0;
             const posKeyY = tempRect.y | 0;
-            if (conn._lastPosX === posKey && conn._lastPosY === posKeyY && conn.pathPoints.length > 0) {
-                // Panel hasn't moved (integer precision) — skip expensive route recalculation
-            } else {
-                conn._lastPosX = posKey;
-                conn._lastPosY = posKeyY;
-                
-                // Get panel angle from data attribute (cache it)
-                if (conn._cachedAngle === undefined) {
-                    conn._cachedAngle = parseFloat(panelData.element.dataset.angle) || 0;
-                }
-                
-                // Calculate route
-                const points = this.calculateRoute(center, medallionRadius, tempRect, conn._cachedAngle);
-                conn.pathPoints = points;
-                conn.segmentLengths.length = points.length - 1;
-                conn.totalLength = this.calculatePathLength(points, conn.segmentLengths);
-                
-                // Create/update path elements
-                const pathD = this.createPathFromPoints(points);
-                
-                if (!conn.pathGlowElement) {
-                    conn.pathGlowElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    conn.pathGlowElement.setAttribute('class', 'circuit-trace-glow');
-                    // Glow simulated via wider stroke + opacity instead of expensive SVG blur filter
-                    this.tracesGroup.appendChild(conn.pathGlowElement);
-                }
-                conn.pathGlowElement.setAttribute('d', pathD);
-                
-                if (!conn.pathElement) {
-                    conn.pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    conn.pathElement.setAttribute('class', 'circuit-trace');
-                    this.tracesGroup.appendChild(conn.pathElement);
-                }
-                conn.pathElement.setAttribute('d', pathD);
-                
-                // Create/update junction nodes at turns
-                this.updateJunctionNodes(conn, points);
+            if (conn._lastPosX === posKey && conn._lastPosY === posKeyY && conn.pathPoints.length > 0) continue;
+            conn._lastPosX = posKey;
+            conn._lastPosY = posKeyY;
+            if (conn._cachedAngle === undefined) {
+                conn._cachedAngle = parseFloat(panelData.element.dataset.angle) || 0;
             }
+            const points = this.calculateRoute(center, medallionRadius, tempRect, conn._cachedAngle);
+            conn.pathPoints = points;
+            if (!conn.glowElement) {
+                conn.glowElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                conn.glowElement.setAttribute('class', 'circuit-trace-glow');
+                this.tracesGroup.appendChild(conn.glowElement);
+            }
+            conn.glowElement.setAttribute('d', this.createPathFromPoints(points));
+            if (!routes) routes = new Array(this.connectionList.length).fill(null);
+            routes[connectionIndex] = points.map((p) => ({ x: p.x, y: p.y }));
         }
-        
-        // Animate packets
-        for (let packetIndex = 0; packetIndex < this.packets.length; packetIndex++) {
-            const packet = this.packets[packetIndex];
-            const conn = packet.connection;
-            if (!conn || conn.pathPoints.length < 2) continue;
-            
-            // Update packet progress
-            packet.progress += packet.speed * deltaTime * packet.direction;
-            
-            // Bounce packet back when it reaches ends
-            if (packet.progress >= 1) {
-                packet.progress = 1;
-                packet.direction = -1;
-            } else if (packet.progress <= 0) {
-                packet.progress = 0;
-                packet.direction = 1;
-            }
-            
-            // Get packet position
-            const pos = this.getPointAtProgress(
-                conn.pathPoints, conn.segmentLengths, packet.progress, conn.totalLength
-            );
-            
-            // A single transform replaces four SVG geometry mutations. The
-            // root SVG has no viewBox, so one user unit remains one CSS pixel.
-            if (packet.groupElement) {
-                packet.groupElement.style.transform =
-                    'translate(' + pos.x + 'px, ' + pos.y + 'px)';
-            }
-            
-            // Pulse nearby junction nodes
-            this.pulseNearbyJunctions(pos, conn.junctions);
-        }
+
+        if (routes) AmbientHost.post({ type: 'circuitRoutes', routes: routes, time: now });
+        AmbientHost.circuitTick(now);
     },
-    
-    updateJunctionNodes: function(conn, points) {
-        // Expected junction count: 1 start + (points.length - 2) midpoints + 1 end = points.length
-        const expectedCount = points.length;
 
-        // If junction count matches, reuse existing elements and just update positions
-        if (conn.junctions.length === expectedCount && expectedCount > 0) {
-            // Update start node position
-            const startPoint = points[0];
-            const startJunction = conn.junctions[0];
-            startJunction.x = startPoint.x;
-            startJunction.y = startPoint.y;
-            if (startJunction.element) {
-                startJunction.element.setAttribute('cx', startPoint.x);
-                startJunction.element.setAttribute('cy', startPoint.y);
-            }
-
-            // Update mid junction positions
-            for (let i = 1; i < points.length - 1; i++) {
-                const junction = conn.junctions[i];
-                junction.x = points[i].x;
-                junction.y = points[i].y;
-                if (junction.element) {
-                    junction.element.setAttribute('x', points[i].x - 5);
-                    junction.element.setAttribute('y', points[i].y - 5);
-                }
-            }
-
-            // Update end node position
-            const endPoint = points[points.length - 1];
-            const endJunction = conn.junctions[conn.junctions.length - 1];
-            endJunction.x = endPoint.x;
-            endJunction.y = endPoint.y;
-            if (endJunction.element) {
-                endJunction.element.setAttribute('cx', endPoint.x);
-                endJunction.element.setAttribute('cy', endPoint.y);
-            }
-
-            return;
-        }
-
-        // Full rebuild: count changed (rare — route gained/lost a turn point)
-        conn.junctions.forEach(node => {
-            if (node.element && node.element.parentNode) {
-                node.element.parentNode.removeChild(node.element);
-            }
-        });
-        conn.junctions = [];
-
-        // Create start node at medallion edge (first point)
-        if (points.length > 0) {
-            const startPoint = points[0];
-            const startNode = {
-                x: startPoint.x,
-                y: startPoint.y,
-                element: null,
-                pulseIntensity: 0
-            };
-
-            const startEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            startEl.setAttribute('class', 'circuit-medallion-port');
-            startEl.setAttribute('cx', startPoint.x);
-            startEl.setAttribute('cy', startPoint.y);
-            startEl.setAttribute('r', '5');
-            startEl.setAttribute('filter', 'url(#nodeGlow)');
-            this.nodesGroup.appendChild(startEl);
-
-            startNode.element = startEl;
-            conn.junctions.push(startNode);
-        }
-
-        // Create junction nodes at each turn point (skip start and end)
-        for (let i = 1; i < points.length - 1; i++) {
-            const junction = {
-                x: points[i].x,
-                y: points[i].y,
-                element: null,
-                pulseIntensity: 0
-            };
-
-            // Create diamond-shaped junction node (no SVG filter — saves GPU)
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            el.setAttribute('class', 'circuit-junction');
-            el.setAttribute('x', points[i].x - 5);
-            el.setAttribute('y', points[i].y - 5);
-            el.setAttribute('width', '10');
-            el.setAttribute('height', '10');
-            el.setAttribute('rx', '2');
-            el.style.transform = 'rotate(45deg)';
-            this.nodesGroup.appendChild(el);
-
-            junction.element = el;
-            conn.junctions.push(junction);
-        }
-
-        // Create endpoint nodes (on panel edge)
-        if (points.length > 0) {
-            const endPoint = points[points.length - 1];
-            const endNode = {
-                x: endPoint.x,
-                y: endPoint.y,
-                element: null,
-                pulseIntensity: 0
-            };
-
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            el.setAttribute('class', 'circuit-endpoint');
-            el.setAttribute('cx', endPoint.x);
-            el.setAttribute('cy', endPoint.y);
-            el.setAttribute('r', '6');
-            el.setAttribute('filter', 'url(#nodeGlow)');
-            this.nodesGroup.appendChild(el);
-
-            endNode.element = el;
-            conn.junctions.push(endNode);
-        }
-    },
-    
-    pulseNearbyJunctions: function(packetPos, junctions) {
-        const pulseRadiusSq = 900; // 30 * 30
-
-        for (let i = 0, len = junctions.length; i < len; i++) {
-            const junction = junctions[i];
-            const dx = packetPos.x - junction.x;
-            const dy = packetPos.y - junction.y;
-            const distSq = dx * dx + dy * dy;
-
-            if (distSq < pulseRadiusSq) {
-                // Only compute sqrt when needed (inside radius)
-                const intensity = 1 - (Math.sqrt(distSq) * 0.033333); // 1/30
-                if (intensity > junction.pulseIntensity) {
-                    junction.pulseIntensity = intensity;
-                    if (junction.element && !junction._pulsing) {
-                        junction.element.classList.add('pulsing');
-                        junction._pulsing = true;
-                    }
-                }
-            } else {
-                junction.pulseIntensity *= 0.9;
-                if (junction.pulseIntensity < 0.1 && junction._pulsing && junction.element) {
-                    junction.element.classList.remove('pulsing');
-                    junction._pulsing = false;
-                }
-            }
-        }
-    },
-    
     onResize: function() {
         if (!this.initialized) return;
         this.createGridBackground();
+        AmbientHost.post({ type: 'circuitSize', size: this.canvasSize() });
         if (this.cachedMedallionEl) {
             this.cachedMedallionRadius = this.cachedMedallionEl.offsetWidth / 2;
         }
     },
-    
+
+    // The whole network (static SVG + canvas) fades as one group.
     fadeOut: function() {
-        if (this.svg) {
-            this.svg.style.transition = 'opacity 0.5s ease-out';
-            this.svg.style.opacity = '0';
+        const el = document.getElementById('engineeringNetwork');
+        if (el) {
+            el.style.transition = 'opacity 0.5s ease-out';
+            el.style.opacity = '0';
         }
+        AmbientHost.post({ type: 'circuitVisible', visible: false, time: performance.now() });
     },
-    
+
     fadeIn: function() {
-        if (this.svg) {
-            this.svg.style.transition = 'opacity 0.5s ease-in';
-            this.svg.style.opacity = '1';
+        const el = document.getElementById('engineeringNetwork');
+        if (el) {
+            el.style.transition = 'opacity 0.5s ease-in';
+            el.style.opacity = '1';
         }
+        AmbientHost.post({ type: 'circuitVisible', visible: true, time: performance.now() });
     }
 };
 
@@ -1046,6 +1347,7 @@ class RadialPanelPhysics {
             
             this.draggedPanel = null;
             this.dragState.velocityTracking = [];
+            wakeScene();
         }, { passive: true });
         
         document.addEventListener('keydown', (e) => {
@@ -1129,6 +1431,13 @@ class RadialPanelPhysics {
     }
     
        addPanelListeners(panel) {
+        const preview = () => {
+            if (panel.dataset.contentType) PagePrerender.preview(panel.dataset.contentType);
+        };
+        panel.addEventListener('pointerenter', preview, { passive: true });
+        panel.addEventListener('touchstart', preview, { passive: true });
+        panel.addEventListener('focus', preview);
+
         panel.addEventListener('mousedown', (e) => {
             const panelData = this.panels.get(panel.id);
             if (!panelData) return;
@@ -1142,6 +1451,7 @@ class RadialPanelPhysics {
             panelData.isDragging = true;
             panelData.isMoving = true;
             panel.classList.add('dragging');
+            wakeScene();
             
             const rect = panel.getBoundingClientRect();
             this.dragState.offsetX = e.clientX - rect.left;
@@ -1165,6 +1475,15 @@ class RadialPanelPhysics {
         });
     }
     
+    isActive() {
+        if (!this.initialized) return true;
+        if (this.draggedPanel) return true;
+        for (const panelData of this.panels.values()) {
+            if (panelData.isDragging || (panelData.isMoving && !panelData.physicsDisabled)) return true;
+        }
+        return false;
+    }
+
     detectAndResolveCollisions() {
         if (!this.collisionSettings.enabled) return;
         
@@ -1295,6 +1614,7 @@ class RadialPanelPhysics {
     }
     
     updateBounds() {
+        wakeScene();
         const center = MedallionSystem.getCenter();
         const distances = this.calculateDistances();
         const padding = 10;
@@ -1345,371 +1665,75 @@ class RadialPanelPhysics {
 let radialPanelPhysics;
 
 // ============================================
-// HARMONIC MOTION SYSTEM
+// SCENE RUNTIME
 // ============================================
+// The drone, nebula, medallion glow and gear icons are drawn by the ambient
+// engine (ambient.js), in a worker when the browser allows it. The main
+// thread keeps only what reacts to the user: panel physics and the circuit
+// network that follows the panels.
 
-
-// ============================================
-// THREE.JS SYSTEM
-// ============================================
-
-let scene, camera, renderer, clock;
-let structures = [];
-let _threeInitRequested = false;
-let _mobileGearLoopRunning = false;
-
-function checkThreeJS() {
-    if (_threeInitRequested || renderer || RuntimeVisibility.mobilePortrait) return;
-
-    if (typeof THREE !== 'undefined') {
-        checkThreeJS.attempts = 0;
-        _threeInitRequested = true;
-        requestAnimationFrame(() => initThreeJS());
-        return;
-    }
-
-    checkThreeJS.attempts = (checkThreeJS.attempts || 0) + 1;
-
-    if (checkThreeJS.attempts >= 50) {
-        console.warn('Three.js did not load; continuing without the WebGL background.');
-        checkThreeJS.attempts = 0;
-        return;
-    }
-
-    setTimeout(checkThreeJS, 100);
-}
-
-function startMobileGearLoop() {
-    if (_mobileGearLoopRunning || renderer || !RuntimeVisibility.mobilePortrait) return;
-    _mobileGearLoopRunning = true;
-
-    function animateVisibleMobileElements() {
-        if (!RuntimeVisibility.mobilePortrait || renderer) {
-            _mobileGearLoopRunning = false;
-            return;
-        }
-
-        requestAnimationFrame(animateVisibleMobileElements);
-        if (!document.hidden && !_bgSystemsPaused && _gearAnimRunning) updatePanelGears();
-    }
-
-    requestAnimationFrame(animateVisibleMobileElements);
-}
+let renderer = null; // set once the drone renderer is running (compat flag)
+let _visualRuntimeStarted = false;
+let _sceneLoopRunning = false;
+let _sceneLastTime = 0;
+let _sceneIdleFrames = 0;
+let _sceneRaf = 0;
 
 function startVisualRuntime() {
-    if (RuntimeVisibility.mobilePortrait) {
-        startMobileGearLoop();
-        return;
-    }
+    AmbientHost.setMobilePortrait(RuntimeVisibility.mobilePortrait);
 
-    if (typeof THREE === 'undefined' && window.EELLoadThree) {
-        window.EELLoadThree().catch(function() {
-            console.warn('Three.js could not be loaded; continuing without the WebGL background.');
-        });
-    }
-
-    checkThreeJS();
-}
-
-function initThreeJS() {
-    if (renderer || RuntimeVisibility.mobilePortrait) {
-        _threeInitRequested = false;
-        if (RuntimeVisibility.mobilePortrait) startMobileGearLoop();
-        return;
-    }
-
-    try {
-        clock = new THREE.Clock();
-        scene = new THREE.Scene();
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        scene.fog = new THREE.Fog(isDark ? 0x0a0b0f : 0xd0d2d4, 50, 200);
-        
-        camera = new THREE.PerspectiveCamera(PHI * 45, window.innerWidth / window.innerHeight, PHI_INV, 1000);
-        camera.position.set(0, 0, PHI * 30);
-        
-        const canvas = document.getElementById('three-canvas');
-        renderer = new THREE.WebGLRenderer({ 
-            canvas: canvas, alpha: true, antialias: window.devicePixelRatio === 1,
-            powerPreference: "high-performance", stencil: false, depth: true,
-            premultipliedAlpha: false
-        });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        // Cap pixel ratio at 1.5 — saves 44% fill-rate vs 2x with negligible visual difference
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-               // Keep auto-clear enabled for normal single-scene rendering
-        renderer.autoClear = true;
-        
-        const ambientLight = new THREE.AmbientLight(0xffffff, PHI_INV);
-        scene.add(ambientLight);
-        
-        const dirLight = new THREE.DirectionalLight(0x7ec8e3, 1);
-        dirLight.position.set(PHI * 5, PHI * 5, PHI * 5);
-        scene.add(dirLight);
-        
-        const pointLight = new THREE.PointLight(0xa8d5e8, 0.8, 100);
-        pointLight.position.set(-30, -30, 30);
-        scene.add(pointLight);
-        
-        createEngineeringStructures();
-        
-        document.addEventListener('mousemove', onMouseMove, { passive: true });
-        window.addEventListener('resize', onWindowResize, { passive: true });
-        window.addEventListener('themechange', (e) => updateStructureMaterials(e.detail.theme === 'dark'));
-        
-        animateThreeJS();
-        } catch (error) {
-        renderer = null;
-        scene = null;
-        camera = null;
-        clock = null;
-        _threeInitRequested = false;
-
-        document.documentElement.classList.add('no-webgl');
-
-        console.warn(
-            'WebGL background unavailable; continuing with the static background.'
-        );
-    }
-}
-
-function createIridescentMaterial(hueOffset) {
-    hueOffset = hueOffset || 0;
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    const themeHueShift = isDark ? 0.7 : 0;
-    const adjustedHue = (hueOffset + themeHueShift) % 1;
-    
-    const material = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color().setHSL(adjustedHue, 0.8, 0.6),
-        metalness: 0.6, roughness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.0, reflectivity: 0.8,
-        emissive: new THREE.Color().setHSL((adjustedHue + 0.5) % 1, 1, 0.2),
-        emissiveIntensity: isDark ? 0.4 : 0.3, side: THREE.DoubleSide
-    });
-    material.userData = { hueOffset: hueOffset };
-    return material;
-}
-
-function createWireframeMaterial(color) {
-    return new THREE.MeshBasicMaterial({
-        color: color || 0x7ec8e3, wireframe: true, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending
-    });
-}
-
-
-// ============================================
-// ENGINEERING STRUCTURES
-// ============================================
-
-function createEngineeringStructures() {
-    // Quadcopter Drone - only 3D element kept
-    const quadcopter = createQuadcopter();
-    quadcopter.position.set(-70, 0, -40);
-    // Slight diagonal tilt for better viewing angle
-    quadcopter.rotation.x = 0.4;  // Tilt forward
-    quadcopter.rotation.z = 0.15; // Slight roll
-    quadcopter.userData.baseTilt = { x: 0.4, z: 0.15 };
-    scene.add(quadcopter);
-    structures.push(quadcopter);
-
-    // Flight path that covers the page while avoiding title, logo, and cards
-    // Layout: Title/subtitle at top-center, medallion at center, 4 panels in corners
-    // Drone flies around the perimeter and through open gaps
-
-    const z = -40; // Depth for visibility
-
-    // Waypoints trace around the open areas of the screen
-    // Avoiding: center (logo), top-center (title), and corner areas (panels)
-    const waypoints = [
-        // Start left edge, middle height
-        new THREE.Vector3(-70, 0, z),
-        // Bottom-left corner area (between panels)
-        new THREE.Vector3(-55, -35, z - 5),
-        // Bottom edge center
-        new THREE.Vector3(0, -45, z),
-        // Bottom-right corner area
-        new THREE.Vector3(55, -35, z - 5),
-        // Right edge, middle height
-        new THREE.Vector3(70, 0, z),
-        // Top-right area (below title, between elements)
-        new THREE.Vector3(55, 25, z - 5),
-        // Top edge (far right, avoiding title)
-        new THREE.Vector3(70, 40, z),
-        // Top edge (far left, avoiding title)
-        new THREE.Vector3(-70, 40, z),
-        // Top-left area
-        new THREE.Vector3(-55, 25, z - 5),
-        // Back to start
-        new THREE.Vector3(-70, 0, z),
-    ];
-
-    waypoints.forEach(wp => quadcopter.userData.waypoints.push(wp));
-
-    // Slower speed for smooth full-page traversal
-    quadcopter.userData.waypointSpeed = 0.12;
-
-}
-
-
-
-// ============================================
-// TRULY ORGANIC HUMAN HAND - Natural Relaxed Pose
-// ============================================
-// ANATOMICALLY ACCURATE LEFT HAND
-// Wireframe aesthetic with proper joint hierarchy
-// ============================================
-
-
-
-
-
-function createQuadcopter() {
-    const group = new THREE.Group();
-
-    // Central body - compact sphere
-    const bodyGeo = new THREE.SphereGeometry(1.2, 16, 16);
-    const bodyMat = createIridescentMaterial(0.5);
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    group.add(body);
-
-    // Camera/sensor dome on bottom
-    const domeGeo = new THREE.SphereGeometry(0.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const domeMat = new THREE.MeshPhysicalMaterial({
-        color: 0x111122,
-        metalness: 0.9,
-        roughness: 0.1,
-        clearcoat: 1.0
-    });
-    const dome = new THREE.Mesh(domeGeo, domeMat);
-    dome.position.y = -0.8;
-    dome.rotation.x = Math.PI;
-    group.add(dome);
-
-    const propellers = [];
-    const armMat = createIridescentMaterial(0.6);
-    const armGeo = new THREE.BoxGeometry(5, 0.3, 0.5);
-    const motorGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 12);
-    const propMat = createWireframeMaterial(0x88ccff);
-    const blade1Geo = new THREE.BoxGeometry(3.5, 0.08, 0.4);
-    const blade2Geo = new THREE.BoxGeometry(0.4, 0.08, 3.5);
-    propMat.wireframe = false;
-    propMat.opacity = 0.7;
-
-    // 4 arms + propellers at 45, 135, 225, 315 degrees (X pattern)
-    for (let i = 0; i < 4; i++) {
-        const angle = (i / 4) * Math.PI * 2 + Math.PI / 4; // Offset by 45 degrees
-
-        // Arm - thin elongated box
-        const arm = new THREE.Mesh(armGeo, armMat);
-        arm.position.x = Math.cos(angle) * 2.5;
-        arm.position.z = Math.sin(angle) * 2.5;
-        arm.position.y = 0.2;
-        arm.rotation.y = -angle;
-        group.add(arm);
-
-        // Motor housing at arm end
-        const motor = new THREE.Mesh(motorGeo, bodyMat);
-        motor.position.x = Math.cos(angle) * 5;
-        motor.position.z = Math.sin(angle) * 5;
-        motor.position.y = 0.5;
-        group.add(motor);
-
-        // Propeller - 2-blade design using thin boxes
-        const propGroup = new THREE.Group();
-
-        // Blade 1
-        const blade1 = new THREE.Mesh(blade1Geo, propMat);
-        propGroup.add(blade1);
-
-        // Blade 2 (perpendicular)
-        const blade2 = new THREE.Mesh(blade2Geo, propMat);
-        propGroup.add(blade2);
-
-        propGroup.position.x = Math.cos(angle) * 5;
-        propGroup.position.z = Math.sin(angle) * 5;
-        propGroup.position.y = 0.9;
-
-        // Alternate spin direction for realism
-        propGroup.userData.spinDirection = i % 2 === 0 ? 1 : -1;
-
-        group.add(propGroup);
-        propellers.push(propGroup);
-    }
-
-    // Landing skids
-    const skidMat = new THREE.MeshPhysicalMaterial({
-        color: 0x333344,
-        metalness: 0.8,
-        roughness: 0.3
-    });
-    const skidGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 8);
-    const supportGeo = new THREE.CylinderGeometry(0.08, 0.08, 1, 6);
-    skidGeo.rotateZ(Math.PI / 2);
-
-    for (let side = -1; side <= 1; side += 2) {
-        const skid = new THREE.Mesh(skidGeo, skidMat);
-        skid.position.set(0, -1.5, side * 2);
-        group.add(skid);
-
-        // Skid supports
-        for (let x = -1; x <= 1; x += 2) {
-            const support = new THREE.Mesh(supportGeo, skidMat);
-            support.position.set(x * 1.5, -1, side * 2);
-            group.add(support);
+    if (!RuntimeVisibility.mobilePortrait) {
+        if (!_visualRuntimeStarted) {
+            _visualRuntimeStarted = true;
+            document.addEventListener('mousemove', onMouseMove, { passive: true });
+            window.addEventListener('resize', onWindowResize, { passive: true });
         }
+        AmbientHost.startDrone();
     }
 
-    group.userData.type = 'quadcopter';
-    group.userData.propellers = propellers;
-    group.userData.waypoints = [];
-    group.userData.currentWaypoint = 0;
-    group.userData.waypointProgress = 0;
-    group.userData.waypointSpeed = 0.3; // ~3.3 seconds per waypoint
-
-    // Fade state for panel expansion hide/show
-    group.userData.fadeOpacity = 1;
-    group.userData.fadeTarget = 1;
-
-    // Collect all materials and enable transparency for fade support
-    const uniqueMaterials = new Set();
-    group.traverse(child => {
-        if (child.isMesh && child.material) {
-            child.material.transparent = true;
-            // Preserve original opacity for materials that aren't fully opaque (e.g. propeller blades)
-            child.material.userData.baseOpacity = child.material.opacity;
-            uniqueMaterials.add(child.material);
-        }
-    });
-    group.userData.allMaterials = Array.from(uniqueMaterials);
-
-    return group;
+    startSceneLoop();
 }
 
+function startSceneLoop() {
+    if (_sceneLoopRunning) return;
+    // Under the deterministic test clock the loop starts when the drone is
+    // ready, exactly where the old animateThreeJS() loop used to start.
+    if (AmbientHost.waitForDroneBeforeLoop()) return;
+    _sceneLoopRunning = true;
+    if (!_sceneRaf) {
+        _sceneLastTime = performance.now();
+        _sceneRaf = requestAnimationFrame(animateScene);
+    }
+}
 
+function animateScene() {
+    _sceneRaf = 0;
+    if (!_sceneLoopRunning) return;
+    _sceneRaf = requestAnimationFrame(animateScene);
 
+    const now = performance.now();
+    const deltaTime = (now - _sceneLastTime) / 1000;
+    _sceneLastTime = now;
 
+    if (!document.hidden && !RuntimeVisibility.mobilePortrait && !_bgSystemsPaused && radialPanelPhysics) {
+        radialPanelPhysics.update(deltaTime);
+    }
 
-// ============================================
-// ANIMATION AND UPDATES
-// ============================================
+    AmbientHost.mainFrame(now);
 
-function updateStructureMaterials(isDark) {
-    structures.forEach((structure) => {
-        structure.traverse((child) => {
-            const material = child.material;
-            if (!material || !material.userData || material.userData.hueOffset === undefined) return;
+    // With the renderer in a worker, this loop only has panel physics left;
+    // let it sleep while nothing moves (RadialPanelPhysics wakes it).
+    if (AmbientHost.mode === 'worker' && !AmbientHost.droneEngine && !radialPanelPhysics.isActive()) {
+        _sceneIdleFrames++;
+        if (_sceneIdleFrames > 8) _sceneLoopRunning = false;
+    } else {
+        _sceneIdleFrames = 0;
+    }
+}
 
-            const hueShift = isDark ? 0.7 : 0;
-            const hueOffset = (material.userData.hueOffset + hueShift) % 1;
-            if (material.color) material.color.setHSL(hueOffset, 0.8, 0.6);
-            if (material.emissive) {
-                material.emissive.setHSL((hueOffset + 0.5) % 1, 1, 0.2);
-                material.emissiveIntensity = isDark ? 0.4 : 0.3;
-            }
-            material.needsUpdate = true;
-        });
-    });
-    
-    // Update fog
-    if (scene && scene.fog) scene.fog.color.set(isDark ? 0x0a0b0f : 0xd0d2d4);
+function wakeScene() {
+    _sceneIdleFrames = 0;
+    if (_visualRuntimeStarted || RuntimeVisibility.mobilePortrait) startSceneLoop();
 }
 
 let cachedCursorEl = null;
@@ -1739,471 +1763,14 @@ let resizeTimeout;
 function onWindowResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
         MedallionSystem.updatePosition();
         if (radialPanelPhysics) radialPanelPhysics.updateBounds();
         if (CircuitGridMatrix.initialized) CircuitGridMatrix.onResize();
     }, 100);
 }
 
-function animateThreeJS() {
-    requestAnimationFrame(animateThreeJS);
-
-    if (document.hidden) {
-        clock.getDelta(); // Prevent large delta spike on resume
-        return;
-    }
-
-    const deltaTime = clock.getDelta();
-
-    // On mobile portrait the canvas and SVG network are display:none. The
-    // panel gears remain visible, so keep only their existing animation alive.
-    if (RuntimeVisibility.mobilePortrait) {
-        if (!_bgSystemsPaused && _gearAnimRunning) updatePanelGears();
-        return;
-    }
-
-    const time = clock.getElapsedTime();
-
-    // Skip expensive updates when a panel is expanded or collapsing
-    // The Three.js scene, physics, harmonic motion, and circuit grid are all hidden
-    if (_bgSystemsPaused) {
-        // Continue rendering only while the drone is fading, so the user
-        // sees a smooth opacity transition instead of a frozen frame
-        let droneStillFading = false;
-        for (let _si = 0; _si < structures.length; _si++) {
-            const s = structures[_si];
-            if (s.userData.type === 'quadcopter') {
-                const target = s.userData.fadeTarget;
-                const current = s.userData.fadeOpacity;
-                if (target === undefined) continue;
-                const diff = target - current;
-                if (Math.abs(diff) > 0.005) {
-                    droneStillFading = true;
-                    // Smoothly approach target opacity
-                    const fadeSmoothFactor = 1 - Math.pow(0.00001, deltaTime);
-                    s.userData.fadeOpacity = current + diff * fadeSmoothFactor;
-                    const mats = s.userData.allMaterials;
-                    const opacity = s.userData.fadeOpacity;
-                    for (let mi = 0; mi < mats.length; mi++) {
-                        const mat = mats[mi];
-                        mat.opacity = mat.userData.baseOpacity !== undefined
-                            ? mat.userData.baseOpacity * opacity : opacity;
-                    }
-                    // Keep propellers spinning and drone moving during fade
-                    if (s.userData.propellers) {
-                        s.userData.propellers.forEach(prop => {
-                            prop.rotation.y += deltaTime * 30 * prop.userData.spinDirection;
-                        });
-                    }
-                    // Continue waypoint navigation so the drone doesn't freeze mid-air
-                    if (s.userData.waypoints && s.userData.waypoints.length > 1) {
-                        if (!s.userData.basePosition) {
-                            s.userData.basePosition = new THREE.Vector3();
-                        }
-                        s.userData.waypointProgress = (s.userData.waypointProgress || 0) + deltaTime * s.userData.waypointSpeed;
-                        if (s.userData.waypointProgress >= 1) {
-                            s.userData.waypointProgress -= 1;
-                            s.userData.currentWaypoint = (s.userData.currentWaypoint + 1) % s.userData.waypoints.length;
-                        }
-                        const currentIdx = s.userData.currentWaypoint || 0;
-                        const nextIdx = (currentIdx + 1) % s.userData.waypoints.length;
-                        const t = s.userData.waypointProgress;
-                        const easeT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-                        s.userData.basePosition.lerpVectors(s.userData.waypoints[currentIdx], s.userData.waypoints[nextIdx], easeT);
-                        const hoverOffset = Math.sin(time * 6) * 0.01;
-                        s.position.copy(s.userData.basePosition);
-                        s.position.y += hoverOffset;
-                    }
-                } else if (current !== target) {
-                    // Snap to exact target
-                    s.userData.fadeOpacity = target;
-                    const mats = s.userData.allMaterials;
-                    for (let mi = 0; mi < mats.length; mi++) {
-                        const mat = mats[mi];
-                        mat.opacity = mat.userData.baseOpacity !== undefined
-                            ? mat.userData.baseOpacity * target : target;
-                    }
-                    droneStillFading = true; // one final render to show snapped opacity
-                }
-            }
-        }
-        // Render one more frame if the drone is fading so the change is visible
-        if (droneStillFading) {
-            renderer.render(scene, camera);
-        }
-        return;
-    }
-
-    if (radialPanelPhysics) radialPanelPhysics.update(deltaTime);
-    
-    for (let _si = 0; _si < structures.length; _si++) {
-        const structure = structures[_si];
-        if (!structure.visible) continue;
-        
-        // Default rotation (skip for types that handle their own)
-        const sType = structure.userData.type;
-        if (sType !== 'quadcopter' && sType !== 'swimmer_hand' && sType !== 'parametric_surface') {
-            if (structure.userData.rotationSpeed) {
-                structure.rotation.z += structure.userData.rotationSpeed;
-            } else {
-                structure.rotation.x += deltaTime * PHI_INV * 0.1;
-                structure.rotation.y += deltaTime * PHI_INV * 0.2;
-            }
-        }
-        
-        // Structure-specific animations
-        switch(sType) {
-            case 'cog_cluster':
-                for (let ci = 0; ci < structure.children.length; ci++) {
-                    const child = structure.children[ci];
-                    if (child.userData.rotationSpeed) child.rotation.z += child.userData.rotationSpeed;
-                }
-                break;
-                
-            case 'geodesic_sphere':
-                if (structure.userData.inner) {
-                    structure.userData.inner.rotation.x += 0.02;
-                    structure.userData.inner.rotation.y -= 0.015;
-                }
-                break;
-                
-            case 'swimmer_hand':
-                // Subtle, realistic hand animation
-                structure.userData.swimPhase += deltaTime * PHI * 0.6;
-                const swimPhase = structure.userData.swimPhase;
-                const fingers = structure.userData.fingers;
-                const particles = structure.userData.particles;
-                const rings = structure.userData.rings;
-                const PALM_LENGTH = structure.userData.PALM_LENGTH || 5.4;
-                
-                if (fingers) {
-                    // Subtle finger movement
-                    const strokePhase = Math.sin(swimPhase);
-                    const strokeIntensity = Math.abs(strokePhase);
-                    
-                    const baseCurl = strokePhase > 0 ? strokePhase * 0.10 : strokePhase * 0.03;
-                    const spreadAmount = (1 - strokeIntensity) * 0.025;
-                    
-                    // Cache finger keys once
-                    if (!structure.userData._fingerKeys) {
-                        structure.userData._fingerKeys = Object.keys(fingers);
-                    }
-                    const fKeys = structure.userData._fingerKeys;
-                    for (let fi = 0; fi < fKeys.length; fi++) {
-                        const name = fKeys[fi];
-                        const finger = fingers[name];
-                        if (!finger || !finger.userData) continue;
-                        
-                        if (name === 'thumb') {
-                            const thumbCurl = baseCurl * 0.20;
-                            const opposition = Math.sin(swimPhase * 0.6) * 0.04;
-                            
-                            const baseRotX = finger.userData.baseRotX || 0.32;
-                            const baseRotY = finger.userData.baseRotY || -0.48;
-                            const baseRotZ = finger.userData.baseRotZ || 0.82;
-                            
-                            if (finger.rotation) {
-                                finger.rotation.x = baseRotX + thumbCurl * 0.18;
-                                finger.rotation.y = baseRotY + opposition;
-                                finger.rotation.z = baseRotZ + Math.sin(swimPhase * 0.4) * 0.025;
-                            }
-                        } else {
-                            const fingerOffset = fi - 2;
-                            const phaseOffset = fi * 0.10;
-                            const fingerCurl = baseCurl + Math.sin(swimPhase + phaseOffset) * 0.025;
-                            
-                            const baseRotX = finger.userData.baseRotX || -0.05;
-                            const baseRotY = finger.userData.baseRotY || 0;
-                            const baseRotZ = finger.userData.baseRotZ || 0;
-                            
-                            finger.rotation.x = baseRotX + fingerCurl;
-                            finger.rotation.z = baseRotZ + fingerOffset * spreadAmount;
-                            finger.rotation.y = baseRotY + Math.sin(swimPhase * 0.9 + fi) * 0.008;
-                        }
-                    }
-                }
-                
-                // Particle animation - subtle
-                if (particles) {
-                    for (let pi = 0; pi < particles.length; pi++) {
-                        const particle = particles[pi];
-                        const orbit = particle.userData.orbit;
-                        if (orbit) {
-                            const t = swimPhase * orbit.speed + orbit.phase;
-                            particle.position.x = Math.cos(t) * orbit.radiusX;
-                            particle.position.y = orbit.offsetY + Math.sin(t * 0.5) * orbit.radiusY * 0.2;
-                            particle.position.z = Math.sin(t) * orbit.radiusZ;
-                            
-                            const pulse = 0.12 + Math.sin(swimPhase * 2 + pi * 0.5) * 0.08;
-                            if (particle.material) {
-                                particle.material.opacity = pulse;
-                            }
-                            particle.scale.setScalar(0.8 + pulse * 0.3);
-                        }
-                    }
-                }
-                
-                // Ring animation - subtle
-                if (rings) {
-                    for (let ri = 0; ri < rings.length; ri++) {
-                        const ring = rings[ri];
-                        ring.rotation.z += ring.userData.orbitSpeed * 0.008;
-                        ring.rotation.x = Math.PI / 2 + Math.sin(swimPhase * 0.3 + ring.userData.wobblePhase) * 0.03;
-                        if (ring.material) {
-                            ring.material.opacity = 0.05 + Math.sin(swimPhase * 1.5 + ri) * 0.025;
-                        }
-                    }
-                }
-                
-                // Very gentle overall rotation
-                structure.rotation.y = Math.sin(time * 0.18) * 0.04;
-                structure.rotation.x = Math.cos(time * 0.12) * 0.02;
-                break;
-                
-            case 'circuit_trace':
-                if (structure.userData.pulses) {
-                    const pulses = structure.userData.pulses;
-                    const tracePaths = structure.userData.tracePaths;
-                    for (let pi = 0; pi < pulses.length; pi++) {
-                        const pulse = pulses[pi];
-                        pulse.userData.progress += deltaTime * 0.3;
-                        if (pulse.userData.progress > 1) {
-                            pulse.userData.progress = 0;
-                            pulse.userData.pathIndex = (pulse.userData.pathIndex + 1) % tracePaths.length;
-                        }
-                        const path = tracePaths[pulse.userData.pathIndex];
-                        const t = pulse.userData.progress;
-                        const idx = Math.floor(t * (path.length - 1));
-                        const p0 = path[idx];
-                        const p1 = path[Math.min(idx + 1, path.length - 1)];
-                        const localT = (t * (path.length - 1)) % 1;
-                        pulse.position.lerpVectors(p0, p1, localT);
-                    }
-                }
-                if (structure.userData.nodes) {
-                    const nodes = structure.userData.nodes;
-                    for (let ni = 0; ni < nodes.length; ni++) {
-                        nodes[ni].material.opacity = 0.5 + Math.sin(time * 3 + ni) * 0.3;
-                    }
-                }
-                break;
-                
-            case 'spring_helix':
-                structure.userData.springPhase += deltaTime * PHI;
-                structure.scale.y = 0.8 + Math.sin(structure.userData.springPhase) * 0.2;
-                break;
-                
-            case 'atomic_model':
-                if (structure.userData.electrons) {
-                    const electrons = structure.userData.electrons;
-                    for (let ei = 0; ei < electrons.length; ei++) {
-                        const electron = electrons[ei];
-                        electron.userData.orbitalAngle += electron.userData.orbitalSpeed;
-                        const r = electron.userData.orbitalRadius;
-                        const a = electron.userData.orbitalAngle;
-                        electron.position.x = Math.cos(a) * r;
-                        electron.position.y = Math.sin(a) * r * Math.cos(electron.userData.tiltX);
-                        electron.position.z = Math.sin(a) * r * Math.sin(electron.userData.tiltX);
-                    }
-                }
-                break;
-                
-            case 'fluid_dynamics':
-                if (structure.userData.particles && structure.userData.velocities) {
-                    const positions = structure.userData.particles.geometry.attributes.position.array;
-                    const velocities = structure.userData.velocities;
-                    for (let i = 0; i < velocities.length; i++) {
-                        const streamY = positions[i * 3 + 1] / 15;
-                        velocities[i].y = Math.sin(positions[i * 3] * 0.3 + time) * 0.1;
-                        velocities[i].z = Math.cos(positions[i * 3] * 0.2 + time * 0.5) * 0.05;
-                        
-                        positions[i * 3] += velocities[i].x * deltaTime * 10;
-                        positions[i * 3 + 1] += velocities[i].y;
-                        positions[i * 3 + 2] += velocities[i].z;
-                        
-                        if (positions[i * 3] > 15) {
-                            positions[i * 3] = -15;
-                            positions[i * 3 + 1] = (Math.random() - 0.5) * 14;
-                            positions[i * 3 + 2] = (Math.random() - 0.5) * 5;
-                        }
-                    }
-                    structure.userData.particles.geometry.attributes.position.needsUpdate = true;
-                }
-                break;
-                
-            case 'cantilever_beam':
-                structure.userData.flexPhase += deltaTime * PHI * 0.5;
-                const maxDeflection = 0.15;
-                if (structure.userData.beamSegments) {
-                    const segs = structure.userData.beamSegments;
-                    const segCount = segs.length - 1;
-                    const sinFlex = Math.sin(structure.userData.flexPhase);
-                    for (let si = 0; si < segs.length; si++) {
-                        const t = si / segCount;
-                        segs[si].rotation.z = t * t * maxDeflection * sinFlex;
-                    }
-                }
-                if (structure.userData.load) {
-                    structure.userData.load.position.y = 2 + Math.sin(structure.userData.flexPhase) * 0.3;
-                }
-                break;
-                
-            case 'parametric_surface':
-                structure.rotation.x += deltaTime * 0.1;
-                structure.rotation.y += deltaTime * 0.15;
-                break;
-
-            case 'quadcopter':
-                // ===================================================
-                // SECTION 1: Propeller Animation
-                // ===================================================
-                if (structure.userData.propellers) {
-                    const props = structure.userData.propellers;
-                    const propSpeed = deltaTime * 30;
-                    for (let pi = 0; pi < props.length; pi++) {
-                        props[pi].rotation.y += propSpeed * props[pi].userData.spinDirection;
-                    }
-                }
-
-                // ===================================================
-                // SECTION 2: Waypoint Navigation
-                // ===================================================
-                if (structure.userData.waypoints && structure.userData.waypoints.length > 1) {
-                    const waypoints = structure.userData.waypoints;
-
-                    // Initialize base position storage (once)
-                    if (!structure.userData.basePosition) {
-                        structure.userData.basePosition = new THREE.Vector3();
-                    }
-
-                    // Advance progress along current segment (frame-rate independent)
-                    structure.userData.waypointProgress = (structure.userData.waypointProgress || 0) + deltaTime * structure.userData.waypointSpeed;
-
-                    // Advance to next waypoint when segment complete
-                    if (structure.userData.waypointProgress >= 1) {
-                        structure.userData.waypointProgress -= 1; // Keep overflow for smooth transition
-                        structure.userData.currentWaypoint = (structure.userData.currentWaypoint + 1) % waypoints.length;
-                    }
-
-                    // Get indices AFTER potential advancement to avoid 1-frame teleport
-                    const currentIdx = structure.userData.currentWaypoint || 0;
-                    const nextIdx = (currentIdx + 1) % waypoints.length;
-
-                    // Smooth easing function (ease-in-out quadratic)
-                    const t = structure.userData.waypointProgress;
-                    const easeT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
-                    // Calculate interpolated position between waypoints
-                    const startPos = waypoints[currentIdx];
-                    const endPos = waypoints[nextIdx];
-                    structure.userData.basePosition.lerpVectors(startPos, endPos, easeT);
-
-                    // ===================================================
-                    // SECTION 3: Orientation Smoothing
-                    // ===================================================
-                    if (!structure.userData._dirVec) structure.userData._dirVec = new THREE.Vector3();
-                    const dirVec = structure.userData._dirVec.subVectors(endPos, startPos);
-                    const dirLen = dirVec.length();
-
-                    if (dirLen > 0.01) {
-                        dirVec.divideScalar(dirLen); // Safe normalize
-
-                        // Initialize smoothed direction on first frame
-                        if (!structure.userData.smoothDir) {
-                            structure.userData.smoothDir = { x: dirVec.x, z: dirVec.z };
-                        }
-
-                        // Frame-rate independent exponential smoothing
-                        const smoothFactor = 1 - Math.pow(1 - 0.03, deltaTime * 60);
-                        structure.userData.smoothDir.x += (dirVec.x - structure.userData.smoothDir.x) * smoothFactor;
-                        structure.userData.smoothDir.z += (dirVec.z - structure.userData.smoothDir.z) * smoothFactor;
-
-                        const sd = structure.userData.smoothDir;
-
-                        // Calculate target rotations based on movement direction
-                        // Add base tilt for diagonal viewing angle
-                        const baseTilt = structure.userData.baseTilt || { x: 0, z: 0 };
-                        const targetRoll = -sd.x * 0.25 + baseTilt.z;
-                        const targetPitch = sd.z * 0.15 + baseTilt.x;
-                        const targetYaw = Math.atan2(sd.x, sd.z);
-
-                        // Frame-rate independent rotation smoothing
-                        const rotSmoothFactor = 1 - Math.pow(1 - 0.02, deltaTime * 60);
-                        structure.rotation.z += (targetRoll - structure.rotation.z) * rotSmoothFactor;
-                        structure.rotation.x += (targetPitch - structure.rotation.x) * rotSmoothFactor;
-
-                        // Smooth yaw with angle wrapping
-                        let yawDiff = targetYaw - structure.rotation.y;
-                        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
-                        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
-                        structure.rotation.y += yawDiff * rotSmoothFactor;
-                    }
-
-                    // ===================================================
-                    // SECTION 4: Apply Position with Hover Bob
-                    // ===================================================
-                    const hoverOffset = Math.sin(time * 6) * 0.01;
-                    structure.position.copy(structure.userData.basePosition);
-                    structure.position.y += hoverOffset;
-                }
-
-                // ===================================================
-                // SECTION 5: Fade Opacity (panel expansion hide/show)
-                // ===================================================
-                if (structure.userData.fadeTarget !== undefined) {
-                    const target = structure.userData.fadeTarget;
-                    const current = structure.userData.fadeOpacity;
-                    const diff = target - current;
-                    if (Math.abs(diff) > 0.001) {
-                        const fadeSmoothFactor = 1 - Math.pow(0.00001, deltaTime);
-                        structure.userData.fadeOpacity = current + diff * fadeSmoothFactor;
-                        const mats = structure.userData.allMaterials;
-                        const opacity = structure.userData.fadeOpacity;
-                        for (let mi = 0; mi < mats.length; mi++) {
-                            const m = mats[mi];
-                            m.opacity = m.userData.baseOpacity !== undefined
-                                ? m.userData.baseOpacity * opacity : opacity;
-                        }
-                    } else if (current !== target) {
-                        structure.userData.fadeOpacity = target;
-                        const mats = structure.userData.allMaterials;
-                        for (let mi = 0; mi < mats.length; mi++) {
-                            const m = mats[mi];
-                            m.opacity = m.userData.baseOpacity !== undefined
-                                ? m.userData.baseOpacity * target : target;
-                        }
-                    }
-                }
-                break;
-        }
-    }
-
-    // Camera motion
-    const camTime = time * PHI_INV * 0.1;
-    camera.position.x = Math.sin(camTime) * PHI * 2;
-    camera.position.y = Math.cos(camTime * 0.8) * PHI + 2;
-    camera.position.z = PHI * 30 + Math.sin(camTime * 0.5) * PHI * 3;
-    camera.lookAt(0, 0, 0);
-    
-    renderer.render(scene, camera);
-    
-    // Update panel gear icons (consolidated into main loop instead of separate rAF)
-    if (_gearAnimRunning) updatePanelGears();
-}
-
-// ============================================
-// DRONE FADE HELPER
-// ============================================
-
 function fadeDrone(targetOpacity) {
-    structures.forEach(s => {
-        if (s.userData.type === 'quadcopter') {
-            s.userData.fadeTarget = targetOpacity;
-        }
-    });
+    AmbientHost.post({ type: 'droneFade', target: targetOpacity });
 }
 
 // ============================================
@@ -2623,12 +2190,15 @@ function _getBgAnimEls() {
 
 function _pauseBackgroundSystems() {
     _bgSystemsPaused = true;
+    AmbientHost.setBgPaused(true);
     var bgEls = _getBgAnimEls();
     for (var i = 0; i < bgEls.length; i++) bgEls[i].style.animationPlayState = 'paused';
 }
 
 function _resumeBackgroundSystems() {
     _bgSystemsPaused = false;
+    AmbientHost.setBgPaused(false);
+    wakeScene();
     var bgEls = _getBgAnimEls();
     for (var i = 0; i < bgEls.length; i++) bgEls[i].style.animationPlayState = '';
 }
@@ -2754,6 +2324,8 @@ function expandPanel(panelId, contentType, routeOptions) {
 
     // FLIP technique: compute target rect, then use transform to animate
     var target = _getExpandedTargetRect();
+
+    expandedContainer.removeAttribute('aria-hidden');
 
     // Set the container to the target final size/position (no transition yet)
     expandedContainer.style.left = target.left + 'px';
@@ -2933,13 +2505,8 @@ function collapsePanel(fromRoute) {
         expandedContainer.style.transform = '';
         expandedOverlay.style.pointerEvents = 'none';
         expandedContainer.style.pointerEvents = 'none';
-        expandedContainer.style.left = '-9999px';
-        expandedContainer.style.top = '-9999px';
-        expandedContainer.style.width = '';
-        expandedContainer.style.height = '';
-
-        // Clear injected content to free memory
-        _cachedExpandedContent.innerHTML = '';
+        // Park the page (its layout stays cached for the next open).
+        PagePrerender.parkAll();
 
         var panelData = radialPanelPhysics.panels.get(collapsedPanelId);
         if (panelData) {
@@ -2953,6 +2520,9 @@ function collapsePanel(fromRoute) {
         isExpanded = false;
         isCollapsing = false;
         currentExpandedPanel = null;
+
+        // Keep the (transparent, pointer-transparent) container in place for the next open.
+        _sizeClosedExpandedContainer();
     }
 
     // Fallback timeout in case transitionend doesn't fire
@@ -3019,7 +2589,7 @@ function fadeInElements() {
     if (_cachedChromeGrid) _cachedChromeGrid.classList.remove('bg-hidden');
 }
 
-function loadContent(contentType, container) {
+function _contentHtml(contentType) {
     if (!_contentCache[contentType]) {
         switch(contentType) {
             case 'projects': _contentCache[contentType] = getProjectsContent(); break;
@@ -3029,7 +2599,205 @@ function loadContent(contentType, container) {
             default: _contentCache[contentType] = '<p>Content coming soon...</p>';
         }
     }
-    container.innerHTML = _contentCache[contentType];
+    return _contentCache[contentType];
+}
+
+// ============================================
+// PRE-RENDERED PAGES
+// ============================================
+// Each expanded page is built and laid out ahead of time (while the site is
+// idle), then parked with content-visibility: hidden, which keeps its layout
+// cached. Opening a page only un-parks it, so the morph animation is not
+// preceded by a long HTML build + layout on the main thread.
+
+const PagePrerender = {
+    pages: {},
+    order: ['projects', 'people', 'about', 'join'],
+    active: null,
+    _scheduled: false,
+
+    container: function() {
+        _getExpandedEls();
+        return _cachedExpandedContent;
+    },
+
+    build: function(contentType, warm) {
+        if (this.pages[contentType]) return this.pages[contentType];
+        const container = this.container();
+        if (!container) return null;
+        const page = document.createElement('div');
+        page.className = 'expanded-page';
+        page.dataset.page = contentType;
+        page.innerHTML = _contentHtml(contentType);
+        if (!warm) page.classList.add('is-parked');
+        container.appendChild(page);
+        if (warm) {
+            // Lay it out (invisibly: the closed container is transparent and
+            // off-screen) and run one park/unpark cycle, after which Blink
+            // keeps the parked subtree's layout and un-parking is ~free.
+            void page.offsetHeight;
+            page.classList.add('is-parked');
+            void container.offsetHeight;
+            page.classList.remove('is-parked');
+            void page.offsetHeight;
+            page.classList.add('is-parked');
+        }
+        this.pages[contentType] = page;
+        return page;
+    },
+
+    // Un-park a page while the user is pointing at its panel, so the
+    // browser paints it before the click.
+    preview: function(contentType) {
+        if (isExpanded || isCollapsing || this.active === contentType) return;
+        _sizeClosedExpandedContainer();
+        this.lockFocus(this.activate(contentType));
+    },
+
+    // While a page is previewed in the closed (invisible) container, its
+    // links must not be reachable with Tab. Only tabindex changes here, which
+    // no style depends on, so restoring it at open costs no restyle/repaint.
+    FOCUSABLE: 'a[href], button, input, select, textarea, [tabindex]',
+
+    lockFocus: function(page) {
+        if (!page || page._focusLocked) return;
+        page._focusLocked = true;
+        page.querySelectorAll(this.FOCUSABLE).forEach(function(el) {
+            if (el.hasAttribute('data-eel-tabindex')) return;
+            el.setAttribute('data-eel-tabindex', el.getAttribute('tabindex') === null ? '' : el.getAttribute('tabindex'));
+            el.setAttribute('tabindex', '-1');
+        });
+    },
+
+    unlockFocus: function(page) {
+        if (!page || !page._focusLocked) return;
+        page._focusLocked = false;
+        page.querySelectorAll('[data-eel-tabindex]').forEach(function(el) {
+            const v = el.getAttribute('data-eel-tabindex');
+            if (v === '') el.removeAttribute('tabindex'); else el.setAttribute('tabindex', v);
+            el.removeAttribute('data-eel-tabindex');
+        });
+    },
+
+    activate: function(contentType) {
+        const page = this.build(contentType, false);
+        for (const key in this.pages) {
+            this.pages[key].classList.toggle('is-parked', key !== contentType);
+        }
+        this.active = contentType;
+        return page;
+    },
+
+    parkAll: function() {
+        for (const key in this.pages) this.pages[key].classList.add('is-parked');
+        this.active = null;
+    },
+
+    idle: function(cb) {
+        if (window.requestIdleCallback) window.requestIdleCallback(cb, { timeout: 4000 });
+        else setTimeout(cb, 300);
+    },
+
+    // Let each page paint once while the closed container is transparent,
+    // so first-time paint work (glyph rasterisation etc.) happens now rather
+    // than on the first click.
+    paintWarm: function() {
+        const queue = this.order.slice();
+        const next = () => {
+            if (!queue.length) { if (!isExpanded && !isCollapsing) this.parkAll(); return; }
+            if (isExpanded || isCollapsing) return;
+            this.preview(queue.shift());
+            requestAnimationFrame(() => requestAnimationFrame(() => this.idle(next)));
+        };
+        this.idle(next);
+    },
+
+    // Font loads, theme switches and resizes invalidate the parked layouts;
+    // redo that work in idle time (one page per idle period) rather than at
+    // the moment a page is opened.
+    rewarm: function() {
+        clearTimeout(this._rewarmTimer);
+        this._rewarmTimer = setTimeout(() => {
+            const queue = Object.keys(this.pages);
+            const next = () => {
+                if (!queue.length) return;
+                if (isExpanded || isCollapsing) { setTimeout(() => this.idle(next), 1000); return; }
+                const key = queue.shift();
+                const page = this.pages[key];
+                const container = this.container();
+                page.classList.remove('is-parked');
+                void container.offsetHeight;
+                page.classList.add('is-parked');
+                this.idle(next);
+            };
+            this.idle(next);
+        }, 200);
+    },
+
+    // Touch screens have no hover: pre-paint the page of the panel that is
+    // scrolled into view instead (it is the one about to be tapped).
+    watchVisiblePanels: function() {
+        if (this._observer || typeof IntersectionObserver === 'undefined') return;
+        let pending = null;
+        this._observer = new IntersectionObserver((entries) => {
+            if (!RuntimeVisibility.mobilePortrait) return;
+            let best = null;
+            entries.forEach((e) => { if (e.isIntersecting && e.intersectionRatio >= 0.6 && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; });
+            if (!best) return;
+            pending = best.target.dataset.contentType;
+            this.idle(() => { if (pending) this.preview(pending); pending = null; });
+        }, { threshold: [0.6, 0.9] });
+        document.querySelectorAll('.nav-panel').forEach((panel) => this._observer.observe(panel));
+    },
+
+    // Build the remaining pages one per idle period, only while closed,
+    // once the web fonts are in (they change text metrics).
+    scheduleIdleBuild: function() {
+        if (this._scheduled) return;
+        this._scheduled = true;
+        const next = () => {
+            const missing = this.order.find((t) => !this.pages[t]);
+            if (!missing) { this.paintWarm(); this.watchVisiblePanels(); return; }
+            if (isExpanded || isCollapsing) { setTimeout(() => this.idle(next), 1000); return; }
+            _sizeClosedExpandedContainer();
+            this.build(missing, true);
+            this.idle(next);
+        };
+        const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+        fontsReady.then(() => this.idle(next));
+        if (document.fonts && document.fonts.addEventListener) {
+            document.fonts.addEventListener('loadingdone', () => this.rewarm());
+        }
+        window.addEventListener('themechange', () => this.rewarm());
+    }
+};
+
+// Keep the closed container where and how big it will open, so pre-built
+// pages are laid out at their final width and a previewed page is already
+// painted. It stays fully transparent, ignores the pointer, is hidden from
+// assistive technology, and its previewed page is taken out of the tab order.
+function _sizeClosedExpandedContainer() {
+    _getExpandedEls();
+    if (!_cachedExpandedContainer || isExpanded || isCollapsing) return;
+    const c = _cachedExpandedContainer;
+    const target = _getExpandedTargetRect();
+    c.style.left = target.left + 'px';
+    c.style.top = target.top + 'px';
+    c.style.width = target.width + 'px';
+    c.style.height = target.height + 'px';
+    c.setAttribute('aria-hidden', 'true');
+}
+
+window.addEventListener('resize', () => {
+    clearTimeout(_sizeClosedExpandedContainer._t);
+    _sizeClosedExpandedContainer._t = setTimeout(() => {
+        _sizeClosedExpandedContainer();
+        PagePrerender.rewarm();
+    }, 150);
+}, { passive: true });
+
+function loadContent(contentType, container) {
+    PagePrerender.unlockFocus(PagePrerender.activate(contentType));
 }
 
 function getProjectsContent() {
@@ -4774,197 +4542,14 @@ function getJoinContent() {
 }
 
 // ============================================
-// INTERLOCKING GEARS SVG - Panel Icons
+// INTERLOCKING GEARS - Panel Icons
 // ============================================
-// Three-layer rendering for true mechanical interlocking:
-//   Layer 1: Full large gear (behind)
-//   Layer 2: Full small gear (in front)
-//   Layer 3: Large gear teeth only, clipped to small gear zone (topmost)
-// This makes large gear teeth visually enter small gear gaps,
-// while small gear teeth (Layer 2) enter large gear gaps (over Layer 1).
-
-const GEAR_CONFIG = (function() {
-    // Module m=4, same for both gears so teeth mesh
-    const m = 4;
-    const lgTeeth = 12, smTeeth = 10;
-    const lgPitch = m * lgTeeth / 2;          // 24
-    const smPitch = m * smTeeth / 2;          // 20
-    const addendum = 0.75 * m;                // 3 — tooth height above pitch
-    const dedendum = 1.25 * m;                // 5 — valley depth below pitch
-    const centerDist = lgPitch + smPitch;     // 44
-
-    const lgOuterR = lgPitch + addendum;      // 27
-    const lgRootR  = lgPitch - dedendum;      // 19
-    const smOuterR = smPitch + addendum;      // 23
-    const smRootR  = smPitch - dedendum;      // 15
-
-    // Position large gear upper-left, small gear lower-right
-    const lgCx = 31, lgCy = 30;
-    const meshAngle = Math.atan2(3, 4);       // ~36.87°
-    const smCx = lgCx + centerDist * Math.cos(meshAngle);  // ~66.2
-    const smCy = lgCy + centerDist * Math.sin(meshAngle);  // ~56.4
-
-    // Phase offsets for proper meshing at t=0:
-    // Large gear: GAP faces the small gear at meshAngle
-    // Small gear: TOOTH faces the large gear at meshAngle+π
-    const lgSector = (2 * Math.PI) / lgTeeth;
-    const smSector = (2 * Math.PI) / smTeeth;
-
-    // Large gear — align nearest gap center with meshAngle
-    const lgGap0 = -Math.PI / 2 + lgSector / 2;
-    const lgGapIdx = Math.round((meshAngle - lgGap0) / lgSector);
-    const lgPhase = meshAngle - (lgGap0 + lgGapIdx * lgSector);
-
-    // Small gear — align nearest TOOTH center with opposite mesh angle
-    const smMesh = meshAngle + Math.PI;
-    const smTooth0 = -Math.PI / 2;  // first tooth center (not gap!)
-    const smToothIdx = Math.round((smMesh - smTooth0) / smSector);
-    const smPhase = smMesh - (smTooth0 + smToothIdx * smSector);
-
-    // Rotation durations (gear ratio = teeth ratio)
-    const lgDur = 20;
-    const smDur = lgDur * smTeeth / lgTeeth;  // 16.667
-
-    return {
-        lg: { cx: lgCx, cy: lgCy, outerR: lgOuterR, rootR: lgRootR,
-              ringR: 16, holeR: 11, teeth: lgTeeth, phase: lgPhase },
-        sm: { cx: smCx, cy: smCy, outerR: smOuterR, rootR: smRootR,
-              ringR: 12, holeR: 8,  teeth: smTeeth, phase: smPhase },
-        lgDur: lgDur, smDur: smDur
-    };
-})();
-
-function buildGearPaths(g) {
-    const sector = (2 * Math.PI) / g.teeth;
-    // Tooth profile fractions (of sector) — sized for proper meshing
-    const rootHalf = 0.26;  // half-width at root
-    const tipHalf  = 0.16;  // half-width at tip
-
-    // Full gear outline (teeth + body) with center hole
-    const pts = [];
-    for (let i = 0; i < g.teeth; i++) {
-        const c = i * sector - Math.PI / 2 + g.phase;
-        const a1 = c - rootHalf * sector;
-        const a2 = c - tipHalf  * sector;
-        const a3 = c + tipHalf  * sector;
-        const a4 = c + rootHalf * sector;
-        pts.push([g.rootR * Math.cos(a1), g.rootR * Math.sin(a1)]);
-        pts.push([g.outerR * Math.cos(a2), g.outerR * Math.sin(a2)]);
-        pts.push([g.outerR * Math.cos(a3), g.outerR * Math.sin(a3)]);
-        pts.push([g.rootR * Math.cos(a4), g.rootR * Math.sin(a4)]);
-    }
-    let full = 'M' + pts[0][0].toFixed(2) + ',' + pts[0][1].toFixed(2);
-    for (let i = 1; i < pts.length; i++)
-        full += ' L' + pts[i][0].toFixed(2) + ',' + pts[i][1].toFixed(2);
-    full += ' Z';
-    // Center hole (counter-clockwise for evenodd cutout)
-    full += ' M' + g.holeR.toFixed(2) + ',0';
-    full += ' A' + g.holeR + ',' + g.holeR + ' 0 0 0 ' + (-g.holeR).toFixed(2) + ',0';
-    full += ' A' + g.holeR + ',' + g.holeR + ' 0 0 0 ' + g.holeR.toFixed(2) + ',0 Z';
-
-    // Teeth-only path (individual tooth quads, no body/hole)
-    let teeth = '';
-    for (let i = 0; i < g.teeth; i++) {
-        const c = i * sector - Math.PI / 2 + g.phase;
-        const a1 = c - rootHalf * sector;
-        const a2 = c - tipHalf  * sector;
-        const a3 = c + tipHalf  * sector;
-        const a4 = c + rootHalf * sector;
-        teeth += 'M' + (g.rootR * Math.cos(a1)).toFixed(2) + ',' + (g.rootR * Math.sin(a1)).toFixed(2);
-        teeth += ' L' + (g.outerR * Math.cos(a2)).toFixed(2) + ',' + (g.outerR * Math.sin(a2)).toFixed(2);
-        teeth += ' L' + (g.outerR * Math.cos(a3)).toFixed(2) + ',' + (g.outerR * Math.sin(a3)).toFixed(2);
-        teeth += ' L' + (g.rootR * Math.cos(a4)).toFixed(2) + ',' + (g.rootR * Math.sin(a4)).toFixed(2);
-        teeth += ' Z ';
-    }
-
-    return { full: full, teeth: teeth.trim() };
-}
-
-function createInterlockingGearsSVG(uid) {
-    const cfg = GEAR_CONFIG;
-    const lg = cfg.lg, sm = cfg.sm;
-    const lgPaths = buildGearPaths(lg);
-    const smPaths = buildGearPaths(sm);
-    const clipId = 'gc' + uid;
-
-    // Viewbox to contain both gears with padding
-    const vw = Math.ceil(sm.cx + sm.outerR + 3);
-    const vh = Math.ceil(sm.cy + sm.outerR + 3);
-
-    // All paths are relative to gear center (drawn at origin, translated by group)
-    return '<svg class="panel-icon-svg" viewBox="0 0 ' + vw + ' ' + vh + '" xmlns="http://www.w3.org/2000/svg">'
-        + '<defs><clipPath id="' + clipId + '">'
-        + '<circle cx="' + sm.cx.toFixed(2) + '" cy="' + sm.cy.toFixed(2) + '" r="' + (sm.outerR + 1) + '"/>'
-        + '</clipPath></defs>'
-        // Layer 1: Full large gear
-        + '<g class="gear-lg-rotate" data-cx="' + lg.cx + '" data-cy="' + lg.cy + '">'
-        + '<path d="' + lgPaths.full + '" fill="#6B7B8D" fill-rule="evenodd" transform="translate(' + lg.cx + ',' + lg.cy + ')"/>'
-        + '<circle cx="' + lg.cx + '" cy="' + lg.cy + '" r="' + lg.ringR + '" fill="none" stroke="#A8C5B8" stroke-width="2.5"/>'
-        + '</g>'
-        // Layer 2: Full small gear
-        + '<g class="gear-sm-rotate" data-cx="' + sm.cx.toFixed(2) + '" data-cy="' + sm.cy.toFixed(2) + '">'
-        + '<path d="' + smPaths.full + '" fill="#6B7B8D" fill-rule="evenodd" transform="translate(' + sm.cx.toFixed(2) + ',' + sm.cy.toFixed(2) + ')"/>'
-        + '<circle cx="' + sm.cx.toFixed(2) + '" cy="' + sm.cy.toFixed(2) + '" r="' + sm.ringR + '" fill="none" stroke="#A8C5B8" stroke-width="2"/>'
-        + '</g>'
-        // Layer 3: Large gear teeth only, clipped to small gear zone
-        + '<g clip-path="url(#' + clipId + ')">'
-        + '<g class="gear-lg-rotate" data-cx="' + lg.cx + '" data-cy="' + lg.cy + '">'
-        + '<path d="' + lgPaths.teeth + '" fill="#6B7B8D" transform="translate(' + lg.cx + ',' + lg.cy + ')"/>'
-        + '</g></g>'
-        + '</svg>';
-}
-
-// Gear animation state — updated from the main animateThreeJS loop (no separate rAF)
-let _gearAnimRunning = false;
-let _cachedGearLg = null;
-let _cachedGearSm = null;
-
-let _gearFrameSkip = 0;
-
-function updatePanelGears() {
-    // Skip when panel is expanded — gears are hidden
-    if (_bgSystemsPaused) return;
-    
-    // Throttle to every 3rd frame (gears rotate slowly, 20fps is sufficient)
-    _gearFrameSkip++;
-    if (_gearFrameSkip % 3 !== 0) return;
-
-    const t = performance.now() / 1000;
-    const cfg = GEAR_CONFIG;
-    const lgAngle = (t / cfg.lgDur) * 360;
-    const smAngle = -(t / cfg.smDur) * 360;
-
-    if (!_cachedGearLg) _cachedGearLg = document.querySelectorAll('.gear-lg-rotate');
-    if (!_cachedGearSm) _cachedGearSm = document.querySelectorAll('.gear-sm-rotate');
-
-    const lgRotation = lgAngle | 0;
-    const smRotation = smAngle | 0;
-    for (let i = 0; i < _cachedGearLg.length; i++) {
-        const el = _cachedGearLg[i];
-        el._rotationTransform.setRotate(lgRotation, el._gearCx, el._gearCy);
-    }
-    for (let i = 0; i < _cachedGearSm.length; i++) {
-        const el = _cachedGearSm[i];
-        el._rotationTransform.setRotate(smRotation, el._gearCx, el._gearCy);
-    }
-}
+// The gear icons are drawn by the ambient engine from the same geometry
+// (EELAmbient.GEAR_CONFIG / buildGearPaths): large gear, small gear, then
+// the large gear's teeth clipped to the small gear so the teeth interlock.
 
 function initPanelGearIcons() {
-    document.querySelectorAll('.panel-icon').forEach(function(el, idx) {
-        el.innerHTML = createInterlockingGearsSVG(idx);
-    });
-
-    _cachedGearLg = document.querySelectorAll('.gear-lg-rotate');
-    _cachedGearSm = document.querySelectorAll('.gear-sm-rotate');
-    [_cachedGearLg, _cachedGearSm].forEach(function(elements) {
-        elements.forEach(function(el) {
-            el._gearCx = Number(el.dataset.cx);
-            el._gearCy = Number(el.dataset.cy);
-            el._rotationTransform = el.ownerSVGElement.createSVGTransform();
-            el.transform.baseVal.initialize(el._rotationTransform);
-        });
-    });
-    _gearAnimRunning = true;
+    AmbientHost.createGearIcons(document.querySelectorAll('.panel-icon'));
 }
 
 // ============================================
@@ -4974,6 +4559,7 @@ function initPanelGearIcons() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         ThemeManager.init();
+        AmbientHost.init();
                 updateCardStats();
         initPanelGearIcons();
         radialPanelPhysics = new RadialPanelPhysics();
@@ -4982,31 +4568,25 @@ if (document.readyState === 'loading') {
         setTimeout(() => {
             document.querySelectorAll('.js-positioned:not(.ready)').forEach(el => el.classList.add('ready'));
         }, 2000);
+
     });
 } else {
     ThemeManager.init();
+    AmbientHost.init();
         updateCardStats();
     initPanelGearIcons();
     radialPanelPhysics = new RadialPanelPhysics();
     startVisualRuntime();
 }
 
-// Dispose Three.js resources on page unload to free GPU memory
+// Build the expanded pages ahead of time once the page has loaded.
+(function() {
+    const start = () => { if (!window.__EEL_TEST__) PagePrerender.scheduleIdleBuild(); };
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start);
+})();
+
+// Release the renderer (and its GPU resources) on page unload
 window.addEventListener('beforeunload', function() {
-    if (renderer) {
-        renderer.dispose();
-        renderer.forceContextLoss();
-    }
-    if (scene) {
-        scene.traverse(function(obj) {
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) {
-                if (Array.isArray(obj.material)) {
-                    obj.material.forEach(function(mat) { mat.dispose(); });
-                } else {
-                    obj.material.dispose();
-                }
-            }
-        });
-    }
+    AmbientHost.dispose();
 });

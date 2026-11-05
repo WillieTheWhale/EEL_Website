@@ -9,7 +9,9 @@
     "test:performance": "node tests/performance-harness.mjs",
     "test:visual": "node tests/visual-parity.mjs",
     "test:assets": "node tests/asset-parity.mjs",
-    "test:smoke": "node tests/interaction-smoke.mjs"
+    "test:smoke": "node tests/interaction-smoke.mjs",
+    "test:parity": "node tests/prerender-parity.mjs",
+    "test:fps": "node tests/fps-throttle.mjs"
   },
   "dependencies": {
     "dotenv": "^16.3.1",

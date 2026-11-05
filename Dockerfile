@@ -14,7 +14,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy application code
 COPY website/backend/ ./backend/
-COPY website/index.html website/styles.css website/script.js website/mobile.js ./
+COPY website/index.html website/styles.css website/script.js website/ambient.js website/mobile.js ./
 COPY website/application.html website/application.css website/application.js ./
 COPY website/collaboration.html website/support.html website/inquiry.js ./
 COPY website/EEL_Logo.png website/EEL_Logo.svg website/EELRedraw.svg website/EELRedraw.png ./

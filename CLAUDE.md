@@ -26,7 +26,8 @@ npm start
 ### Main Files (in EEL_Website/)
 
 - `index.html` - Entry point with inlined critical CSS and deferred script loading
-- `script.js` (~3,150 lines) - Core application with all major systems
+- `script.js` - Core application with all major systems
+- `ambient.js` - Pre-rendered background renderer (nebula, medallion glow, gears, circuits, drone); runs in a Web Worker
 - `styles.css` (~2,250 lines) - Theming, glassmorphism, and responsive breakpoints
 - `mobile.js` - Mobile device detection and portrait mode handling
 - `application.html` - Application form page (Portal 2 aesthetic)
@@ -54,17 +55,31 @@ npm start
 | System | Description |
 |--------|-------------|
 | `ThemeManager` | Light/dark theme persistence, respects system preferences |
+| `AmbientHost` | Main-thread side of the ambient renderer: reads geometry, colours and keyframes from the live CSS and feeds `ambient.js` (in a Web Worker via OffscreenCanvas when supported, else on the main thread) |
 | `MedallionSystem` | Central logo positioning |
-| `CircuitGridMatrix` | SVG-based animated circuit board connecting panels to medallion |
-| `RadialPanelPhysics` | Physics engine for draggable nav panels with collision detection and tethering |
-| `HarmonicMotion` | Subtle breathing animations using golden ratio timing |
-| `ThreeJSSystem` | Three.js particle field and chromatic effects |
-| `EngineeringStructures` | Decorative animated SVG elements |
+| `CircuitGridMatrix` | Computes the circuit routes from panel positions; static grid + trace glows stay SVG, animated traces/nodes/packets are drawn by `ambient.js` |
+| `RadialPanelPhysics` | Physics engine for draggable nav panels with collision detection; the scene loop sleeps while nothing moves |
+| `PagePrerender` | Builds and lays out the four expanded pages at idle time, parks them with `content-visibility: hidden`, and pre-paints the hovered/visible panel's page |
 | `PanelExpansion` | Morphing animation when panels expand to full-screen overlays |
+
+### Ambient renderer (ambient.js)
+
+The decorative background is replayed from pre-rendered sprites instead of being recomputed live. Nothing here touches the DOM, so it runs in a worker:
+
+- **Nebula** – each CSS-blurred blob is pre-rendered once into a float sprite (exact Gaussian of its gradient disc) and the five are composited into one small canvas that the compositor upscales. The `.nebula-blob` elements stay in the DOM only so their styles/keyframes can be read.
+- **Medallion glow** – the animated part of `medallion-glow-pulse` is drawn on a canvas above the glass; the static shadows remain a native box-shadow.
+- **Gear icons**, **drone** (the original Three.js scene, unchanged) and the **circuit animation** (dash flow, packets, pulse transitions emulated with CSS timing).
+
+`styles.css` stays the source of truth: change a blob/keyframe/colour there and the renderer picks it up. `?ambient=main` forces main-thread mode; `window.__EEL_TEST__` (set by the test harness) does too, with a deterministic clock.
+
+### Visual parity and frame-rate tests
+
+- `npm run test:parity -- --a=<reference url> --b=<candidate url>` – deterministic side-by-side screenshot diff (virtual clock for rAF, timers, random and every CSS animation).
+- `npm run test:fps -- --cpu=20 --scenario=all` – FPS under CPU throttling (`--gpu=off` emulates a weak GPU via software compositing).
 
 ### 3D Rendering (Three.js)
 
-WebGL scene with multiple engineering structures. Custom iridescent shader materials and wireframe rendering. Pure vanilla JS with Three.js as the only external library.
+The quadcopter drone is the only 3D element. Three.js r128 is loaded from cdnjs inside the ambient worker (or on the main thread as a fallback).
 
 ## Backend API
 

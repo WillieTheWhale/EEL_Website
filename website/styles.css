@@ -301,6 +301,46 @@ body[data-theme="dark"] .blob-accent-2 {
         transparent 50%);
 }
 
+/* Pre-rendered nebula (ambient.js). The blob elements stay in the DOM so
+   their computed styles can be read, but the canvas does the drawing. */
+.organic-nebula.eel-prerendered .nebula-blob {
+    filter: none;
+    background: none;
+    animation: none;
+    will-change: auto;
+    visibility: hidden;
+}
+
+.nebula-canvas {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    image-rendering: auto;
+    will-change: transform;
+}
+
+/* Pre-rendered medallion glow (ambient.js draws the animated box-shadow). */
+.central-medallion.eel-prerendered .medallion-glass-container {
+    animation: none;
+    /* box-shadow switched instantly with the theme while it was animated */
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.medallion-shadow-canvas {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+}
+
+/* Gear icons drawn by ambient.js */
+.panel-icon-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 @keyframes blob-drift-primary {
     0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
     16.18% { transform: translate(calc(var(--fib-8) * -1), var(--fib-5)) scale(1.05) rotate(61.8deg); }
@@ -905,22 +945,56 @@ body[data-theme="dark"] .nav-panel:hover .panel-hologram {
     z-index: 5000;
     pointer-events: none;
     background-color: transparent;
-    transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     contain: layout style;
 }
 
 .expanded-overlay.active {
     pointer-events: auto;
-    background-color: rgba(250, 251, 252, 0.65);
 }
 
-body[data-theme="dark"] .expanded-overlay.active {
+/* The dimming layer fades with opacity (compositor-only). Fading a fixed
+   colour's opacity from 0 is identical to the old background-color fade
+   from transparent, which repainted the full screen every frame. */
+.expanded-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-color: rgba(250, 251, 252, 0.65);
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+}
+
+body[data-theme="dark"] .expanded-overlay::before {
     background-color: rgba(12, 14, 18, 0.65);
+}
+
+.expanded-overlay.active::before {
+    opacity: 1;
+}
+
+/* While closed, the transparent container waits in place (pre-rendered
+   pages); its content must not take pointer input. pointer-events is an
+   independent inherited property, so toggling it at open is cheap. */
+.expanded-container:not(.expanded):not(.morphing) .expanded-content {
+    pointer-events: none;
+}
+
+/* Pre-rendered pages (PagePrerender in script.js) */
+.expanded-page {
+    display: block;
+}
+
+.expanded-page.is-parked {
+    content-visibility: hidden;
 }
 
 .expanded-container {
     position: fixed;
-    /* Off-screen initially so it doesn't block interaction */
+    /* Off-screen until script positions it; while closed it stays
+       transparent and ignores the pointer */
     left: -9999px;
     top: -9999px;
     z-index: 5001;
@@ -943,8 +1017,8 @@ body[data-theme="dark"] .expanded-overlay.active {
     .expanded-container.morphing {
         transition: transform 0.15s ease;
     }
-    .expanded-overlay {
-        transition: background-color 0.15s ease;
+    .expanded-overlay::before {
+        transition: opacity 0.15s ease, background-color 0.15s ease;
     }
     .fade-element {
         transition: opacity 0.1s ease, visibility 0s linear 0s;
@@ -2317,6 +2391,29 @@ body[data-theme="dark"] .apply-now-btn:hover {
     pointer-events: none;
 }
 
+/* Animated traces, nodes and packets are drawn on this canvas */
+.circuit-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+/* Hidden elements used only to read the circuit styles below */
+.circuit-style-probe {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.circuit-style-probe,
+.circuit-style-probe * {
+    transition: none !important;
+    animation: none !important;
+}
+
 /* ============================================
    FADE ELEMENTS
    ============================================ */
@@ -3173,10 +3270,12 @@ body[data-theme="dark"] .trace-gradient-end {
     }
    
     /* Keep the expanded panel and everything inside it constrained
-       to the mobile viewport */
-            .expanded-overlay.active .expanded-container,
-    .expanded-overlay.active .expanded-glass-container,
-    .expanded-overlay.active .expanded-content {
+       to the mobile viewport. These also apply while closed (the container
+       is then transparent and ignores the pointer), so the pre-rendered
+       pages are laid out exactly as they will be shown. */
+    .expanded-overlay .expanded-container,
+    .expanded-overlay .expanded-glass-container,
+    .expanded-overlay .expanded-content {
         max-width: 100%;
         min-width: 0;
     }
@@ -3193,7 +3292,7 @@ body[data-theme="dark"] .trace-gradient-end {
         overflow: hidden !important;
     }
 
-            .expanded-overlay.active .expanded-container {
+    .expanded-overlay .expanded-container {
         position: fixed !important;
         top: 8px !important;
         right: 8px !important;
@@ -3206,11 +3305,11 @@ body[data-theme="dark"] .trace-gradient-end {
         transform-origin: center !important;
     }
 
-            .expanded-overlay.active .expanded-glass-container {
+    .expanded-overlay .expanded-glass-container {
         width: 100% !important;
         height: 100% !important;
     }
-              .expanded-overlay.active .expanded-content {
+    .expanded-overlay .expanded-content {
         width: 100%;
         height: 100%;
         max-height: 100%;
