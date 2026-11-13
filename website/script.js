@@ -4437,7 +4437,7 @@ function getAboutContent() {
         <div class="content-section">
             <p class="about-text">The Experimental Engineering Lab sits at the intersection of engineering and undergraduate research. Students build equipment for faculty research, develop their own prototypes, and learn to work through the unknowns that make research different from a classroom assignment. Based in UNC’s Department of Computer Science, the lab brings together students and researchers from across campus.</p>
             <p class="about-text" style="text-align: center; margin: 40px 0;">
-                <em>“I want to use research to impact students, not use students to impact my research.”</em>
+                <em>“I want to use research to impact students, not use students to impact research.”</em>
                 <span style="display: block; margin-top: 12px;">— Jim Mahaney</span>
             </p>
             <div class="about-stats">
