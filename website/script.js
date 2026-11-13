@@ -3016,6 +3016,13 @@ function getProjectsContent() {
             ],
             collaboration: 'Physical Therapy'
         },
+                {
+            title: 'Under-Display Gaze Tracking',
+            body: [
+                `This project explores whether a camera mounted behind an OLED display can track where a user is looking, freeing up space in virtual reality headsets. The display's pixel grid blurs the camera image and reduces contrast, making small pupil movements difficult to measure.`,
+               'Students will build a system to investigate ways to reduce optical blur from about 60 pixels to 10 pixels.`
+            ]
+        },
         {
             title: 'Multi-Camera Court Line Calling System',
             body: [
@@ -3528,6 +3535,34 @@ function getPeopleContent() {
     ];
 
     const otherMembers = [
+                {
+            name: 'Cooper Uhl',
+            major: 'Biomedical Engineering',
+            graduation: '2029',
+            headshot: 'headshots/cooper-uhl.png',
+            linkedin: 'https://www.linkedin.com/in/cooper-uhl/'
+        },
+        {
+            name: 'Diya Mouleeswaran',
+            major: 'Biomedical Engineering',
+            graduation: 'May 2029',
+            headshot: 'headshots/diya-mouleeswaran.png',
+            linkedin: 'https://www.linkedin.com/in/diya-mouleeswaran/'
+        },
+        {
+            name: 'Ethan Kim',
+            major: 'Computer Science and Statistics',
+            graduation: '2029',
+            headshot: 'headshots/ethan-kim.png',
+            linkedin: 'https://www.linkedin.com/in/ethan-kim-590275394/'
+        },
+        {
+            name: 'Ken Jenkins',
+            major: 'Applied Sciences',
+            graduation: '2030',
+            headshot: 'headshots/ken-jenkins.png',
+            linkedin: 'https://www.linkedin.com/in/ken-jenkins-66950138b/'
+        },
                             {
             name: 'Matthew Rastovski',
             major: 'Chemistry with a Focus in Analytical Chemistry',
@@ -3727,6 +3762,7 @@ function getPeopleContent() {
         floodLens: 'FloodLens',
                              rcVehicleDynamics: 'RC Vehicle Dynamics',
         ocularScreening: 'Ocular Response Impairment Screening',
+                   underDisplayGazeTracking: 'Under-Display Gaze Tracking',
               courtLineCalling: 'Multi-Camera Court Line Calling System',
         rampa: 'RAMPA: Robotic Augmented Reality for Machine Programming by Demonstration',
               virtualChemistry: 'Virtual Chemistry Lab',
@@ -3749,6 +3785,10 @@ function getPeopleContent() {
     };
 
     const memberProjects = {
+                'Cooper Uhl': [{ key: 'fishCar' }],
+        'Diya Mouleeswaran': [{ key: 'fishCar' }],
+        'Ethan Kim': [{ key: 'underDisplayGazeTracking' }],
+        'Ken Jenkins': [{ key: 'underDisplayGazeTracking' }],
         'Markandeya Yalamanchi': [
             { key: 'redirectedWalking', poster: true }
         ],
