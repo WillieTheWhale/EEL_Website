@@ -2940,6 +2940,14 @@ function getProjectsContent() {
     ];
     const developmentProjects = [
                 {
+            title: 'Uncovering Hidden Mines in Liberia',
+            body: [
+                `This project will use satellite imagery and computer vision to identify signs of potentially unpermitted mining in Liberia. Working with the U.S. Embassy in Monrovia through the U.S. Department of State’s Diplomacy Lab, students will compare images taken over time to flag changes such as new excavations or river dredging.`,
+                `An EEL undergraduate team and a VCAIL graduate student will compare flagged locations with Liberia’s mining permit records. They will build an interactive map to help Liberian officials decide where to conduct field inspections.`
+            ],
+            collaboration: 'Visual Computing and Augmented Intelligence Lab, Computer Science'
+        },
+                {
             title: 'AI Research Discovery Platform',
             body: [
                 `This project will create an interactive map of research at UNC, beginning with Computer Science. It will connect faculty, research topics, publications, and projects so users can explore related work and discover opportunities for collaboration.`,
