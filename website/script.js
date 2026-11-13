@@ -3028,7 +3028,7 @@ function getProjectsContent() {
             title: 'Under-Display Gaze Tracking',
             body: [
                 `This project explores whether a camera mounted behind an OLED display can track where a user is looking, freeing up space in virtual reality headsets. The display's pixel grid blurs the camera image and reduces contrast, making small pupil movements difficult to measure.`,
-               'Students will build a system to investigate ways to reduce optical blur from about 60 pixels to 10 pixels.`
+                              `Students will build a system to investigate ways to reduce optical blur from about 60 pixels to 10 pixels.`
             ]
         },
         {
