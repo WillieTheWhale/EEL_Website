@@ -4,7 +4,7 @@
 const PHI = 1.618033988749;
 const PHI_INV = 0.618033988749;
 
-// Mobile portrait CSS hides the WebGL canvas and circuit network completely.
+// Mobile portrait CSS hides the drone canvas and circuit network completely.
 // Keep their state available for orientation changes, but do not spend every
 // frame rendering elements that cannot contribute a pixel to the page.
 const _initialTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -48,20 +48,18 @@ window.EELRuntime = RuntimeVisibility;
 const AmbientHost = {
     engine: null,          // engine instance when running on this thread
     worker: null,          // worker running the engine, when supported
-    droneEngine: null,     // main-thread drone fallback if the worker has no WebGL
+  
     mode: 'off',           // 'worker' | 'main' | 'off'
     nebulaCanvas: null,
     glowCanvas: null,
     droneCanvas: null,
     gearCanvases: [],
     droneState: 'idle',    // idle | loading | ready | failed
-    _droneWaiters: [],
+   
     _probe: null,
     _resizeTimer: 0,
     _mobilePortrait: null,
     _statsResolvers: [],
-
-    THREE_URL: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
 
     supported: function() {
         return typeof window.EELAmbient !== 'undefined' && !!document.createElement('canvas').getContext;
@@ -90,7 +88,7 @@ const AmbientHost = {
             // backdrop-filter input, like the box-shadow it replaces.
             medallion.appendChild(this.glowCanvas);
         }
-        this.droneCanvas = document.getElementById('three-canvas');
+       this.droneCanvas = document.getElementById('drone-canvas');
         this.createGearIcons(document.querySelectorAll('.panel-icon'));
 
         const canWorker = !this.testMode() &&
@@ -109,7 +107,7 @@ const AmbientHost = {
                 const off = (c) => { if (!c) return null; const o = c.transferControlToOffscreen(); transfer.push(o); return o; };
                 const msg = Object.assign({}, base, {
                     mainTimeOrigin: performance.timeOrigin,
-                    threeUrl: this.THREE_URL,
+                   
                     canvases: {
                         nebula: off(this.nebulaCanvas),
                         glow: off(this.glowCanvas),
@@ -159,8 +157,7 @@ const AmbientHost = {
 
     startMainEngine: function() {
         this.engine = new window.EELAmbient.Engine({
-            onMessage: (m) => this.onEngineMessage(m),
-            loadThree: () => window.EELLoadThree ? window.EELLoadThree() : Promise.reject(new Error('no loader'))
+                       onMessage: (m) => this.onEngineMessage(m)
         });
         this.engine.handle({
             type: 'init',
@@ -178,10 +175,7 @@ const AmbientHost = {
         this._fellBack = true;
         console.warn('Ambient worker failed; rendering on the main thread.');
         clearTimeout(this._readyTimer);
-        if (this.droneEngine) {
-            if (this.droneEngine.drone) this.droneEngine.drone.dispose();
-            this.droneEngine = null;
-        }
+        
         try { this.worker.terminate(); } catch (e) { /* already gone */ }
         this.worker = null;
         const swap = (c) => {
@@ -198,7 +192,7 @@ const AmbientHost = {
         this.glowCanvas = swap(this.glowCanvas);
         this.droneCanvas = swap(this.droneCanvas);
         this.gearCanvases = this.gearCanvases.map(swap);
-        if (typeof _cachedThreeCanvas !== 'undefined') _cachedThreeCanvas = null;
+       if (typeof _cachedDroneCanvas !== 'undefined') _cachedDroneCanvas = null;
         this.startMainEngine();
         if (this._bgPausedState) this.engine.handle({ type: 'bgPaused', paused: true, time: performance.now() });
         this.configureLayout();
@@ -217,18 +211,14 @@ const AmbientHost = {
         this.configureGears();
     },
 
-    post: function(msg) {
+        post: function(msg) {
         if (this.worker) this.worker.postMessage(msg);
         else if (this.engine) this.engine.handle(msg);
-        if (this.droneEngine && /^(drone|droneFade|theme|bgPaused|visibility|mobilePortrait)$/.test(msg.type)) {
-            this.droneEngine.handle(msg);
-        }
     },
 
     // Called every frame by the main scene loop.
     mainFrame: function(now) {
         if (this.engine) this.engine.frame(now);
-        if (this.droneEngine) this.droneEngine.frame(now);
     },
 
     onEngineMessage: function(msg) {
@@ -239,46 +229,13 @@ const AmbientHost = {
         }
         if (msg.type === 'droneReady') {
             this.droneState = 'ready';
-            renderer = true;
-            this.flushDroneWaiters();
         } else if (msg.type === 'droneFailed') {
-            if (this.mode === 'worker' && !this.droneEngine) {
-                this.startMainThreadDrone();
-            } else {
-                this.droneState = 'failed';
-                document.documentElement.classList.add('no-webgl');
-                console.warn('WebGL background unavailable; continuing with the static background.');
-                this.flushDroneWaiters();
-            }
+            this.droneState = 'failed';
+            console.warn('The decorative drone could not load.', msg.message);
         } else if (msg.type === 'stats') {
             const r = this._statsResolvers.shift();
             if (r) r(msg.stats);
         }
-    },
-
-    // The worker could not create a WebGL context (e.g. no WebGL in
-    // workers): swap in a fresh canvas and render the drone on this thread.
-    startMainThreadDrone: function() {
-        const old = this.droneCanvas;
-        const fresh = document.createElement('canvas');
-        fresh.id = old.id;
-        fresh.className = old.className;
-        old.parentNode.replaceChild(fresh, old);
-        this.droneCanvas = fresh;
-        if (typeof _cachedThreeCanvas !== 'undefined') _cachedThreeCanvas = null;
-        this.droneEngine = new window.EELAmbient.Engine({
-            onMessage: (m) => {
-                if (m.type === 'droneFailed') { this.droneEngine = null; this.onEngineMessage(m); }
-                else this.onEngineMessage(m);
-            },
-            loadThree: () => window.EELLoadThree ? window.EELLoadThree() : Promise.reject(new Error('no loader'))
-        });
-        this.droneEngine.handle({
-            type: 'init', theme: document.body.getAttribute('data-theme') || 'light',
-            mobilePortrait: RuntimeVisibility.mobilePortrait, canvases: { drone: fresh }
-        });
-        if (this._bgPausedState) this.droneEngine.handle({ type: 'bgPaused', paused: true, time: performance.now() });
-        this.droneEngine.handle({ type: 'drone', config: this.droneConfig() });
     },
 
     initCircuits: function(canvas, payload) {
@@ -315,20 +272,7 @@ const AmbientHost = {
         this.post({ type: 'drone', config: this.droneConfig() });
     },
 
-    // Test clock only: mirror the old start order (loop starts with the drone).
-    waitForDroneBeforeLoop: function() {
-        if (!this.testMode() || RuntimeVisibility.mobilePortrait) return false;
-        if (this.droneState === 'ready' || this.droneState === 'failed') return false;
-        this._droneWaiters.push(startSceneLoop);
-        return true;
-    },
-
-    flushDroneWaiters: function() {
-        const w = this._droneWaiters;
-        this._droneWaiters = [];
-        w.forEach((fn) => fn());
-    },
-
+   
     setMobilePortrait: function(value) {
         if (this._mobilePortrait === value) return;
         this._mobilePortrait = value;
@@ -353,7 +297,7 @@ const AmbientHost = {
 
     dispose: function() {
         if (this.worker) this.worker.terminate();
-        [this.engine, this.droneEngine].forEach((e) => { if (e && e.drone) e.drone.dispose(); });
+        if (this.engine && this.engine.drone) this.engine.drone.dispose();
     },
 
     // styles.css is loaded asynchronously; wait until its rules apply.
@@ -1672,7 +1616,7 @@ let radialPanelPhysics;
 // thread keeps only what reacts to the user: panel physics and the circuit
 // network that follows the panels.
 
-let renderer = null; // set once the drone renderer is running (compat flag)
+
 let _visualRuntimeStarted = false;
 let _sceneLoopRunning = false;
 let _sceneLastTime = 0;
@@ -1696,9 +1640,7 @@ function startVisualRuntime() {
 
 function startSceneLoop() {
     if (_sceneLoopRunning) return;
-    // Under the deterministic test clock the loop starts when the drone is
-    // ready, exactly where the old animateThreeJS() loop used to start.
-    if (AmbientHost.waitForDroneBeforeLoop()) return;
+   
     _sceneLoopRunning = true;
     if (!_sceneRaf) {
         _sceneLastTime = performance.now();
@@ -1723,7 +1665,7 @@ function animateScene() {
 
     // With the renderer in a worker, this loop only has panel physics left;
     // let it sleep while nothing moves (RadialPanelPhysics wakes it).
-    if (AmbientHost.mode === 'worker' && !AmbientHost.droneEngine && !radialPanelPhysics.isActive()) {
+    if (AmbientHost.mode === 'worker' && !radialPanelPhysics.isActive()) {
         _sceneIdleFrames++;
         if (_sceneIdleFrames > 8) _sceneLoopRunning = false;
     } else {
@@ -2474,7 +2416,7 @@ function collapsePanel(fromRoute) {
         // Animate transform from identity to the panel's position
         expandedContainer.style.transform = 'translate3d(' + translateX + 'px, ' + translateY + 'px, 0) scale(' + scaleX + ', ' + scaleY + ')';
 
-        // Resume background systems so Three.js renders during fade-in
+        // Resume background systems so the background animates during fade-in
         _resumeBackgroundSystems();
 
         fadeInElements();
@@ -2540,7 +2482,7 @@ let _cachedSiteTitle = null;
 let _cachedSiteSubtitle = null;
 let _cachedSiteTagline = null;
 let _cachedMedallion = null;
-let _cachedThreeCanvas = null;
+let _cachedDroneCanvas = null;
 let _cachedNebula = null;
 let _cachedChromeGrid = null;
 
@@ -2550,7 +2492,7 @@ function _getFadeEls() {
         _cachedSiteSubtitle = document.getElementById('siteSubtitle');
         _cachedSiteTagline = document.getElementById('siteTagline');
         _cachedMedallion = document.getElementById('centralMedallion');
-        _cachedThreeCanvas = document.getElementById('three-canvas');
+        _cachedDroneCanvas = document.getElementById('drone-canvas');
         _cachedNebula = document.querySelector('.organic-nebula');
         _cachedChromeGrid = document.querySelector('.chrome-grid');
     }
@@ -2567,7 +2509,7 @@ function fadeOutElements() {
         if (panel.id !== currentExpandedPanel) panel.classList.add('hidden');
     });
     // Fade out the full background scene (canvas, nebula blobs, chrome grid)
-    if (_cachedThreeCanvas) _cachedThreeCanvas.classList.add('bg-hidden');
+    if (_cachedDroneCanvas) _cachedDroneCanvas.classList.add('bg-hidden');
     if (_cachedNebula) _cachedNebula.classList.add('bg-hidden');
     if (_cachedChromeGrid) _cachedChromeGrid.classList.add('bg-hidden');
 }
@@ -2584,7 +2526,7 @@ function fadeInElements() {
         panel.classList.remove('hidden');
     });
     // Restore background scene
-    if (_cachedThreeCanvas) _cachedThreeCanvas.classList.remove('bg-hidden');
+    if (_cachedDroneCanvas) _cachedDroneCanvas.classList.remove('bg-hidden');
     if (_cachedNebula) _cachedNebula.classList.remove('bg-hidden');
     if (_cachedChromeGrid) _cachedChromeGrid.classList.remove('bg-hidden');
 }
@@ -4634,7 +4576,7 @@ if (document.readyState === 'loading') {
     else window.addEventListener('load', start);
 })();
 
-// Release the renderer (and its GPU resources) on page unload
+// Release the ambient renderer on page unload
 window.addEventListener('beforeunload', function() {
     AmbientHost.dispose();
 });
