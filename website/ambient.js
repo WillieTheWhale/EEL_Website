@@ -589,7 +589,7 @@
     // ------------------------------------------------------------------
     // Play the original flight animation from transparent WebP frames.
     // This renderer runs in a worker or on the main thread.
-    const droneAssetBase = new URL('drone/', root.location.href);
+        const droneAssetBase = new URL('images/drone/', root.location.href);
     let droneManifest;
 
     function fetchDroneAsset(name) {
