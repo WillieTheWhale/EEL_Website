@@ -12,7 +12,7 @@
  *   - Glow:     the medallion's animated box-shadow, drawn with the same
  *               Skia shadow path the browser uses for box-shadow.
  *   - Gears:    the panel gear icons, drawn from the original SVG paths.
- *   - Drone:    the original Three.js quadcopter scene, unchanged.
+  *   - Drone:    frame images captured from the original quadcopter scene.
  *
  * The engine has no DOM access. It runs inside a Web Worker on
  * OffscreenCanvas when the browser supports that (so none of this costs
