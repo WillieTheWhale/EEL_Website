@@ -585,374 +585,133 @@
     };
 
     // ------------------------------------------------------------------
-    // DRONE (the original Three.js quadcopter scene, unchanged)
+       // DRONE
     // ------------------------------------------------------------------
-    function DroneRenderer(THREE, canvas, opts) {
-        this.THREE = THREE;
-        this.canvas = canvas;
-        this.structures = [];
-        this.isDark = opts.theme === 'dark';
-        this.width = opts.width;
-        this.height = opts.height;
-        this.ok = false;
-        try {
-            this.init(opts);
-            this.ok = true;
-        } catch (e) {
-            this.renderer = null;
-            this.error = e;
-        }
+    // Play the original flight animation from transparent WebP frames.
+    // This renderer runs in a worker or on the main thread.
+    const droneAssetBase = new URL('drone/', root.location.href);
+    let droneManifest;
+
+    function fetchDroneAsset(name) {
+        return fetch(new URL(name, droneAssetBase)).then(response => {
+            if (!response.ok) throw new Error(`Drone asset ${name} returned ${response.status}`);
+            return response;
+        });
     }
 
-    DroneRenderer.prototype.init = function(opts) {
-        const THREE = this.THREE;
-        this.clock = new THREE.Clock();
-        const scene = this.scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(this.isDark ? 0x0a0b0f : 0xd0d2d4, 50, 200);
-        const camera = this.camera = new THREE.PerspectiveCamera(PHI * 45, opts.width / opts.height, PHI_INV, 1000);
-        camera.position.set(0, 0, PHI * 30);
-        const renderer = this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvas, alpha: true, antialias: opts.dpr === 1,
-            powerPreference: 'high-performance', stencil: false, depth: true,
-            premultipliedAlpha: false
-        });
-        renderer.setSize(opts.width, opts.height, false);
-        renderer.setPixelRatio(Math.min(opts.dpr, 1.5));
-        renderer.setSize(opts.width, opts.height, false);
-        renderer.autoClear = true;
+    function DroneRenderer(canvas, opts) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d', { alpha: true });
+        if (!this.ctx) throw new Error('Canvas 2D unavailable for the drone');
+        this.theme = opts.theme;
+        this.opacity = 1;
+        this.targetOpacity = 1;
+        this.elapsed = 0;
+        this.cache = new Map();
+        this.resize(opts.width, opts.height, opts.dpr);
+    }
 
-        scene.add(new THREE.AmbientLight(0xffffff, PHI_INV));
-        const dirLight = new THREE.DirectionalLight(0x7ec8e3, 1);
-        dirLight.position.set(PHI * 5, PHI * 5, PHI * 5);
-        scene.add(dirLight);
-        const pointLight = new THREE.PointLight(0xa8d5e8, 0.8, 100);
-        pointLight.position.set(-30, -30, 30);
-        scene.add(pointLight);
-
-        this.createEngineeringStructures();
+    DroneRenderer.prototype.init = async function() {
+        droneManifest ||= fetchDroneAsset('frames.json').then(response => response.json());
+        this.manifest = await droneManifest;
+        const first = this.getAtlas(this.theme, 0);
+        await first.promise;
+        if (first.error) throw first.error;
     };
 
-    DroneRenderer.prototype.createIridescentMaterial = function(hueOffset) {
-        const THREE = this.THREE;
-        hueOffset = hueOffset || 0;
-        const themeHueShift = this.isDark ? 0.7 : 0;
-        const adjustedHue = (hueOffset + themeHueShift) % 1;
-        const material = new THREE.MeshPhysicalMaterial({
-            color: new THREE.Color().setHSL(adjustedHue, 0.8, 0.6),
-            metalness: 0.6, roughness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.0, reflectivity: 0.8,
-            emissive: new THREE.Color().setHSL((adjustedHue + 0.5) % 1, 1, 0.2),
-            emissiveIntensity: this.isDark ? 0.4 : 0.3, side: THREE.DoubleSide
-        });
-        material.userData = { hueOffset: hueOffset };
-        return material;
+    DroneRenderer.prototype.getAtlas = function(theme, index) {
+        const key = `${theme}-${index}`;
+        if (this.cache.has(key)) return this.cache.get(key);
+        const entry = {};
+        entry.promise = fetchDroneAsset(`${key}.webp`)
+            .then(response => response.blob())
+            .then(blob => createImageBitmap(blob))
+            .then(bitmap => {
+                if (entry.evicted) bitmap.close();
+                else entry.bitmap = bitmap;
+            }).catch(error => { entry.error = error; });
+        this.cache.set(key, entry);
+        return entry;
     };
 
-    DroneRenderer.prototype.createWireframeMaterial = function(color) {
-        const THREE = this.THREE;
-        return new THREE.MeshBasicMaterial({
-            color: color || 0x7ec8e3, wireframe: true, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending
-        });
-    };
-
-    DroneRenderer.prototype.createEngineeringStructures = function() {
-        const THREE = this.THREE;
-        const quadcopter = this.createQuadcopter();
-        quadcopter.position.set(-70, 0, -40);
-        quadcopter.rotation.x = 0.4;
-        quadcopter.rotation.z = 0.15;
-        quadcopter.userData.baseTilt = { x: 0.4, z: 0.15 };
-        this.scene.add(quadcopter);
-        this.structures.push(quadcopter);
-        const z = -40;
-        const waypoints = [
-            new THREE.Vector3(-70, 0, z),
-            new THREE.Vector3(-55, -35, z - 5),
-            new THREE.Vector3(0, -45, z),
-            new THREE.Vector3(55, -35, z - 5),
-            new THREE.Vector3(70, 0, z),
-            new THREE.Vector3(55, 25, z - 5),
-            new THREE.Vector3(70, 40, z),
-            new THREE.Vector3(-70, 40, z),
-            new THREE.Vector3(-55, 25, z - 5),
-            new THREE.Vector3(-70, 0, z)
-        ];
-        waypoints.forEach(function(wp) { quadcopter.userData.waypoints.push(wp); });
-        quadcopter.userData.waypointSpeed = 0.12;
-    };
-
-    DroneRenderer.prototype.createQuadcopter = function() {
-        const THREE = this.THREE;
-        const group = new THREE.Group();
-        const bodyGeo = new THREE.SphereGeometry(1.2, 16, 16);
-        const bodyMat = this.createIridescentMaterial(0.5);
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        group.add(body);
-        const domeGeo = new THREE.SphereGeometry(0.5, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-        const domeMat = new THREE.MeshPhysicalMaterial({ color: 0x111122, metalness: 0.9, roughness: 0.1, clearcoat: 1.0 });
-        const dome = new THREE.Mesh(domeGeo, domeMat);
-        dome.position.y = -0.8;
-        dome.rotation.x = Math.PI;
-        group.add(dome);
-        const propellers = [];
-        const armMat = this.createIridescentMaterial(0.6);
-        const armGeo = new THREE.BoxGeometry(5, 0.3, 0.5);
-        const motorGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.6, 12);
-        const propMat = this.createWireframeMaterial(0x88ccff);
-        const blade1Geo = new THREE.BoxGeometry(3.5, 0.08, 0.4);
-        const blade2Geo = new THREE.BoxGeometry(0.4, 0.08, 3.5);
-        propMat.wireframe = false;
-        propMat.opacity = 0.7;
-        for (let i = 0; i < 4; i++) {
-            const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-            const arm = new THREE.Mesh(armGeo, armMat);
-            arm.position.x = Math.cos(angle) * 2.5;
-            arm.position.z = Math.sin(angle) * 2.5;
-            arm.position.y = 0.2;
-            arm.rotation.y = -angle;
-            group.add(arm);
-            const motor = new THREE.Mesh(motorGeo, bodyMat);
-            motor.position.x = Math.cos(angle) * 5;
-            motor.position.z = Math.sin(angle) * 5;
-            motor.position.y = 0.5;
-            group.add(motor);
-            const propGroup = new THREE.Group();
-            propGroup.add(new THREE.Mesh(blade1Geo, propMat));
-            propGroup.add(new THREE.Mesh(blade2Geo, propMat));
-            propGroup.position.x = Math.cos(angle) * 5;
-            propGroup.position.z = Math.sin(angle) * 5;
-            propGroup.position.y = 0.9;
-            propGroup.userData.spinDirection = i % 2 === 0 ? 1 : -1;
-            group.add(propGroup);
-            propellers.push(propGroup);
+    DroneRenderer.prototype.trimAtlases = function(index, next) {
+        for (const [key, entry] of this.cache) {
+            if (key === `${this.theme}-${index}` || key === `${this.theme}-${next}`) continue;
+            // Keep the previous theme until the new frame has drawn.
+            if (this.lastKey && key === this.lastKey) continue;
+            entry.evicted = true;
+            if (entry.bitmap) entry.bitmap.close();
+            this.cache.delete(key);
         }
-        const skidMat = new THREE.MeshPhysicalMaterial({ color: 0x333344, metalness: 0.8, roughness: 0.3 });
-        const skidGeo = new THREE.CylinderGeometry(0.1, 0.1, 6, 8);
-        const supportGeo = new THREE.CylinderGeometry(0.08, 0.08, 1, 6);
-        skidGeo.rotateZ(Math.PI / 2);
-        for (let side = -1; side <= 1; side += 2) {
-            const skid = new THREE.Mesh(skidGeo, skidMat);
-            skid.position.set(0, -1.5, side * 2);
-            group.add(skid);
-            for (let x = -1; x <= 1; x += 2) {
-                const support = new THREE.Mesh(supportGeo, skidMat);
-                support.position.set(x * 1.5, -1, side * 2);
-                group.add(support);
-            }
-        }
-        group.userData.type = 'quadcopter';
-        group.userData.propellers = propellers;
-        group.userData.waypoints = [];
-        group.userData.currentWaypoint = 0;
-        group.userData.waypointProgress = 0;
-        group.userData.waypointSpeed = 0.3;
-        group.userData.fadeOpacity = 1;
-        group.userData.fadeTarget = 1;
-        const uniqueMaterials = new Set();
-        group.traverse(function(child) {
-            if (child.isMesh && child.material) {
-                child.material.transparent = true;
-                child.material.userData.baseOpacity = child.material.opacity;
-                uniqueMaterials.add(child.material);
-            }
-        });
-        group.userData.allMaterials = Array.from(uniqueMaterials);
-        return group;
     };
 
     DroneRenderer.prototype.setTheme = function(isDark) {
-        this.isDark = isDark;
-        this.structures.forEach(function(structure) {
-            structure.traverse(function(child) {
-                const material = child.material;
-                if (!material || !material.userData || material.userData.hueOffset === undefined) return;
-                const hueShift = isDark ? 0.7 : 0;
-                const hueOffset = (material.userData.hueOffset + hueShift) % 1;
-                if (material.color) material.color.setHSL(hueOffset, 0.8, 0.6);
-                if (material.emissive) {
-                    material.emissive.setHSL((hueOffset + 0.5) % 1, 1, 0.2);
-                    material.emissiveIntensity = isDark ? 0.4 : 0.3;
-                }
-                material.needsUpdate = true;
-            });
-        });
-        if (this.scene && this.scene.fog) this.scene.fog.color.set(isDark ? 0x0a0b0f : 0xd0d2d4);
+        this.theme = isDark ? 'dark' : 'light';
     };
 
-    DroneRenderer.prototype.resize = function(width, height) {
-        if (!this.renderer) return;
-        this.width = width; this.height = height;
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(width, height, false);
+    DroneRenderer.prototype.resize = function(width, height, dpr) {
+        this.width = width;
+        this.height = height;
+        this.scale = Math.min(dpr || 1, 1.5);
+        this.canvas.width = Math.round(width * this.scale);
+        this.canvas.height = Math.round(height * this.scale);
+        this.lastFrame = undefined;
     };
 
-    DroneRenderer.prototype.fade = function(target) {
-        this.structures.forEach(function(s) {
-            if (s.userData.type === 'quadcopter') s.userData.fadeTarget = target;
-        });
-    };
+    DroneRenderer.prototype.fade = function(target) { this.targetOpacity = target; };
 
-    // Port of animateThreeJS() minus the parts that live on the main thread
-    // (panel physics) or in other renderers (gears).
-    DroneRenderer.prototype.tick = function(state) {
-        if (!this.renderer) return;
-        const THREE = this.THREE;
-        const clock = this.clock, structures = this.structures, camera = this.camera;
-        if (state.hidden) { clock.getDelta(); return; }
-        const deltaTime = clock.getDelta();
-        if (state.mobilePortrait) return;
-        const time = clock.getElapsedTime();
+    DroneRenderer.prototype.tick = function(state, now) {
+        const dt = this.lastTime === undefined ? 0 : Math.max(0, now - this.lastTime) / 1000;
+        this.lastTime = now;
+        if (state.hidden || state.mobilePortrait) return;
+        const difference = this.targetOpacity - this.opacity;
+        this.opacity = Math.abs(difference) > 0.002
+            ? this.opacity + difference * (1 - Math.pow(0.00001, dt))
+            : this.targetOpacity;
+        if (state.bgPaused && this.opacity === 0 && this.lastOpacity === 0) return;
+        if (!state.bgPaused || this.opacity > 0) this.elapsed += dt;
+        const manifest = this.manifest;
+        const frame = Math.floor(this.elapsed * manifest.fps + 1e-6) % manifest.coords.length;
+        const index = Math.floor(frame / manifest.atlasFrames);
+        const next = (index + 1) % manifest[this.theme].length;
+        const key = `${this.theme}-${index}`;
+        const entry = this.getAtlas(this.theme, index);
+        this.getAtlas(this.theme, next);
+        this.trimAtlases(index, next);
+        if (!entry.bitmap) return;
+        if (frame === this.lastFrame && this.opacity === this.lastOpacity && key === this.lastKey) return;
 
-        if (state.bgPaused) {
-            let droneStillFading = false;
-            for (let _si = 0; _si < structures.length; _si++) {
-                const s = structures[_si];
-                if (s.userData.type === 'quadcopter') {
-                    const target = s.userData.fadeTarget;
-                    const current = s.userData.fadeOpacity;
-                    if (target === undefined) continue;
-                    const diff = target - current;
-                    if (Math.abs(diff) > 0.005) {
-                        droneStillFading = true;
-                        const fadeSmoothFactor = 1 - Math.pow(0.00001, deltaTime);
-                        s.userData.fadeOpacity = current + diff * fadeSmoothFactor;
-                        const mats = s.userData.allMaterials;
-                        const opacity = s.userData.fadeOpacity;
-                        for (let mi = 0; mi < mats.length; mi++) {
-                            const mat = mats[mi];
-                            mat.opacity = mat.userData.baseOpacity !== undefined ? mat.userData.baseOpacity * opacity : opacity;
-                        }
-                        if (s.userData.propellers) {
-                            s.userData.propellers.forEach(function(prop) {
-                                prop.rotation.y += deltaTime * 30 * prop.userData.spinDirection;
-                            });
-                        }
-                        if (s.userData.waypoints && s.userData.waypoints.length > 1) {
-                            if (!s.userData.basePosition) s.userData.basePosition = new THREE.Vector3();
-                            s.userData.waypointProgress = (s.userData.waypointProgress || 0) + deltaTime * s.userData.waypointSpeed;
-                            if (s.userData.waypointProgress >= 1) {
-                                s.userData.waypointProgress -= 1;
-                                s.userData.currentWaypoint = (s.userData.currentWaypoint + 1) % s.userData.waypoints.length;
-                            }
-                            const currentIdx = s.userData.currentWaypoint || 0;
-                            const nextIdx = (currentIdx + 1) % s.userData.waypoints.length;
-                            const t = s.userData.waypointProgress;
-                            const easeT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-                            s.userData.basePosition.lerpVectors(s.userData.waypoints[currentIdx], s.userData.waypoints[nextIdx], easeT);
-                            const hoverOffset = Math.sin(time * 6) * 0.01;
-                            s.position.copy(s.userData.basePosition);
-                            s.position.y += hoverOffset;
-                        }
-                    } else if (current !== target) {
-                        s.userData.fadeOpacity = target;
-                        const mats = s.userData.allMaterials;
-                        for (let mi = 0; mi < mats.length; mi++) {
-                            const mat = mats[mi];
-                            mat.opacity = mat.userData.baseOpacity !== undefined ? mat.userData.baseOpacity * target : target;
-                        }
-                        droneStillFading = true;
-                    }
-                }
-            }
-            if (droneStillFading) this.renderer.render(this.scene, camera);
-            return;
+        const ctx = this.ctx;
+        ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+        if (this.lastRect) ctx.clearRect(...this.lastRect);
+        this.lastRect = undefined;
+        if (this.opacity > 0) {
+            const [left, top, width, height] = manifest[this.theme][index];
+            const cell = frame % manifest.atlasFrames;
+            const [x, y] = manifest.coords[frame];
+            const scale = this.height / manifest.height;
+            const dx = this.width / 2 + (x + left) * scale;
+            const dy = this.height / 2 + (y + top) * scale;
+            ctx.globalAlpha = this.opacity;
+            ctx.drawImage(entry.bitmap, (cell % manifest.columns) * width,
+                Math.floor(cell / manifest.columns) * height, width, height,
+                dx, dy, width * scale, height * scale);
+            this.lastRect = [Math.floor(dx) - 2, Math.floor(dy) - 2,
+                Math.ceil(width * scale) + 5, Math.ceil(height * scale) + 5];
         }
-
-        for (let _si = 0; _si < structures.length; _si++) {
-            const structure = structures[_si];
-            if (!structure.visible) continue;
-            if (structure.userData.type !== 'quadcopter') continue;
-
-            if (structure.userData.propellers) {
-                const props = structure.userData.propellers;
-                const propSpeed = deltaTime * 30;
-                for (let pi = 0; pi < props.length; pi++) props[pi].rotation.y += propSpeed * props[pi].userData.spinDirection;
-            }
-
-            if (structure.userData.waypoints && structure.userData.waypoints.length > 1) {
-                const waypoints = structure.userData.waypoints;
-                if (!structure.userData.basePosition) structure.userData.basePosition = new THREE.Vector3();
-                structure.userData.waypointProgress = (structure.userData.waypointProgress || 0) + deltaTime * structure.userData.waypointSpeed;
-                if (structure.userData.waypointProgress >= 1) {
-                    structure.userData.waypointProgress -= 1;
-                    structure.userData.currentWaypoint = (structure.userData.currentWaypoint + 1) % waypoints.length;
-                }
-                const currentIdx = structure.userData.currentWaypoint || 0;
-                const nextIdx = (currentIdx + 1) % waypoints.length;
-                const t = structure.userData.waypointProgress;
-                const easeT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-                const startPos = waypoints[currentIdx];
-                const endPos = waypoints[nextIdx];
-                structure.userData.basePosition.lerpVectors(startPos, endPos, easeT);
-
-                if (!structure.userData._dirVec) structure.userData._dirVec = new THREE.Vector3();
-                const dirVec = structure.userData._dirVec.subVectors(endPos, startPos);
-                const dirLen = dirVec.length();
-                if (dirLen > 0.01) {
-                    dirVec.divideScalar(dirLen);
-                    if (!structure.userData.smoothDir) structure.userData.smoothDir = { x: dirVec.x, z: dirVec.z };
-                    const smoothFactor = 1 - Math.pow(1 - 0.03, deltaTime * 60);
-                    structure.userData.smoothDir.x += (dirVec.x - structure.userData.smoothDir.x) * smoothFactor;
-                    structure.userData.smoothDir.z += (dirVec.z - structure.userData.smoothDir.z) * smoothFactor;
-                    const sd = structure.userData.smoothDir;
-                    const baseTilt = structure.userData.baseTilt || { x: 0, z: 0 };
-                    const targetRoll = -sd.x * 0.25 + baseTilt.z;
-                    const targetPitch = sd.z * 0.15 + baseTilt.x;
-                    const targetYaw = Math.atan2(sd.x, sd.z);
-                    const rotSmoothFactor = 1 - Math.pow(1 - 0.02, deltaTime * 60);
-                    structure.rotation.z += (targetRoll - structure.rotation.z) * rotSmoothFactor;
-                    structure.rotation.x += (targetPitch - structure.rotation.x) * rotSmoothFactor;
-                    let yawDiff = targetYaw - structure.rotation.y;
-                    while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
-                    while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
-                    structure.rotation.y += yawDiff * rotSmoothFactor;
-                }
-                const hoverOffset = Math.sin(time * 6) * 0.01;
-                structure.position.copy(structure.userData.basePosition);
-                structure.position.y += hoverOffset;
-            }
-
-            if (structure.userData.fadeTarget !== undefined) {
-                const target = structure.userData.fadeTarget;
-                const current = structure.userData.fadeOpacity;
-                const diff = target - current;
-                if (Math.abs(diff) > 0.001) {
-                    const fadeSmoothFactor = 1 - Math.pow(0.00001, deltaTime);
-                    structure.userData.fadeOpacity = current + diff * fadeSmoothFactor;
-                    const mats = structure.userData.allMaterials;
-                    const opacity = structure.userData.fadeOpacity;
-                    for (let mi = 0; mi < mats.length; mi++) {
-                        const m = mats[mi];
-                        m.opacity = m.userData.baseOpacity !== undefined ? m.userData.baseOpacity * opacity : opacity;
-                    }
-                } else if (current !== target) {
-                    structure.userData.fadeOpacity = target;
-                    const mats = structure.userData.allMaterials;
-                    for (let mi = 0; mi < mats.length; mi++) {
-                        const m = mats[mi];
-                        m.opacity = m.userData.baseOpacity !== undefined ? m.userData.baseOpacity * target : target;
-                    }
-                }
-            }
-        }
-
-        const camTime = time * PHI_INV * 0.1;
-        camera.position.x = Math.sin(camTime) * PHI * 2;
-        camera.position.y = Math.cos(camTime * 0.8) * PHI + 2;
-        camera.position.z = PHI * 30 + Math.sin(camTime * 0.5) * PHI * 3;
-        camera.lookAt(0, 0, 0);
-        this.renderer.render(this.scene, camera);
+        this.lastFrame = frame;
+        this.lastOpacity = this.opacity;
+        this.lastKey = key;
     };
 
     DroneRenderer.prototype.dispose = function() {
-        if (this.renderer) { this.renderer.dispose(); this.renderer.forceContextLoss(); }
-        if (this.scene) {
-            this.scene.traverse(function(obj) {
-                if (obj.geometry) obj.geometry.dispose();
-                if (obj.material) [].concat(obj.material).forEach(function(m) { m.dispose(); });
-            });
+        for (const entry of this.cache.values()) {
+            entry.evicted = true;
+            if (entry.bitmap) entry.bitmap.close();
         }
+        this.cache.clear();
     };
+
 
     // ------------------------------------------------------------------
     // CIRCUIT NETWORK (animated part: dashed traces, nodes, packets)
@@ -1401,32 +1160,25 @@
         else if (this.options.onMessage) this.options.onMessage(msg);
     };
 
-    Engine.prototype.loadThree = function() {
-        if (root.THREE) return Promise.resolve(root.THREE);
-        if (this.inWorker && this.options.threeUrl) {
-            try { root.importScripts(this.options.threeUrl); } catch (e) { return Promise.reject(e); }
-            return root.THREE ? Promise.resolve(root.THREE) : Promise.reject(new Error('THREE missing'));
-        }
-        if (this.options.loadThree) return this.options.loadThree();
-        return Promise.reject(new Error('THREE unavailable'));
-    };
-
-    Engine.prototype.startDrone = function() {
-        if (this.drone || this._droneLoading || !this.droneCanvas || !this.droneOpts || this.mobilePortrait) return;
+        Engine.prototype.startDrone = async function() {
+        if (this.drone || this._droneLoading || this._droneFailed || !this.droneCanvas || !this.droneOpts || this.mobilePortrait) return;
         this._droneLoading = true;
-        const self = this;
-        this.loadThree().then(function(THREE) {
-            self._droneLoading = false;
-            const opts = Object.assign({}, self.droneOpts, { theme: self.theme });
-            const drone = new DroneRenderer(THREE, self.droneCanvas, opts);
-            if (!drone.ok) { self.post({ type: 'droneFailed', message: String(drone.error) }); return; }
-            self.drone = drone;
-            if (self.pendingFade !== null) { drone.fade(self.pendingFade); self.pendingFade = null; }
-            self.post({ type: 'droneReady' });
-        }, function(err) {
-            self._droneLoading = false;
-            self.post({ type: 'droneFailed', message: String(err) });
-        });
+        try {
+            const drone = new DroneRenderer(this.droneCanvas, { ...this.droneOpts, theme: this.theme });
+            await drone.init();
+            drone.setTheme(this.theme === 'dark');
+            const { width, height, dpr } = this.droneOpts;
+            drone.resize(width, height, dpr);
+            if (this.pendingFade !== null) drone.fade(this.pendingFade);
+            this.pendingFade = null;
+            this.drone = drone;
+            this.post({ type: 'droneReady' });
+        } catch (error) {
+            this._droneFailed = true;
+            this.post({ type: 'droneFailed', message: String(error) });
+        } finally {
+            this._droneLoading = false;
+        }
     };
 
     Engine.prototype.handle = function(msg) {
@@ -1435,7 +1187,7 @@
                 if (msg.mainTimeOrigin !== undefined && performance.timeOrigin !== undefined) {
                     this.timeOffset = performance.timeOrigin - msg.mainTimeOrigin;
                 }
-                if (msg.threeUrl) this.options.threeUrl = msg.threeUrl;
+               
                 this.theme = msg.theme || this.theme;
                 this.mobilePortrait = !!msg.mobilePortrait;
                 const c = msg.canvases || {};
@@ -1451,7 +1203,7 @@
             case 'gears': if (this.gears) this.gears.configure(msg.config); break;
             case 'drone':
                 this.droneOpts = msg.config;
-                if (this.drone) this.drone.resize(msg.config.width, msg.config.height);
+                if (this.drone) this.drone.resize(msg.config.width, msg.config.height, msg.config.dpr);
                 else this.startDrone();
                 break;
             case 'droneFade':
@@ -1504,7 +1256,7 @@
         if (this.frozenTime !== undefined) now = this.frozenTime;
         const state = { hidden: this.hidden, mobilePortrait: this.mobilePortrait, bgPaused: this.bgPaused };
         const off = this.disabled || {};
-        if (this.drone && !off.drone) this.drone.tick(state);
+        if (this.drone && !off.drone) this.drone.tick(state, now);
         if (!this.hidden) {
             if (this.nebula && !this.bgPaused && !off.nebula) this.nebula.render(this.bgTime(now));
             if (this.glow && !off.glow) this.glow.render(now);
@@ -1548,7 +1300,7 @@
         root.onmessage = function(e) {
             const msg = e.data;
             if (msg.type === 'init') {
-                engine = new Engine({ inWorker: true, threeUrl: msg.threeUrl });
+                engine = new Engine({ inWorker: true });
                 engine.handle(msg);
                 engine.startLoop();
                 root.postMessage({ type: 'ready' });
