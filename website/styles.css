@@ -374,8 +374,8 @@ body[data-theme="dark"] .blob-accent-2 {
     50% { transform: translate(calc(var(--fib-13) * -1), var(--fib-21)) scale(0.85); }
 }
 
-/* WebGL Canvas */
-#three-canvas {
+/* Animated drone canvas */
+#drone-canvas {
     position: fixed;
     top: 0;
     left: 0;
@@ -387,7 +387,7 @@ body[data-theme="dark"] .blob-accent-2 {
     will-change: opacity;
 }
 
-#three-canvas.bg-hidden {
+#drone-canvas.bg-hidden {
     opacity: 0 !important;
 }
 
@@ -2381,7 +2381,7 @@ body[data-theme="dark"] .apply-now-btn:hover {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    /* Between three-canvas (z-index: 3) and cyberspace (z-index: 100) */
+   /* Between drone-canvas (z-index: 3) and cyberspace (z-index: 100) */
     z-index: 50;
     contain: layout style;
 }
@@ -2854,7 +2854,7 @@ body[data-theme="dark"] .moon-stars {
     
 .chrome-cursor,
 .engineering-network,
-#three-canvas {
+#drone-canvas {
         display: none !important;
     }
     
@@ -2966,7 +2966,7 @@ body.mobile-portrait * {
 
 body.mobile-portrait .chrome-cursor,
 body.mobile-portrait .engineering-network,
-body.mobile-portrait #three-canvas {
+body.mobile-portrait #drone-canvas {
     display: none !important;
 }
 
