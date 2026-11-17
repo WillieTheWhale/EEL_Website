@@ -26,7 +26,7 @@
     <!-- Preconnect to external domains for faster connection -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+   
     
     <!-- Preload critical assets -->
     <link rel="preload" href="EELRedraw.svg" as="image" type="image/svg+xml">
@@ -237,8 +237,8 @@
         <div class="nebula-blob blob-accent-2"></div>
     </div>
     
-    <!-- Three.js Canvas -->
-    <canvas id="three-canvas"></canvas>
+       <!-- Animated drone background -->
+    <canvas id="drone-canvas" aria-hidden="true"></canvas>
     
     <!-- Chrome Cursor -->
     <div class="chrome-cursor" id="chromeCursor">
@@ -413,42 +413,7 @@
         </div>
     </div>
     
-    <!-- The 3D canvas is hidden in mobile portrait. Avoid downloading and
-         parsing Three.js until an orientation change can actually reveal it. -->
-    <script>
-        (function() {
-            var threeLoadPromise;
-
-            window.EELLoadThree = function() {
-                if (window.THREE) return Promise.resolve(window.THREE);
-                if (threeLoadPromise) return threeLoadPromise;
-
-                threeLoadPromise = new Promise(function(resolve, reject) {
-                    var script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-                    script.dataset.eelThree = '';
-                    script.onload = function() { resolve(window.THREE); };
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-
-                return threeLoadPromise;
-            };
-
-            var touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            var narrowViewport = window.innerWidth <= 768;
-            var mobileDevice =
-                (touchDevice && window.matchMedia('(pointer: coarse)').matches &&
-                    window.matchMedia('(hover: none)').matches) ||
-                (touchDevice && narrowViewport);
-
-            if (!(mobileDevice && window.innerHeight > window.innerWidth)) {
-                window.EELLoadThree();
-            }
-        })();
-    </script>
-    
-    <!-- Load main script with defer -->
+       <!-- Load main script with defer -->
     <script defer src="ambient.js"></script>
     <script defer src="script.js"></script>
     <!-- Load mobile handler script -->
