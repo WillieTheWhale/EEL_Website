@@ -21,7 +21,7 @@ COPY EEL_Logo.png EEL_Logo.svg EELRedraw.svg EELRedraw.png ./
 COPY favicon.ico favicon.png apple-touch-icon.png ./
 COPY headshots/ ./headshots/
 COPY images/ ./images/
-COPY drone/ ./drone/
+COPY drone/ ./images/drone/
 COPY modules/ ./modules/
 
 # OpenShift runs containers as an arbitrary non-root UID in group 0.
