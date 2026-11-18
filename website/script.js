@@ -2739,7 +2739,28 @@ window.addEventListener('resize', () => {
 }, { passive: true });
 
 function loadContent(contentType, container) {
-    PagePrerender.unlockFocus(PagePrerender.activate(contentType));
+    const page = PagePrerender.activate(contentType);
+    PagePrerender.unlockFocus(page);
+
+    page.querySelectorAll('img[src]').forEach(function(image) {
+        if (image.dataset.retryAttached) return;
+        image.dataset.retryAttached = 'true';
+        let attempts = 0;
+
+        function retryImage() {
+            if (attempts >= 2) return;
+            attempts += 1;
+            setTimeout(function() {
+                if (!image.isConnected || image.naturalWidth > 0) return;
+                const src = image.getAttribute('src');
+                image.removeAttribute('src');
+                image.setAttribute('src', src);
+            }, attempts * 1000);
+        }
+
+        image.addEventListener('error', retryImage);
+        if (image.complete && image.naturalWidth === 0) retryImage();
+    });
 }
 
 function getProjectsContent() {
