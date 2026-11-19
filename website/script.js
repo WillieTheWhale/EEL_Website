@@ -3520,6 +3520,13 @@ function getPeopleContent() {
             headshot: 'headshots/diya-mouleeswaran.png',
             linkedin: 'https://www.linkedin.com/in/diya-mouleeswaran/'
         },
+                {
+            name: 'Elina Wunnava',
+            major: 'Biomedical Engineering',
+            graduation: 'May 2028',
+            headshot: 'headshots/elina-wunnava.png',
+            linkedin: 'https://www.linkedin.com/in/elina-wunnava/'
+        },
         {
             name: 'Ethan Kim',
             major: 'Computer Science and Statistics',
@@ -3757,7 +3764,8 @@ function getPeopleContent() {
 
     const memberProjects = {
                 'Cooper Uhl': [{ key: 'fishCar' }],
-        'Diya Mouleeswaran': [{ key: 'fishCar' }],
+        
+                'Elina Wunnava': [{ key: 'fishCar' }],
         'Ethan Kim': [{ key: 'underDisplayGazeTracking' }],
         'Ken Jenkins': [{ key: 'underDisplayGazeTracking' }],
         'Markandeya Yalamanchi': [
