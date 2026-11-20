@@ -3669,6 +3669,13 @@ function getPeopleContent() {
             headshot: 'headshots/samantha-chang.png',
             linkedin: 'https://www.linkedin.com/in/samantha-chang-2bb947348/'
         },
+                {
+            name: 'Annie Chang',
+            major: 'Media Arts, Design and Technology (MadTech)',
+            graduation: 'May 2028',
+            headshot: 'headshots/annie-chang.png',
+            linkedin: 'https://www.linkedin.com/in/annie-chang-b85809298/'
+        },
                {
             name: 'Muhammad Zain Zeeshan Malik',
             major: 'Computer Science and Economics',
@@ -3909,6 +3916,7 @@ function getPeopleContent() {
         'Samantha Chang': [
             { key: 'heritageExplorer' }
         ],
+                'Annie Chang': [{ key: 'heritageExplorer' }],
                 'Muhammad Zain Zeeshan Malik': [
             { key: 'aiResearchDiscovery' }
         ],
