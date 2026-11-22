@@ -21,6 +21,7 @@ COPY website/EEL_Logo.png website/EEL_Logo.svg website/EELRedraw.svg website/EEL
 COPY website/favicon.ico website/favicon.png website/apple-touch-icon.png ./
 COPY website/headshots/ ./headshots/
 COPY website/images/ ./images/
+COPY website/drone/ ./images/drone/
 
 # OpenShift runs containers as an arbitrary non-root UID in group 0.
 # Set ownership and group-write permissions AFTER all COPY steps so
