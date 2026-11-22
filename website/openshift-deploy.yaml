@@ -39,7 +39,7 @@ items:
               secretKeyRef:
                 name: eel-secrets
                 key: admin-password
-                 - name: NOTIFY_EMAILS
+          - name: NOTIFY_EMAILS
             value: "mahaney@cs.unc.edu"
           # UNC campus SMTP relay — no authentication required from campus subnets.
           # relay.unc.edu accepts connections from UNC IP space (which CloudApps uses).
@@ -51,7 +51,8 @@ items:
           - name: SMTP_FROM
             value: "wilk05@unc.edu"
           - name: SITE_URL
-            value: "https://eel-website.apps.cloudapps.unc.edu"
+            # Public URL for the dept-eel deployment; used in CORS and email links.
+            value: "https://eel.unc.edu"
           volumeMounts:
           - name: data-volume
             mountPath: /app/backend/data
@@ -101,6 +102,8 @@ items:
       app: eel-website
 
 # Route (external access)
+# The departmental CloudApps route is eel-website-dept-eel.apps.cloudapps.unc.edu.
+# eel.unc.edu is the public hostname for the same deployment.
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:

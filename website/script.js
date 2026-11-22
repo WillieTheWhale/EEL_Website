@@ -3434,7 +3434,7 @@ function getPeopleContent() {
             name: 'Alexander Yevchenko',
             major: 'Computer Science, Business & Physics',
             status: 'Junior',
-            graduation: 'December 2027',
+            graduation: 'May 2028',
             project: 'Alexander co-developed a real-time flex-sensor glove with Sofia Morais to study swimmer hand positioning, with applications in sports, rehabilitation, and virtual reality.',
             headshot: 'headshots/alexander-yevchenko.png',
             linkedin: 'https://www.linkedin.com/in/alexanderyevchenko'
