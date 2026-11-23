@@ -3278,6 +3278,10 @@ function getPeopleContent() {
     }
 
         const specialAccolades = {
+                    'Matthew Huang': {
+            badge: 'Pursuing an MS in Artificial Intelligence',
+            subtitle: 'University of Colorado Boulder'
+        },
         'Lily Foo': {
             badge: 'Best Aluminum TIG Welder',
                         subtitle: 'Fall 2025 & Spring 2026'
@@ -3682,13 +3686,7 @@ function getPeopleContent() {
             graduation: 'May 2030',
             headshot: 'headshots/xilun-wang.png'
         },
-        {
-            name: 'Matthew Huang',
-            affiliation: 'High school student pursuing an MS in Artificial Intelligence at the University of Colorado Boulder',
-            graduation: 'June 2029 (high school)',
-            headshot: 'headshots/matthew-huang.png',
-            linkedin: 'https://www.linkedin.com/in/the-matthew-huang/'
-        },
+       
                {
             name: 'Muhammad Zain Zeeshan Malik',
             major: 'Computer Science and Economics',
@@ -3719,6 +3717,13 @@ function getPeopleContent() {
        ];
 
     const highSchoolInterns = [
+                {
+            name: 'Matthew Huang',
+            role: 'High School Research Intern',
+            graduation: 'June 2029',
+            headshot: 'headshots/matthew-huang.png',
+            linkedin: 'https://www.linkedin.com/in/the-matthew-huang/'
+        },
                {
             name: 'Griffin Schultz',
             role: 'High School Research Intern',
@@ -4338,6 +4343,7 @@ function getPeopleContent() {
         }
 
         parts.push(
+                        accoladeBadge(intern.name),
             renderMemberProjects(intern.name),
             '</div>'
         );
