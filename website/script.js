@@ -3676,6 +3676,19 @@ function getPeopleContent() {
             headshot: 'headshots/annie-chang.png',
             linkedin: 'https://www.linkedin.com/in/annie-chang-b85809298/'
         },
+                {
+            name: 'Xilun "Yolanda" Wang',
+            major: 'Mathematics',
+            graduation: 'May 2030',
+            headshot: 'headshots/xilun-wang.png'
+        },
+        {
+            name: 'Matthew Huang',
+            affiliation: 'High school student pursuing an MS in Artificial Intelligence at the University of Colorado Boulder',
+            graduation: 'June 2029 (high school)',
+            headshot: 'headshots/matthew-huang.png',
+            linkedin: 'https://www.linkedin.com/in/the-matthew-huang/'
+        },
                {
             name: 'Muhammad Zain Zeeshan Malik',
             major: 'Computer Science and Economics',
@@ -3743,6 +3756,7 @@ function getPeopleContent() {
         eelWebsite: 'EEL Website Development',
         augmentedAurality: 'Augmented Aurality',
                 heritageExplorer: 'Interactive 3D Heritage Explorer',
+                   nepalInterviewTranslation: 'Nepal Interview Transcription and Translation',
         reliable3D: 'Reliable 3D Reconstruction with Radiance Fields',
         floodLens: 'FloodLens',
                              rcVehicleDynamics: 'RC Vehicle Dynamics',
@@ -3917,6 +3931,8 @@ function getPeopleContent() {
             { key: 'heritageExplorer' }
         ],
                 'Annie Chang': [{ key: 'heritageExplorer' }],
+                'Xilun "Yolanda" Wang': [{ key: 'heritageExplorer' }],
+        'Matthew Huang': [{ key: 'nepalInterviewTranslation' }],
                 'Muhammad Zain Zeeshan Malik': [
             { key: 'aiResearchDiscovery' }
         ],
